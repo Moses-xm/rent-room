@@ -1,0 +1,16 @@
+.logoBox {
+  height: 80px;
+  display: flex;
+  align-items: center;
+  margin-left: 12px;
+
+  .logo {
+    cursor: pointer;
+  }
+
+  h3 {
+    margin-left: 16px;
+    font-size: larger;
+    color: aliceblue;
+  }
+}

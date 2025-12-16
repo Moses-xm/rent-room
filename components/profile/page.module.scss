@@ -1,0 +1,17 @@
+.profile {
+  display: flex;
+  align-items: center;
+  margin-right: 26px;
+
+  .username {
+    margin-right: 10px;
+  }
+
+  .logout {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    gap: 6px;
+    margin-left: 16px;
+  }
+}
