@@ -1,25 +1,22 @@
 'use client';
-import {
-  ContactsOutlined,
-  HomeOutlined,
-  MenuFoldOutlined,
-  MenuUnfoldOutlined,
-} from '@ant-design/icons';
+import { MenuFoldOutlined, MenuUnfoldOutlined } from '@ant-design/icons';
 import { useMemo, useState } from 'react';
 import { Button, Layout, Menu, Image, theme } from 'antd';
 const { Header, Sider, Content } = Layout;
 import { usePathname, useRouter } from 'next/navigation';
 import Profile from '@/components/profile/page';
+import { MngRouteList, FontFamily } from '@/utils/constants';
 import styles from './layout.module.scss';
 
-const RouteList = [
-  {
-    key: 'user',
-    label: 'User Management',
-    path: '/user',
-    icon: <ContactsOutlined />,
-  },
-];
+const getIcon = (icon) => {
+  if (!icon) {
+    return '';
+  }
+  if (typeof icon === 'string') {
+    return <i className={`${FontFamily} ${icon}`} style={{ marginRight: 8 }} />;
+  }
+  return icon;
+};
 
 export default function RootLayout({ children }) {
   const logoSource = '/images/logo3.png';
@@ -32,37 +29,35 @@ export default function RootLayout({ children }) {
   } = theme.useToken();
 
   const routeList = useMemo(() => {
-    const welcome = {
-      key: 'welcome',
-      label: 'Welcome',
-      path: '/',
-      icon: <HomeOutlined />,
-    };
-    return [welcome, ...RouteList];
+    return MngRouteList?.map((item) => ({
+      ...item,
+      path: '/mng' + item?.path,
+      icon: getIcon(item?.icon),
+    }));
   }, []);
 
   const selectedKey = useMemo(() => {
     return (
-      RouteList.find((item) => path.startsWith(item?.path))?.key ?? 'welcome'
+      routeList.find((item) => path.startsWith(item?.path))?.key ?? 'welcome'
     );
-  }, [path]);
+  }, [path, routeList]);
 
   return (
     <Layout style={{ height: '100vh' }}>
-      <Sider trigger={null} collapsible collapsed={collapsed} width={250}>
+      <Sider trigger={null} collapsible collapsed={collapsed} width={230}>
         <div className={styles.logoBox}>
           {collapsed === false && (
             <Image
               src={logoSource}
               alt="logo"
-              height={40}
+              height={30}
               style={{ objectFit: 'contain' }}
               preview={false}
               className={styles.logo}
               onClick={() => nav.push('/')}
             />
           )}
-          <h3>WIP {collapsed === false ? 'Planner' : ''} </h3>
+          <h3>雅阁租房系统</h3>
         </div>
         <Menu
           theme="dark"

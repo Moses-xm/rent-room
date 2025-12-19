@@ -1,5 +1,6 @@
 import AntdProvider from '@/components/AntdProvider/page';
 import './globals.css';
+import '@/public/font/iconfont.css';
 
 export const metadata = {
   title: 'Create Next App',
