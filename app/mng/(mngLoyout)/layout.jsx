@@ -19,7 +19,7 @@ const getIcon = (icon) => {
 };
 
 export default function RootLayout({ children }) {
-  const logoSource = '/images/logo3.png';
+  const logoSource = '/images/logo2.png';
   const [collapsed, setCollapsed] = useState(false);
   const path = usePathname();
   const nav = useRouter();
@@ -50,11 +50,11 @@ export default function RootLayout({ children }) {
             <Image
               src={logoSource}
               alt="logo"
-              height={30}
+              height={40}
               style={{ objectFit: 'contain' }}
               preview={false}
               className={styles.logo}
-              onClick={() => nav.push('/')}
+              onClick={() => nav.push('/mng')}
             />
           )}
           <h3>雅阁租房系统</h3>
