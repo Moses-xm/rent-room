@@ -5,7 +5,7 @@ export default function Home() {
     <div style={{ padding: '20px' }}>
       <ul>
         <li>
-          <Link href="/mng">管理平台</Link>
+          <Link href="/manage">管理平台</Link>
         </li>
         <li>
           <Link href="/portal">客户端平台</Link>

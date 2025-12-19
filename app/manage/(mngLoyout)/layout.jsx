@@ -32,7 +32,7 @@ export default function RootLayout({ children }) {
   const routeList = useMemo(() => {
     return MngRouteList?.map((item) => ({
       ...item,
-      path: '/mng' + item?.path,
+      path: '/manage' + item?.path,
       icon: getIcon(item?.icon),
     }));
   }, []);
