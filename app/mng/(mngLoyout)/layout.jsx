@@ -4,7 +4,8 @@ import { useMemo, useState } from 'react';
 import { Button, Layout, Menu, Image, theme } from 'antd';
 const { Header, Sider, Content } = Layout;
 import { usePathname, useRouter } from 'next/navigation';
-import Profile from '@/components/profile/page';
+import Profile from '@/components/Profile/page';
+import CityPicker from '@/components/CityPicker/page';
 import { MngRouteList, FontFamily } from '@/utils/constants';
 import styles from './layout.module.scss';
 
@@ -92,6 +93,7 @@ export default function RootLayout({ children }) {
               height: 64,
             }}
           />
+          <CityPicker />
           <Profile />
         </Header>
         <Content

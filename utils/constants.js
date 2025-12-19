@@ -18,6 +18,8 @@ export const DirectionOptions = [
   '西北',
 ];
 
+export const DefaultCity = '杭州市';
+
 export const MngRouteList = [
   {
     key: 'welcome',
