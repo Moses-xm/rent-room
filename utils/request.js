@@ -1,7 +1,7 @@
 'use client';
 import { getNotificationInstance } from '@/contexts/NotificationContext';
 
-const getToken = () => localStorage.getItem('X-Token');
+const getToken = () => localStorage.getItem('authorization');
 
 // Request interceptor - Automatically adds Authorization header if token exists
 const requestInterceptor = (options) => {
@@ -15,7 +15,7 @@ const requestInterceptor = (options) => {
       'Content-Type': 'application/json',
       Accept: 'application/json',
       ...headers,
-      ...(token ? { 'X-Token': token } : {}),
+      ...(token ? { 'authorization': token } : {}),
     },
   };
 };
@@ -38,16 +38,10 @@ async function request(url, options) {
       const errorText = response.statusText;
       if (status === 401) {
         // Unauthorized
-        window.location.href = '/login';
-      }
-      if (status === 500) {
-        const data = await response.json();
-        handleError(data?.message);
-        return;
+        window.location.href = '/manage/login';
       }
       handleError(errorText || `Request error ${status}`);
     }
-
     let data = null;
     try {
       data = await response.json();
