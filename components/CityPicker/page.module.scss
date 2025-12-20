@@ -4,6 +4,8 @@
   .city {
     position: relative;
     margin-left: 4px;
+    width: fit-content;
+
     &:hover {
       .city_box {
         display: block;

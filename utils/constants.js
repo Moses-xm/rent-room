@@ -20,6 +20,8 @@ export const DirectionOptions = [
 
 export const DefaultCity = '杭州市';
 
+export const DefaultAvatarUrl = '/images/defaultAvatar.jpeg';
+
 export const MngRouteList = [
   {
     key: 'welcome',
