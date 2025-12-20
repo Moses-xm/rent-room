@@ -1,4 +1,4 @@
-import AntdProvider from '@/components/AntdProvider/page';
+import AntdProvider from '@/components/AntdProvider';
 import './globals.css';
 import '@/public/font/iconfont.css';
 

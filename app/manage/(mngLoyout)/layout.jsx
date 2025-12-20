@@ -4,8 +4,8 @@ import { useMemo, useState } from 'react';
 import { Button, Layout, Menu, Image, theme } from 'antd';
 const { Header, Sider, Content } = Layout;
 import { usePathname, useRouter } from 'next/navigation';
-import Profile from '@/components/Profile/page';
-import CityPicker from '@/components/CityPicker/page';
+import Profile from '@/components/Profile';
+import CityPicker from '@/components/CityPicker';
 import { MngRouteList, FontFamily } from '@/utils/constants';
 import styles from './layout.module.scss';
 

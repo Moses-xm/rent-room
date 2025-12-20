@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { Avatar, Button, Modal, Dropdown } from 'antd';
 import { LogoutOutlined, ExclamationCircleOutlined } from '@ant-design/icons';
-import styles from './page.module.scss';
+import styles from './index.module.scss';
 import { useRouter } from 'next/navigation';
 import { useLogin } from '@/hooks/useLogin';
 import { handleLogout } from '@/utils/utils';

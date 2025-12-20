@@ -1,6 +1,6 @@
 'use client';
 import React, { useState } from 'react';
-import styles from './page.module.scss';
+import styles from './index.module.scss';
 import { CaretDownOutlined } from '@ant-design/icons';
 import { Modal } from 'antd';
 import AreaSimple from '@/localData/areaSimple.json';

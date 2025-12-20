@@ -17,7 +17,7 @@ export default function Login() {
 
   const onFinish = (values) => {
     if (!verified) {
-      message.error('请先验证');
+      message.error('请先进行滑块验证');
       return;
     }
     setLoading(true);
