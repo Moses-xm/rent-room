@@ -19,7 +19,7 @@ const getIcon = (icon) => {
   return icon;
 };
 
-export default function RootLayout({ children }) {
+export default function ManageLayout({ children }) {
   const logoSource = '/images/logo2.png';
   const [collapsed, setCollapsed] = useState(false);
   const path = usePathname();
@@ -37,11 +37,15 @@ export default function RootLayout({ children }) {
     }));
   }, []);
 
+  console.log('routeList', routeList);
+
   const selectedKey = useMemo(() => {
     return (
       routeList.find((item) => path.startsWith(item?.path))?.key ?? 'welcome'
     );
   }, [path, routeList]);
+
+  console.log('selectedKey', selectedKey);
 
   return (
     <Layout style={{ height: '100vh' }}>
@@ -55,7 +59,7 @@ export default function RootLayout({ children }) {
               style={{ objectFit: 'contain' }}
               preview={false}
               className={styles.logo}
-              onClick={() => nav.push('/mng')}
+              onClick={() => nav.push('/manage')}
             />
           )}
           <h3>雅阁租房系统</h3>
@@ -68,9 +72,10 @@ export default function RootLayout({ children }) {
             key: item.key,
             icon: item.icon,
             label: item.label,
+            path: item.path,
           }))}
           onClick={(e) => {
-            nav.push(`/${e.key}`);
+            nav.push(`/${e.path}`);
           }}
         />
       </Sider>
