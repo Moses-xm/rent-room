@@ -1,7 +1,0 @@
-<svg width="200" height="200" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
-  <!-- 抽象房屋图标 -->
-  <path d="M50 120 L150 120 L150 160 L50 160 Z" fill="#7649dd" opacity="0.8" />
-  <path d="M40 120 L160 120 L100 60 Z" fill="#7649dd" />
-  <!-- 中心的亮点 -->
-  <circle cx="100" cy="90" r="8" fill="white" opacity="0.7" />
-</svg>
