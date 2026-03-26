@@ -6,4 +6,23 @@
   --color-manage-dark: #5b21b6;
   --color-portal: #0ea5e9;
   --color-portal-dark: #0284c7;
+
+  /* Primary color generation */
+  --color-primary: var(--theme-primary);
+  --color-primary-50: var(--theme-primary-50);
+  --color-primary-100: var(--theme-primary-100);
+  --color-primary-200: var(--theme-primary-200);
+  --color-primary-600: var(--theme-primary-600);
+}
+
+:root {
+  --theme-primary: #7c3aed; /* 雅阁紫作为全局基石侧边栏色 */
+  --theme-primary-50: color-mix(in srgb, var(--theme-primary) 10%, white);
+  --theme-primary-100: color-mix(in srgb, var(--theme-primary) 20%, white);
+  --theme-primary-200: color-mix(in srgb, var(--theme-primary) 40%, white);
+  --theme-primary-600: color-mix(in srgb, var(--theme-primary) 85%, black);
+}
+
+html, body {
+  font-family: var(--font-sans);
 }
