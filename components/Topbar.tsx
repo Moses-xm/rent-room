@@ -8,6 +8,7 @@ export function Topbar() {
   // Simple mocked breadcrumbs
   const getSubpage = () => {
     if (pathname.includes("/room")) return "房源管理";
+    if (pathname.includes("/admin")) return "员工管理";
     if (pathname === "/manage") return "数据看板";
     return "";
   };
