@@ -92,7 +92,7 @@ export default function AdminFormModal({ state, onClose, onSaved }: Props) {
             <div className="relative w-full max-w-md bg-white rounded-2xl shadow-xl overflow-hidden animate-in zoom-in-95 duration-200">
                 <div className="px-6 py-4 flex items-center justify-between border-b border-slate-100">
                     <h2 className="text-lg font-bold text-slate-900">
-                        {editingId ? "编辑管理员" : "添加人员"}
+                        {editingId ? "编辑管理员信息" : "添加新管理员"}
                     </h2>
                     <button onClick={onClose} className="p-1 rounded-md text-slate-400 hover:text-slate-600 hover:bg-slate-50 transition-colors">
                         <X size={20} />
@@ -167,7 +167,7 @@ export default function AdminFormModal({ state, onClose, onSaved }: Props) {
                         <button type="button" onClick={onClose} disabled={isSubmitting} className="px-6 py-2.5 text-sm font-bold text-slate-600 hover:text-slate-800 transition-colors">取消</button>
                         <button type="submit" disabled={isSubmitting} className="px-8 py-2.5 bg-primary text-white text-sm font-bold rounded-xl shadow-md hover:bg-primary-600 transition-all flex items-center gap-2 active:scale-95 disabled:opacity-50">
                             {isSubmitting && <Loader2 size={16} className="animate-spin" />}
-                            {editingId ? "保存修改" : "确认添加"}
+                            {editingId ? "保存管理员信息" : "确认创建账号"}
                         </button>
                     </div>
                 </form>

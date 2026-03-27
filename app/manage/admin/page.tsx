@@ -144,8 +144,8 @@ export default function AdminPage() {
             
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <div>
-                    <h1 className="text-2xl font-bold text-slate-900">员工管理</h1>
-                    <p className="text-sm text-slate-500 mt-1">全局管理员账户维护，支持状态管控。所有的操作将被安全审计记录。</p>
+                    <h1 className="text-2xl font-bold text-slate-900">管理员管理</h1>
+                    <p className="text-sm text-slate-500 mt-1">系统管理员账户维护与权限状态管控，所有操作将计入安全审计日志。</p>
                 </div>
                 <button 
                     onClick={() => setModalState({ mode: "add" })}
@@ -222,14 +222,14 @@ export default function AdminPage() {
                                             <button 
                                                 onClick={() => setModalState({ mode: "edit", admin })}
                                                 className="p-2 text-slate-400 hover:text-primary hover:bg-primary-50 rounded-lg transition-all active:scale-95"
-                                                title="修改此账户"
+                                                title="编辑管理员"
                                             >
                                                 <Pencil size={16} />
                                             </button>
                                             <button 
                                                 onClick={() => setDeleteTarget(admin)}
                                                 className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all active:scale-95"
-                                                title="从系统抹除"
+                                                title="删除管理员"
                                             >
                                                 <Trash2 size={16} />
                                             </button>
@@ -283,14 +283,14 @@ export default function AdminPage() {
                             <Trash2 size={32} />
                         </div>
                         <div className="space-y-2">
-                            <h3 className="text-xl font-bold text-slate-900">执行毁灭性操作？</h3>
+                            <h3 className="text-xl font-bold text-slate-900">确认删除管理员？</h3>
                             <p className="text-sm text-slate-500">
-                                管理员 <span className="font-bold text-slate-900">{deleteTarget.username}</span> 将被永久注销。数据一旦抹除，将无法在云端控制台找回！
+                                管理员账户 <span className="font-bold text-slate-900">{deleteTarget.username}</span> 将被永久注销。此操作不可撤销，账户相关的数据及权限将被同步抹除。
                             </p>
                         </div>
                         <div className="flex gap-3 pt-2">
-                            <button onClick={() => setDeleteTarget(null)} className="flex-1 px-4 py-2.5 text-sm font-bold text-slate-600 hover:bg-slate-100 rounded-xl transition-colors">冷静一下</button>
-                            <button onClick={confirmDelete} className="flex-1 px-4 py-2.5 text-sm font-bold bg-red-500 text-white hover:bg-red-600 rounded-xl shadow-lg shadow-red-100 active:scale-95 transition-all">执行删除</button>
+                            <button onClick={() => setDeleteTarget(null)} className="flex-1 px-4 py-2.5 text-sm font-bold text-slate-600 hover:bg-slate-100 rounded-xl transition-colors">取消操作</button>
+                            <button onClick={confirmDelete} className="flex-1 px-4 py-2.5 text-sm font-bold bg-red-500 text-white hover:bg-red-600 rounded-xl shadow-lg shadow-red-100 active:scale-95 transition-all">确认删除</button>
                         </div>
                     </div>
                 </div>

@@ -7,7 +7,7 @@ import { ChevronsLeft, ChevronsRight } from "lucide-react";
 const navItems = [
   { icon: "❖", label: "数据看板", path: "/manage" },
   { icon: "🏠", label: "房源管理", path: "/manage/room" },
-  { icon: "👤", label: "员工管理", path: "/manage/admin" },
+  { icon: "👤", label: "管理员管理", path: "/manage/admin" },
 ];
 
 export function Sidebar({ isCollapsed, toggleCollapse }: { isCollapsed: boolean, toggleCollapse: () => void }) {
