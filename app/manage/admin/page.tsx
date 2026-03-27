@@ -42,6 +42,16 @@ type AdminsResponse = { success: boolean; data: Admin[]; total: number; page: nu
 
 type FetchParams = { page: number; limit: number; search?: string };
 
+const adminToast = {
+    loadError: "管理员列表加载失败",
+    createSuccess: "管理员创建成功",
+    createError: "管理员创建失败",
+    updateSuccess: "管理员信息修改成功",
+    updateError: "管理员信息修改失败",
+    deleteSuccess: "管理员删除成功",
+    deleteError: "管理员删除失败",
+} as const;
+
 async function fetchAdmins(params: FetchParams): Promise<AdminsResponse> {
     const qs = new URLSearchParams();
     qs.set("page", String(params.page));
@@ -80,7 +90,7 @@ export default function AdminPage() {
             })
             .catch((err) => {
                 console.error(err);
-                toast.error("加载列表失败");
+                toast.error(adminToast.loadError);
             })
             .finally(() => setLoading(false));
     };
@@ -112,14 +122,14 @@ export default function AdminPage() {
         try {
             if (editingId) {
                 await request(`/admin/${editingId}`, { method: "PUT", json: data });
-                toast.success("信息已同步至云端");
+                toast.success(adminToast.updateSuccess);
             } else {
                 await request("/admin", { method: "POST", json: data });
-                toast.success("管理员账号创建成功");
+                toast.success(adminToast.createSuccess);
             }
             refreshData();
         } catch (err: any) {
-            toast.error(err.message || "同步失败");
+            toast.error(err.message || (editingId ? adminToast.updateError : adminToast.createError));
             throw err;
         }
     };
@@ -130,9 +140,9 @@ export default function AdminPage() {
             await request(`/admin/${deleteTarget.id}`, { method: "DELETE" });
             setDeleteTarget(null);
             refreshData();
-            toast.success("账号已永久删除");
+            toast.success(adminToast.deleteSuccess);
         } catch (err: any) {
-            toast.error(err.message || "删除操作被阻止");
+            toast.error(err.message || adminToast.deleteError);
         }
     };
 
