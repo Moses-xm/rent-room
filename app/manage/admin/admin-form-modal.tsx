@@ -32,7 +32,7 @@ type Props = {
 };
 
 const inputCls = (err?: string) =>
-    `w-full rounded-lg border px-4 py-2 text-sm bg-white shadow-sm outline-none transition-all ${err
+    `w-full rounded-xl border px-4 py-3 text-sm leading-6 tracking-normal bg-white shadow-sm outline-none transition-all ${err
         ? "border-red-400 focus:border-red-500 focus:ring-1 focus:ring-red-100"
         : "border-slate-200 focus:border-primary focus:ring-2 focus:ring-primary-100"}`;
 
@@ -89,83 +89,106 @@ export default function AdminFormModal({ state, onClose, onSaved }: Props) {
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm animate-in fade-in duration-200">
-            <div className="relative w-full max-w-md bg-white rounded-2xl shadow-xl overflow-hidden animate-in zoom-in-95 duration-200">
-                <div className="px-6 py-4 flex items-center justify-between border-b border-slate-100">
-                    <h2 className="text-lg font-bold text-slate-900">
-                        {editingId ? "编辑管理员信息" : "添加新管理员"}
-                    </h2>
-                    <button onClick={onClose} className="p-1 rounded-md text-slate-400 hover:text-slate-600 hover:bg-slate-50 transition-colors">
+            <div className="relative w-full max-w-xl overflow-hidden rounded-3xl bg-white shadow-2xl animate-in zoom-in-95 duration-200">
+                <div className="flex items-start justify-between border-b border-slate-100 px-7 py-6">
+                    <div className="space-y-1">
+                        <h2 className="text-xl font-bold text-slate-900">
+                            {editingId ? "编辑管理员信息" : "添加新管理员"}
+                        </h2>
+                        <p className="text-sm text-slate-500">
+                            {editingId
+                                ? "更新管理员账号资料与登录状态。"
+                                : "填写基础信息后即可创建新的管理员账号。"}
+                        </p>
+                    </div>
+                    <button onClick={onClose} className="rounded-xl p-2 text-slate-400 hover:bg-slate-50 hover:text-slate-600 transition-colors">
                         <X size={20} />
                     </button>
                 </div>
 
-                <form onSubmit={handleSubmit} className="p-6 space-y-4 max-h-[80vh] overflow-y-auto">
-                    <div className="space-y-1.5">
-                        <label className="text-sm font-bold text-slate-700">管理员用户名</label>
-                        <input
-                            type="text"
-                            value={form.username}
-                            onChange={e => setForm({ ...form, username: e.target.value })}
-                            className={inputCls(errors.username)}
-                            placeholder="如：admin-user"
-                        />
-                        {errors.username && <p className="text-xs text-red-500">{errors.username}</p>}
-                    </div>
-
-                    <div className="space-y-1.5">
-                        <label className="text-sm font-bold text-slate-700">账号状态</label>
-                        <div className="flex items-center gap-3 bg-slate-50 p-3 rounded-xl border border-dotted border-slate-300">
-                           <button
-                             type="button"
-                             onClick={() => setForm({...form, isActive: !form.isActive})}
-                             className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${form.isActive ? 'bg-primary' : 'bg-slate-200'}`}
-                           >
-                             <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${form.isActive ? 'translate-x-6' : 'translate-x-1'}`} />
-                           </button>
-                           <span className={`text-sm font-bold ${form.isActive ? 'text-primary' : 'text-slate-400'}`}>
-                             {form.isActive ? '已启用 (Active)' : '已禁用 (Disabled)'}
-                           </span>
-                        </div>
-                    </div>
-
-                    <div className="space-y-1.5">
-                        <label className="text-sm font-bold text-slate-700">头像地址</label>
-                        <input
-                            type="url"
-                            value={form.avatar}
-                            onChange={e => setForm({ ...form, avatar: e.target.value })}
-                            className={inputCls()}
-                            placeholder="https://..."
-                        />
-                    </div>
-
-                    <div className="space-y-1.5">
-                        <label className="text-sm font-bold text-slate-700">
-                            登录密码
-                            {editingId && <span className="ml-1 text-xs font-normal text-slate-400">(留空不修改)</span>}
-                        </label>
-                        <div className="relative">
+                <form onSubmit={handleSubmit} className="max-h-[80vh] space-y-6 overflow-y-auto px-7 py-7">
+                    <div className="grid gap-5 md:grid-cols-2">
+                        <div className="space-y-2 md:col-span-2">
+                            <label className="text-sm font-bold text-slate-700">用户名</label>
                             <input
-                                type={showPw ? "text" : "password"}
-                                value={form.password}
-                                onChange={e => setForm({ ...form, password: e.target.value })}
-                                className={inputCls(errors.password) + " pr-11"}
-                                placeholder="******"
+                                type="text"
+                                value={form.username}
+                                onChange={e => setForm({ ...form, username: e.target.value })}
+                                className={inputCls(errors.username)}
+                                placeholder="如：admin-user"
                             />
-                            <button
-                                type="button"
-                                onClick={() => setShowPw(v => !v)}
-                                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-1"
-                            >
-                                {showPw ? <EyeOff size={18} /> : <Eye size={18} />}
-                            </button>
+                            {errors.username && <p className="text-xs text-red-500">{errors.username}</p>}
                         </div>
-                        {errors.password && <p className="text-xs text-red-500">{errors.password}</p>}
+
+                        <div className="space-y-2 md:col-span-2">
+                            <label className="text-sm font-bold text-slate-700">账号状态</label>
+                            <div className="flex items-center justify-between gap-4 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4">
+                                <div className="space-y-1">
+                                    <p className="text-sm font-semibold text-slate-800">
+                                        {form.isActive ? "账号已启用" : "账号已禁用"}
+                                    </p>
+                                    <p className="text-xs text-slate-500">
+                                        {form.isActive
+                                            ? "启用后可正常登录并使用管理功能。"
+                                            : "禁用后该账号将无法继续登录。"}
+                                    </p>
+                                </div>
+                                <button
+                                    type="button"
+                                    onClick={() => setForm({ ...form, isActive: !form.isActive })}
+                                    className={`relative inline-flex h-7 w-12 shrink-0 items-center rounded-full transition-colors ${form.isActive ? 'bg-primary' : 'bg-slate-300'}`}
+                                >
+                                    <span className={`inline-block h-5 w-5 transform rounded-full bg-white shadow-sm transition-transform ${form.isActive ? 'translate-x-6' : 'translate-x-1'}`} />
+                                </button>
+                            </div>
+                        </div>
+
+                        <div className="space-y-2 md:col-span-2">
+                            <label className="text-sm font-bold text-slate-700">头像地址</label>
+                            <input
+                                type="url"
+                                value={form.avatar}
+                                onChange={e => setForm({ ...form, avatar: e.target.value })}
+                                className={inputCls()}
+                                placeholder="https://example.com/avatar.png"
+                            />
+                        </div>
                     </div>
 
-                    <div className="flex justify-end gap-3 pt-4 border-t border-slate-50 mt-4">
-                        <button type="button" onClick={onClose} disabled={isSubmitting} className="px-6 py-2.5 text-sm font-bold text-slate-600 hover:text-slate-800 transition-colors">取消</button>
-                        <button type="submit" disabled={isSubmitting} className="px-8 py-2.5 bg-primary text-white text-sm font-bold rounded-xl shadow-md hover:bg-primary-600 transition-all flex items-center gap-2 active:scale-95 disabled:opacity-50">
+                    <div className="rounded-2xl border border-slate-200 bg-slate-50/70 p-5">
+                        <div className="space-y-2">
+                            <label className="text-sm font-bold text-slate-700">
+                                登录密码
+                                {editingId && <span className="ml-1 text-xs font-normal text-slate-400">(留空不修改)</span>}
+                            </label>
+                            <div className="relative">
+                                <input
+                                    type={showPw ? "text" : "password"}
+                                    value={form.password}
+                                    onChange={e => setForm({ ...form, password: e.target.value })}
+                                    className={inputCls(errors.password) + " pr-12"}
+                                    placeholder={editingId ? "不修改请留空" : "请输入登录密码"}
+                                />
+                                <button
+                                    type="button"
+                                    onClick={() => setShowPw(v => !v)}
+                                    className="absolute right-3 top-1/2 -translate-y-1/2 rounded-lg p-1.5 text-slate-400 hover:bg-white hover:text-slate-600"
+                                >
+                                    {showPw ? <Eye size={18} /> : <EyeOff size={18} />}
+                                </button>
+                            </div>
+                            <p className="text-xs text-slate-500">
+                                {editingId ? "如果不需要修改密码，可保持为空。" : "请设置管理员账号的登录密码。"}
+                            </p>
+                            {errors.password && <p className="text-xs text-red-500">{errors.password}</p>}
+                        </div>
+                    </div>
+
+                    <div className="flex justify-end gap-3 border-t border-slate-100 pt-5">
+                        <button type="button" onClick={onClose} disabled={isSubmitting} className="px-6 py-2.5 text-sm font-bold text-slate-600 hover:text-slate-800 transition-colors">
+                            取消
+                        </button>
+                        <button type="submit" disabled={isSubmitting} className="flex items-center gap-2 rounded-xl bg-primary px-8 py-3 text-sm font-bold text-white shadow-md transition-all hover:bg-primary-600 active:scale-95 disabled:opacity-50">
                             {isSubmitting && <Loader2 size={16} className="animate-spin" />}
                             {editingId ? "保存管理员信息" : "确认创建账号"}
                         </button>
