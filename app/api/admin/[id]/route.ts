@@ -7,11 +7,23 @@ export async function PUT(req: Request, props: { params: Promise<{ id: string }>
     const { id } = await props.params;
     const adminId = parseInt(id);
     const body = await req.json();
-    const { username, password, avatar } = body;
+    const { username, password, avatar, isActive } = body;
+
+    const data: any = { 
+      username, 
+      avatar, 
+      isActive,
+      modified: new Date() 
+    };
+    
+    // Only update password if provided
+    if (password) {
+      data.password = password;
+    }
 
     const admin = await prisma.admin.update({
       where: { id: adminId },
-      data: { username, password, avatar, modified: new Date() },
+      data,
     });
     
     return NextResponse.json({ success: true, data: admin });

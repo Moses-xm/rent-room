@@ -12,6 +12,7 @@ model admin {
   username String    @unique @db.VarChar(50)
   password String    @db.VarChar(255)
   avatar   String?   @db.VarChar(500)
+  isActive Boolean   @default(true)
   modified DateTime? @default(now()) @db.Timestamp(6)
   created  DateTime? @default(now()) @db.Timestamp(6)
 }

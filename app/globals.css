@@ -12,17 +12,26 @@
   --color-primary-50: var(--theme-primary-50);
   --color-primary-100: var(--theme-primary-100);
   --color-primary-200: var(--theme-primary-200);
+  --color-primary-300: var(--theme-primary-300);
   --color-primary-600: var(--theme-primary-600);
 }
 
 :root {
-  --theme-primary: #7c3aed; /* 雅阁紫作为全局基石侧边栏色 */
+  --theme-primary: #7c3aed; /* 雅阁紫作为全局基石色 */
   --theme-primary-50: color-mix(in srgb, var(--theme-primary) 10%, white);
   --theme-primary-100: color-mix(in srgb, var(--theme-primary) 20%, white);
   --theme-primary-200: color-mix(in srgb, var(--theme-primary) 40%, white);
+  --theme-primary-300: color-mix(in srgb, var(--theme-primary) 60%, white);
   --theme-primary-600: color-mix(in srgb, var(--theme-primary) 85%, black);
 }
 
 html, body {
   font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Base styles to fix background if needed, but keeping it clean */
+.manage-content-bg {
+  background-color: #f8fafc; /* Slate 50 */
 }
