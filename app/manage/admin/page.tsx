@@ -19,6 +19,8 @@ import AdminFormModal, {
   type AdminFormData,
 } from './admin-form-modal';
 import ConfirmDialog from '@/components/ConfirmDialog';
+import AppLoading from '@/components/AppLoading';
+import LoadingDimmer from '@/components/LoadingDimmer';
 
 /* ─── Types ───────────────────────────────────────────────────────────────── */
 type Admin = {
@@ -51,8 +53,7 @@ function getErrorMessage(error: unknown) {
   return error instanceof Error ? error.message : undefined;
 }
 
-function getEmptyStateText(search: string, loading: boolean) {
-  if (loading) return '正在加载管理员列表...';
+function getEmptyStateText(search: string) {
   if (search.trim()) return '未找到符合条件的管理员账号';
   return '暂无管理员账号，请先创建账号';
 }
@@ -93,7 +94,8 @@ export default function AdminPage() {
   const [list, setList] = useState<Admin[]>([]);
   const [total, setTotal] = useState(0);
   const [totalPages, setTotalPages] = useState(1);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [hasLoadedOnce, setHasLoadedOnce] = useState(false);
 
   const [query, setQuery] = useState('');
   const [pageSize, setPageSize] = useState(10);
@@ -119,7 +121,10 @@ export default function AdminPage() {
         console.error(err);
         toast.error(adminToast.loadError);
       })
-      .finally(() => setLoading(false));
+      .finally(() => {
+        setLoading(false);
+        setHasLoadedOnce(true);
+      });
   };
 
   useEffect(() => {
@@ -227,8 +232,12 @@ export default function AdminPage() {
         />
       </div>
 
-      <div className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
-        <div className="overflow-x-auto">
+      {!hasLoadedOnce ? (
+        <AppLoading rows={5} columns={5} />
+      ) : (
+      <div className="relative bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
+        <LoadingDimmer loading={loading}>
+          <div className="overflow-x-auto">
           <table className="w-full text-left whitespace-nowrap">
             <thead className="bg-slate-100/80 border-b border-slate-200">
               <tr>
@@ -253,12 +262,16 @@ export default function AdminPage() {
               {list.length === 0 ? (
                 <tr>
                   <td colSpan={5} className="py-24 text-center">
-                    <div className="flex flex-col items-center gap-3 opacity-30">
+                    {loading ? (
+                      <div className="h-[140px]" />
+                    ) : (
+                      <div className="flex flex-col items-center gap-3 opacity-30">
                         <ShieldCheck size={48} className="text-slate-300" />
-                      <p className="text-sm font-bold text-slate-500">
-                        {getEmptyStateText(debouncedQuery, loading)}
-                      </p>
-                    </div>
+                        <p className="text-sm font-bold text-slate-500">
+                          {getEmptyStateText(debouncedQuery)}
+                        </p>
+                      </div>
+                    )}
                   </td>
                 </tr>
               ) : (
@@ -329,7 +342,8 @@ export default function AdminPage() {
               )}
             </tbody>
           </table>
-        </div>
+          </div>
+        </LoadingDimmer>
 
         {total > 0 && (
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4 px-6 py-5 bg-slate-50/30 border-t border-slate-100">
@@ -417,6 +431,7 @@ export default function AdminPage() {
           </div>
         )}
       </div>
+      )}
 
       <AdminFormModal
         state={modalState}
