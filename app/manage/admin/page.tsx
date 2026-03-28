@@ -51,6 +51,12 @@ function getErrorMessage(error: unknown) {
   return error instanceof Error ? error.message : undefined;
 }
 
+function getEmptyStateText(search: string, loading: boolean) {
+  if (loading) return '正在加载管理员列表...';
+  if (search.trim()) return '未找到符合条件的管理员账号';
+  return '暂无管理员账号，请先创建账号';
+}
+
 /* ─── API types ──────────────────────────────────────────────────────────── */
 type AdminsResponse = {
   success: boolean;
@@ -121,23 +127,21 @@ export default function AdminPage() {
   }, [page, pageSize, debouncedQuery]);
 
   const safePage = Math.min(page, totalPages || 1);
-  const startIdx = total === 0 ? 0 : (safePage - 1) * pageSize + 1;
-  const endIdx = Math.min(safePage * pageSize, total);
 
   const pageNums = useMemo(() => {
     const pages: (number | '...')[] = [];
-    if (totalPages <= 7) {
+    if (totalPages <= 9) {
       for (let i = 1; i <= totalPages; i++) pages.push(i);
     } else {
       pages.push(1);
-      if (safePage > 3) pages.push('...');
+      if (safePage > 4) pages.push('...');
       for (
-        let i = Math.max(2, safePage - 1);
-        i <= Math.min(totalPages - 1, safePage + 1);
+        let i = Math.max(2, safePage - 2);
+        i <= Math.min(totalPages - 1, safePage + 2);
         i++
       )
         pages.push(i);
-      if (safePage < totalPages - 2) pages.push('...');
+      if (safePage < totalPages - 3) pages.push('...');
       pages.push(totalPages);
     }
     return pages;
@@ -182,6 +186,9 @@ export default function AdminPage() {
 
   const navBtn =
     'flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 cursor-pointer hover:bg-slate-100 disabled:opacity-30 disabled:cursor-not-allowed transition-colors active:scale-95 border border-transparent';
+  const tableHeadCell =
+    'px-6 py-4 text-[15px] font-semibold text-slate-600 tracking-wide';
+  const pageSizeOptions = [5, 10, 20, 50];
 
   return (
     <div className="max-w-6xl mx-auto space-y-6">
@@ -189,16 +196,16 @@ export default function AdminPage() {
 
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900">管理员管理</h1>
+          <h1 className="text-2xl font-bold text-slate-900">管理员账号</h1>
           <p className="text-sm text-slate-500 mt-1">
-            系统管理员账户维护与权限状态管控，所有操作将计入安全审计日志。
+            统一维护管理员账号、启用状态与基础资料，相关操作将记录到审计日志。
           </p>
         </div>
         <button
           onClick={() => setModalState({ mode: 'add' })}
           className="flex items-center gap-2 px-5 py-2.5 bg-primary text-white text-sm font-bold rounded-xl shadow-lg shadow-primary-50 hover:bg-primary-600 transition-all active:scale-95"
         >
-          <Plus size={18} /> 新增管理员
+          <Plus size={18} /> 新建管理员
         </button>
       </div>
 
@@ -209,7 +216,8 @@ export default function AdminPage() {
         />
         <input
           type="text"
-          placeholder="输入关键词模糊检索..."
+          placeholder="搜索用户名或 UID"
+          aria-label="搜索管理员"
           value={query}
           onChange={(e) => {
             setQuery(e.target.value);
@@ -221,22 +229,22 @@ export default function AdminPage() {
 
       <div className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-sm whitespace-nowrap">
-            <thead className="bg-slate-50/50 border-b border-slate-100">
+          <table className="w-full text-left whitespace-nowrap">
+            <thead className="bg-slate-100/80 border-b border-slate-200">
               <tr>
-                <th className="px-6 py-4 text-xs font-bold text-slate-400 uppercase tracking-widest">
+                <th className={tableHeadCell}>
                   账号信息
                 </th>
-                <th className="px-6 py-4 text-xs font-bold text-slate-400 uppercase tracking-widest text-center">
+                <th className={`${tableHeadCell} text-center`}>
                   状态
                 </th>
-                <th className="px-6 py-4 text-xs font-bold text-slate-400 uppercase tracking-widest">
+                <th className={tableHeadCell}>
                   创建时间
                 </th>
-                <th className="px-6 py-4 text-xs font-bold text-slate-400 uppercase tracking-widest">
+                <th className={tableHeadCell}>
                   最后修改
                 </th>
-                <th className="px-6 py-4 text-xs font-bold text-slate-400 uppercase tracking-widest text-right">
+                <th className={`${tableHeadCell} text-right`}>
                   管理操作
                 </th>
               </tr>
@@ -246,11 +254,9 @@ export default function AdminPage() {
                 <tr>
                   <td colSpan={5} className="py-24 text-center">
                     <div className="flex flex-col items-center gap-3 opacity-30">
-                      <ShieldCheck size={48} className="text-slate-300" />
+                        <ShieldCheck size={48} className="text-slate-300" />
                       <p className="text-sm font-bold text-slate-500">
-                        {loading
-                          ? '加载中...'
-                          : '数据库中未匹配到相关管理员记录'}
+                        {getEmptyStateText(debouncedQuery, loading)}
                       </p>
                     </div>
                   </td>
@@ -275,10 +281,10 @@ export default function AdminPage() {
                           )}
                         </div>
                         <div>
-                          <p className="font-bold text-slate-900">
+                          <p className="text-[15px] font-bold text-slate-900">
                             {admin.username}
                           </p>
-                          <p className="text-[10px] text-slate-400 font-mono tracking-tighter opacity-70">
+                          <p className="text-xs text-slate-400 font-mono tracking-tight opacity-80">
                             UID:{admin.id}
                           </p>
                         </div>
@@ -286,7 +292,7 @@ export default function AdminPage() {
                     </td>
                     <td className="px-6 py-5 text-center">
                       <div
-                        className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold ${admin.isActive ? 'bg-emerald-50 text-emerald-600' : 'bg-slate-100 text-slate-400'}`}
+                        className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-semibold ${admin.isActive ? 'bg-emerald-50 text-emerald-600' : 'bg-slate-100 text-slate-500'}`}
                       >
                         <div
                           className={`h-1.5 w-1.5 rounded-full ${admin.isActive ? 'bg-emerald-500 animate-pulse' : 'bg-slate-300'}`}
@@ -294,27 +300,27 @@ export default function AdminPage() {
                         {admin.isActive ? '正常工作' : '暂停服务'}
                       </div>
                     </td>
-                    <td className="px-6 py-5 text-slate-500 font-medium font-mono text-xs">
+                    <td className="px-6 py-5 text-sm text-slate-600 font-medium font-mono">
                       {fmtDateTime(admin.created)}
                     </td>
-                    <td className="px-6 py-5 text-slate-500 font-medium font-mono text-xs">
+                    <td className="px-6 py-5 text-sm text-slate-600 font-medium font-mono">
                       {fmtDateTime(admin.modified)}
                     </td>
                     <td className="px-6 py-5 text-right">
                       <div className="flex justify-end items-center gap-1.5">
                         <button
                           onClick={() => setModalState({ mode: 'edit', admin })}
-                          className="p-2 text-slate-400 hover:text-primary hover:bg-primary-50 rounded-lg transition-all active:scale-95"
+                          className="p-2.5 text-slate-400 hover:text-primary hover:bg-primary-50 rounded-lg transition-all active:scale-95"
                           title="编辑管理员"
                         >
-                          <Pencil size={16} />
+                          <Pencil size={17} />
                         </button>
                         <button
                           onClick={() => setDeleteTarget(admin)}
-                          className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all active:scale-95"
+                          className="p-2.5 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all active:scale-95"
                           title="删除管理员"
                         >
-                          <Trash2 size={16} />
+                          <Trash2 size={17} />
                         </button>
                       </div>
                     </td>
@@ -327,9 +333,27 @@ export default function AdminPage() {
 
         {total > 0 && (
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4 px-6 py-5 bg-slate-50/30 border-t border-slate-100">
-            <div className="text-xs text-slate-400">
-              共检索到 <span className="text-slate-900 font-bold">{total}</span>{' '}
-              条记录
+            <div className="flex items-center gap-3 text-sm text-slate-500">
+              <span className="whitespace-nowrap">每页显示</span>
+              <select
+                value={pageSize}
+                onChange={(e) => {
+                  setPageSize(Number(e.target.value));
+                  setPage(1);
+                }}
+                aria-label="选择每页显示条数"
+                className="h-9 rounded-lg border border-slate-200 bg-white px-3 text-sm font-medium text-slate-700 shadow-sm outline-none transition focus:border-primary focus:ring-2 focus:ring-primary-50"
+              >
+                {pageSizeOptions.map((size) => (
+                  <option key={size} value={size}>
+                    {size}
+                  </option>
+                ))}
+              </select>
+              <span className="whitespace-nowrap">
+                条，共 <span className="font-semibold text-slate-900">{total}</span>{' '}
+                项
+              </span>
             </div>
 
             <div className="flex items-center gap-1.5">
@@ -347,6 +371,10 @@ export default function AdminPage() {
               >
                 <ChevronLeft size={16} />
               </button>
+              <span className="px-2 text-sm text-slate-500 whitespace-nowrap">
+                第 <span className="font-semibold text-slate-900">{safePage}</span> /{' '}
+                {totalPages} 页
+              </span>
               <div className="flex items-center gap-1 mx-2">
                 {pageNums.map((p, i) =>
                   p === '...' ? (
