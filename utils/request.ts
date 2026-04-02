@@ -1,3 +1,5 @@
+import { MANAGE_LOGIN_PATH, MANAGE_TOKEN_KEY } from "@/utils/manage-auth";
+
 const API_BASE = '/api';
 
 export type RequestOptions = Omit<RequestInit, 'body' | 'method'> & {
@@ -5,19 +7,19 @@ export type RequestOptions = Omit<RequestInit, 'body' | 'method'> & {
    * or send credentials.  Useful for public endpoints or file uploads. */
   skipDefaults?: boolean;
   /** object payload that will be JSON.stringified automatically */
-  json?: any;
+  json?: unknown;
   /** HTTP method, defaults to 'GET' */
   method?: string;
 };
 
-export async function request<T = any>(
+export async function request<T = unknown>(
   path: string,
   options: RequestOptions = {}
 ): Promise<T> {
   const url = `${API_BASE}${path}`;
   const { skipDefaults, json, method = 'GET', headers = {}, ...rest } = options;
 
-  const token = typeof window !== "undefined" ? localStorage.getItem("authToken") : null;
+  const token = typeof window !== "undefined" ? localStorage.getItem(MANAGE_TOKEN_KEY) : null;
 
   const init: RequestInit = {
     method,
@@ -38,25 +40,26 @@ export async function request<T = any>(
 
   const res = await fetch(url, init);
 
-  let data: any;
+  let data: unknown;
   try {
     data = await res.json();
-  } catch (e) {
+  } catch {
     // not JSON, swallow
     data = null;
   }
 
   if (!res.ok) {
-    const err = new Error(
-      data?.message || `HTTP ${res.status} ${res.statusText}`
-    );
-    // @ts-ignore
+    const message =
+      typeof data === "object" && data !== null && "message" in data
+        ? String(data.message)
+        : `HTTP ${res.status} ${res.statusText}`;
+    const err = new Error(message) as Error & { status?: number };
     err.status = res.status;
 
     if (res.status === 401 && typeof window !== 'undefined') {
-      if (window.location.pathname !== '/login') {
-        localStorage.removeItem('authToken');
-        window.location.href = '/login';
+      if (window.location.pathname !== MANAGE_LOGIN_PATH) {
+        localStorage.removeItem(MANAGE_TOKEN_KEY);
+        window.location.href = MANAGE_LOGIN_PATH;
       }
     }
 
@@ -74,7 +77,7 @@ export async function requestBlob(
   const url = `${API_BASE}${path}`;
   const { skipDefaults, json, method = 'GET', headers = {}, ...rest } = options;
 
-  const token = typeof window !== "undefined" ? localStorage.getItem("authToken") : null;
+  const token = typeof window !== "undefined" ? localStorage.getItem(MANAGE_TOKEN_KEY) : null;
 
   const init: RequestInit = {
     method,
@@ -91,14 +94,15 @@ export async function requestBlob(
   const res = await fetch(url, init);
   if (!res.ok) {
     const msg = await res.text().catch(() => `HTTP ${res.status} ${res.statusText}`);
-    const err = new Error(msg || `HTTP ${res.status} ${res.statusText}`);
-    // @ts-ignore
+    const err = new Error(msg || `HTTP ${res.status} ${res.statusText}`) as Error & {
+      status?: number;
+    };
     err.status = res.status;
 
     if (res.status === 401 && typeof window !== 'undefined') {
-      if (window.location.pathname !== '/login') {
-        localStorage.removeItem('authToken');
-        window.location.href = '/login';
+      if (window.location.pathname !== MANAGE_LOGIN_PATH) {
+        localStorage.removeItem(MANAGE_TOKEN_KEY);
+        window.location.href = MANAGE_LOGIN_PATH;
       }
     }
 

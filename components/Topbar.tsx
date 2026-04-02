@@ -1,10 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+import { LogOut } from "lucide-react";
+import { MANAGE_LOGIN_PATH, MANAGE_TOKEN_KEY } from "@/utils/manage-auth";
 
 export function Topbar() {
   const pathname = usePathname();
+  const router = useRouter();
 
   // Simple mocked breadcrumbs
   const getSubpage = () => {
@@ -14,6 +17,11 @@ export function Topbar() {
   };
   
   const subpage = getSubpage();
+
+  const handleLogout = () => {
+    localStorage.removeItem(MANAGE_TOKEN_KEY);
+    router.replace(MANAGE_LOGIN_PATH);
+  };
 
   return (
     <header className="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-6 sticky top-0 z-40 w-full transition-all">
@@ -44,6 +52,13 @@ export function Topbar() {
         <div className="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center text-xs font-bold cursor-pointer hover:bg-blue-700 transition">
           C1
         </div>
+        <button
+          onClick={handleLogout}
+          className="inline-flex items-center gap-2 rounded-lg border border-slate-200 px-3 py-2 text-sm font-medium text-slate-600 transition hover:border-slate-300 hover:bg-slate-50 hover:text-slate-900"
+        >
+          <LogOut className="h-4 w-4" />
+          退出
+        </button>
       </div>
     </header>
   );

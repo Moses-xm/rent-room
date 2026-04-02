@@ -35,3 +35,38 @@ html, body {
 .manage-content-bg {
   background-color: #f8fafc; /* Slate 50 */
 }
+
+.manage-slider::-webkit-slider-runnable-track {
+  height: 44px;
+  background: transparent;
+}
+
+.manage-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 44px;
+  width: 44px;
+  border-radius: 16px;
+  background: transparent;
+  border: 0;
+  cursor: grab;
+}
+
+.manage-slider:active::-webkit-slider-thumb {
+  cursor: grabbing;
+}
+
+.manage-slider::-moz-range-track {
+  height: 44px;
+  background: transparent;
+  border: 0;
+}
+
+.manage-slider::-moz-range-thumb {
+  height: 44px;
+  width: 44px;
+  border-radius: 16px;
+  background: transparent;
+  border: 0;
+  cursor: grab;
+}

@@ -1,8 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { serializeAdmin } from '@/lib/admin';
+import { requireManageAuth } from '@/lib/manage-auth';
 import { prisma } from '@/lib/prisma';
 
 export async function GET(req: NextRequest) {
   try {
+    const auth = await requireManageAuth(req);
+    if (!auth.ok) return auth.response;
+
     const { searchParams } = new URL(req.url);
     const page = parseInt(searchParams.get('page') || '1');
     const limit = parseInt(searchParams.get('limit') || '10');
@@ -28,19 +33,23 @@ export async function GET(req: NextRequest) {
 
     return NextResponse.json({ 
       success: true, 
-      data: admins,
+      data: admins.map(serializeAdmin),
       total,
       page,
       limit,
       totalPages: Math.ceil(total / limit)
     });
-  } catch (error: any) {
-    return NextResponse.json({ success: false, message: error.message }, { status: 500 });
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : '服务器内部错误';
+    return NextResponse.json({ success: false, message }, { status: 500 });
   }
 }
 
 export async function POST(req: Request) {
   try {
+    const auth = await requireManageAuth(req);
+    if (!auth.ok) return auth.response;
+
     const body = await req.json();
     const { username, password, avatar, isActive } = body;
     
@@ -57,8 +66,9 @@ export async function POST(req: Request) {
       },
     });
     
-    return NextResponse.json({ success: true, data: admin });
-  } catch (error: any) {
-    return NextResponse.json({ success: false, message: error.message }, { status: 500 });
+    return NextResponse.json({ success: true, data: serializeAdmin(admin) });
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : '服务器内部错误';
+    return NextResponse.json({ success: false, message }, { status: 500 });
   }
 }
