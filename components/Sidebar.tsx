@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ChevronsLeft, ChevronsRight } from "lucide-react";
@@ -51,10 +52,17 @@ export function Sidebar({ isCollapsed, toggleCollapse }: { isCollapsed: boolean,
       <div className={`px-4 border-b border-slate-200 flex items-center h-16 shrink-0 ${isCollapsed ? 'justify-center' : 'gap-3 px-6'}`}>
         <Link
           href="/manage"
-          className="w-10 h-10 rounded-full bg-primary-100 flex items-center justify-center text-primary text-xl font-bold shrink-0 transition-colors hover:bg-primary-200"
+          className={`shrink-0 transition-opacity hover:opacity-90 ${isCollapsed ? "w-10 h-10" : "w-11 h-11"}`}
           title="返回首页"
         >
-          <span className="transform -rotate-12">🏡</span>
+          <Image
+            src="/images/logo2.png"
+            alt="雅阁房产管理 Logo"
+            width={716}
+            height={716}
+            className="h-full w-full object-contain"
+            priority
+          />
         </Link>
         {!isCollapsed && (
           <div className="overflow-hidden">
