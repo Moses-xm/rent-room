@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 export function Topbar() {
@@ -8,8 +9,7 @@ export function Topbar() {
   // Simple mocked breadcrumbs
   const getSubpage = () => {
     if (pathname.includes("/room")) return "房源管理";
-    if (pathname.includes("/admin")) return "员工管理";
-    if (pathname === "/manage") return "数据看板";
+    if (pathname.includes("/admin")) return "管理员管理";
     return "";
   };
   
@@ -18,7 +18,12 @@ export function Topbar() {
   return (
     <header className="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-6 sticky top-0 z-40 w-full transition-all">
       <div className="flex items-center text-sm">
-        <span className="text-slate-500 font-medium">Dashboard</span>
+        <Link
+          href="/manage"
+          className="text-slate-500 font-medium transition-colors hover:text-slate-900"
+        >
+          Dashboard
+        </Link>
         {subpage && (
           <>
             <span className="mx-2 text-slate-300">›</span>

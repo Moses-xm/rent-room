@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import { ChevronsLeft, ChevronsRight } from "lucide-react";
 
 const navItems = [
-  { icon: "❖", label: "数据看板", path: "/manage" },
+  { icon: "❖", label: "Dashboard", path: "/manage" },
   { icon: "🏠", label: "房源管理", path: "/manage/room" },
   { icon: "👤", label: "管理员管理", path: "/manage/admin" },
 ];
@@ -49,9 +49,13 @@ export function Sidebar({ isCollapsed, toggleCollapse }: { isCollapsed: boolean,
     <aside className={`bg-white fixed top-0 left-0 h-screen flex flex-col border-r border-slate-200 z-50 transition-all duration-300 ${isCollapsed ? 'w-[72px]' : 'w-56'}`}>
       {/* Brand & User Profile */}
       <div className={`px-4 border-b border-slate-200 flex items-center h-16 shrink-0 ${isCollapsed ? 'justify-center' : 'gap-3 px-6'}`}>
-        <div className="w-10 h-10 rounded-full bg-primary-100 flex items-center justify-center text-primary text-xl font-bold shrink-0">
+        <Link
+          href="/manage"
+          className="w-10 h-10 rounded-full bg-primary-100 flex items-center justify-center text-primary text-xl font-bold shrink-0 transition-colors hover:bg-primary-200"
+          title="返回首页"
+        >
           <span className="transform -rotate-12">🏡</span>
-        </div>
+        </Link>
         {!isCollapsed && (
           <div className="overflow-hidden">
             <div className="font-bold text-slate-900 text-sm whitespace-nowrap">雅阁房产管理</div>

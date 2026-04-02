@@ -10,7 +10,7 @@ export default function DashboardPage() {
     <div className="max-w-6xl mx-auto space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold text-slate-900 mb-1">数据看板</h1>
+        <h1 className="text-2xl font-bold text-slate-900 mb-1">Dashboard</h1>
         <p className="text-slate-500 text-sm font-medium">欢迎回来，这里是您的房源租赁数据概览表</p>
       </div>
 
