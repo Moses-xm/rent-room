@@ -136,8 +136,8 @@ export default function ManageLoginPage() {
           </div>
 
           <form className="space-y-6" onSubmit={handleSubmit}>
-            <div className="space-y-3">
-              <label className="text-sm font-medium text-slate-700" htmlFor="username">
+            <div>
+              <label className="mb-3 block text-sm font-medium text-slate-700" htmlFor="username">
                 用户名
               </label>
               <input
@@ -149,8 +149,8 @@ export default function ManageLoginPage() {
               />
             </div>
 
-            <div className="space-y-3">
-              <label className="text-sm font-medium text-slate-700" htmlFor="password">
+            <div>
+              <label className="mb-3 block text-sm font-medium text-slate-700" htmlFor="password">
                 密码
               </label>
               <input
@@ -170,7 +170,7 @@ export default function ManageLoginPage() {
               </div>
 
               <div
-                className={`relative overflow-hidden rounded-2xl border px-3 py-3 ${
+                className={`relative h-12 overflow-hidden rounded-2xl border px-3 ${
                   isVerified ? "border-primary-200 bg-primary-50" : "border-slate-200 bg-slate-100"
                 }`}
               >
@@ -196,8 +196,8 @@ export default function ManageLoginPage() {
                   className="manage-slider relative z-10 h-12 w-full cursor-grab appearance-none bg-transparent active:cursor-grabbing"
                 />
                 <div
-                  className="pointer-events-none absolute top-1/2 z-20 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-2xl bg-primary text-lg font-semibold text-white shadow-sm transition-transform"
-                  style={{ left: `calc((100% - 44px) * ${sliderValue / 100})` }}
+                  className="pointer-events-none absolute top-0 z-20 flex h-12 w-12 items-center justify-center rounded-xl bg-primary text-base font-semibold text-white shadow-sm transition-transform"
+                  style={{ left: `calc((100% - 40px) * ${sliderValue / 100})` }}
                 >
                   {isVerified ? "✓" : "›"}
                 </div>

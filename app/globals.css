@@ -37,16 +37,16 @@ html, body {
 }
 
 .manage-slider::-webkit-slider-runnable-track {
-  height: 44px;
+  height: 40px;
   background: transparent;
 }
 
 .manage-slider::-webkit-slider-thumb {
   -webkit-appearance: none;
   appearance: none;
-  height: 44px;
-  width: 44px;
-  border-radius: 16px;
+  height: 40px;
+  width: 40px;
+  border-radius: 12px;
   background: transparent;
   border: 0;
   cursor: grab;
@@ -57,15 +57,15 @@ html, body {
 }
 
 .manage-slider::-moz-range-track {
-  height: 44px;
+  height: 40px;
   background: transparent;
   border: 0;
 }
 
 .manage-slider::-moz-range-thumb {
-  height: 44px;
-  width: 44px;
-  border-radius: 16px;
+  height: 40px;
+  width: 40px;
+  border-radius: 12px;
   background: transparent;
   border: 0;
   cursor: grab;
