@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { X, Eye, EyeOff, Loader2 } from "lucide-react";
+import { ChangeEvent, useEffect, useRef, useState } from "react";
+import { X, Eye, EyeOff, Loader2, Upload, ImagePlus } from "lucide-react";
+import { MANAGE_TOKEN_KEY } from "@/utils/manage-auth";
 
 /* ─── Types ───────────────────────────────────────────────────────────────── */
 export type AdminFormData = {
@@ -40,12 +41,24 @@ const fieldWrapCls = "space-y-2";
 const labelCls = "mb-2 block text-sm font-medium text-slate-700";
 const hintCls = "text-xs leading-5 text-slate-500";
 
+type UploadResponse = {
+    success: boolean;
+    message?: string;
+    data?: {
+        path: string;
+        url: string;
+    };
+};
+
 /* ─── Component ───────────────────────────────────────────────────────────── */
 export default function AdminFormModal({ state, onClose, onSaved }: Props) {
     const [form, setForm] = useState<AdminFormData>({ username: "", password: "", avatar: "", isActive: true });
     const [showPw, setShowPw] = useState(false);
     const [errors, setErrors] = useState<Partial<Record<keyof AdminFormData, string>>>({});
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [isUploading, setIsUploading] = useState(false);
+    const [uploadError, setUploadError] = useState("");
+    const fileInputRef = useRef<HTMLInputElement | null>(null);
 
     useEffect(() => {
         if (!state) return;
@@ -62,6 +75,8 @@ export default function AdminFormModal({ state, onClose, onSaved }: Props) {
         }
         setErrors({});
         setIsSubmitting(false);
+        setIsUploading(false);
+        setUploadError("");
         setShowPw(false);
     }, [state]);
 
@@ -75,6 +90,44 @@ export default function AdminFormModal({ state, onClose, onSaved }: Props) {
         if (!editingId && !form.password?.trim()) e.password = "密码不能为空";
         setErrors(e);
         return Object.keys(e).length === 0;
+    };
+
+    const avatarPreview = form.avatar.trim();
+
+    const handleAvatarUpload = async (event: ChangeEvent<HTMLInputElement>) => {
+        const file = event.target.files?.[0];
+        if (!file) return;
+
+        setUploadError("");
+        setIsUploading(true);
+
+        try {
+            const formData = new FormData();
+            formData.append("file", file);
+
+            const response = await fetch("/api/upload/avatar", {
+                method: "POST",
+                headers: {
+                    Authorization: `Bearer ${localStorage.getItem(MANAGE_TOKEN_KEY) || ""}`,
+                },
+                body: formData,
+            });
+
+            const result = (await response.json()) as UploadResponse;
+
+            if (!response.ok || !result.success || !result.data?.path) {
+                throw new Error(result.message || "头像上传失败");
+            }
+
+            setForm((prev) => ({ ...prev, avatar: result.data!.path }));
+        } catch (error) {
+            setUploadError(error instanceof Error ? error.message : "头像上传失败");
+        } finally {
+            setIsUploading(false);
+            if (event.target) {
+                event.target.value = "";
+            }
+        }
     };
 
     const handleSubmit = async (ev: React.FormEvent) => {
@@ -148,14 +201,76 @@ export default function AdminFormModal({ state, onClose, onSaved }: Props) {
 
                         <div className={fieldWrapCls}>
                             <label className={labelCls}>头像地址</label>
-                            <input
-                                type="url"
-                                value={form.avatar}
-                                onChange={e => setForm({ ...form, avatar: e.target.value })}
-                                className={inputCls()}
-                                placeholder="https://example.com/avatar.png"
-                            />
-                            <p className={hintCls}>选填。填写后将在管理员列表中显示头像。</p>
+                            <div className="space-y-4">
+                                <div className="flex items-start gap-4 rounded-2xl border border-dashed border-slate-200 bg-slate-50/70 p-4">
+                                    <div className="flex h-[72px] w-[72px] shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-white ring-1 ring-slate-200">
+                                        {avatarPreview ? (
+                                            <img
+                                                src={avatarPreview}
+                                                alt="头像预览"
+                                                className="h-full w-full object-cover"
+                                            />
+                                        ) : (
+                                            <ImagePlus className="h-6 w-6 text-slate-300" />
+                                        )}
+                                    </div>
+
+                                    <div className="min-w-0 flex-1 space-y-3">
+                                        <div className="flex flex-wrap items-center gap-3">
+                                            <button
+                                                type="button"
+                                                disabled={isUploading}
+                                                onClick={() => fileInputRef.current?.click()}
+                                                className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
+                                            >
+                                                {isUploading ? <Loader2 size={16} className="animate-spin" /> : <Upload size={16} />}
+                                                {isUploading ? "上传中..." : "上传本地图片"}
+                                            </button>
+                                            {form.avatar ? (
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setForm((prev) => ({ ...prev, avatar: "" }))}
+                                                    className="text-sm text-slate-400 transition hover:text-slate-600"
+                                                >
+                                                    清空头像
+                                                </button>
+                                            ) : null}
+                                        </div>
+
+                                        <input
+                                            ref={fileInputRef}
+                                            type="file"
+                                            accept="image/png,image/jpeg,image/webp,image/gif"
+                                            onChange={handleAvatarUpload}
+                                            className="hidden"
+                                        />
+
+                                        <p className={hintCls}>
+                                            支持 JPG、PNG、WEBP、GIF，上传后会保存到
+                                            <span className="mx-1 rounded bg-slate-100 px-1.5 py-0.5 font-mono text-[11px] text-slate-600">
+                                                /public/upload/avatar/YYYYMMDD
+                                            </span>
+                                            目录。
+                                        </p>
+                                        {uploadError ? <p className="text-xs text-red-500">{uploadError}</p> : null}
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <input
+                                        type="text"
+                                        value={form.avatar}
+                                        onChange={e => setForm({ ...form, avatar: e.target.value })}
+                                        className={inputCls()}
+                                        placeholder="/upload/avatar/20260402/example.png"
+                                    />
+                                    <p className={`${hintCls} mt-2`}>
+                                        仍然支持手动填写历史头像路径，最终都会写入数据库的
+                                        <span className="mx-1 font-mono text-[11px] text-slate-600">avatar</span>
+                                        字段。
+                                    </p>
+                                </div>
+                            </div>
                         </div>
 
                         <div className={fieldWrapCls}>
@@ -196,14 +311,14 @@ export default function AdminFormModal({ state, onClose, onSaved }: Props) {
                             <button
                                 type="button"
                                 onClick={onClose}
-                                disabled={isSubmitting}
+                                disabled={isSubmitting || isUploading}
                                 className="rounded-xl border border-slate-200 bg-white px-5 py-2.5 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
                             >
                                 取消
                             </button>
                             <button
                                 type="submit"
-                                disabled={isSubmitting}
+                                disabled={isSubmitting || isUploading}
                                 className="flex items-center gap-2 rounded-xl bg-primary px-5 py-2.5 text-sm font-medium text-white shadow-sm transition-colors hover:bg-primary-600 disabled:cursor-not-allowed disabled:opacity-50"
                             >
                                 {isSubmitting && <Loader2 size={16} className="animate-spin" />}
