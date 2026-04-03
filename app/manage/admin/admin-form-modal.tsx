@@ -246,11 +246,7 @@ export default function AdminFormModal({ state, onClose, onSaved }: Props) {
                                         />
 
                                         <p className={hintCls}>
-                                            支持 JPG、PNG、WEBP、GIF，上传后会保存到
-                                            <span className="mx-1 rounded bg-slate-100 px-1.5 py-0.5 font-mono text-[11px] text-slate-600">
-                                                /public/upload/avatar/YYYYMMDD
-                                            </span>
-                                            目录。
+                                            支持 JPG、PNG、WEBP、GIF等常见图片格式，建议尺寸不超过5MB。上传成功后会自动填入头像地址输入框。
                                         </p>
                                         {uploadError ? <p className="text-xs text-red-500">{uploadError}</p> : null}
                                     </div>
@@ -262,7 +258,7 @@ export default function AdminFormModal({ state, onClose, onSaved }: Props) {
                                         value={form.avatar}
                                         onChange={e => setForm({ ...form, avatar: e.target.value })}
                                         className={inputCls()}
-                                        placeholder="/upload/avatar/20260402/example.png"
+                                        placeholder="http:// 或 https:// 开头的图片 URL，或上传后返回的路径"
                                     />
                                     <p className={`${hintCls} mt-2`}>
                                         仍然支持手动填写历史头像路径，最终都会写入数据库的
@@ -299,7 +295,7 @@ export default function AdminFormModal({ state, onClose, onSaved }: Props) {
                                 <p className={hintCls}>
                                     {editingId
                                         ? "仅在需要重置密码时填写新密码。"
-                                        : "建议使用不少于 8 位的高强度密码。"}
+                                        : "建议使用不少于 6 位的高强度密码。"}
                                 </p>
                             )}
                             {errors.password && <p className="text-xs text-red-500">{errors.password}</p>}
