@@ -3,6 +3,7 @@ import path from "path";
 import { randomUUID } from "crypto";
 import { NextResponse } from "next/server";
 import { requireManageAuth } from "@/lib/manage-auth";
+import { deleteLocalAvatarUpload } from "@/lib/uploaded-file";
 
 const ALLOWED_TYPES = new Set(["image/jpeg", "image/png", "image/webp", "image/gif"]);
 const MAX_FILE_SIZE = 5 * 1024 * 1024;
@@ -75,6 +76,36 @@ export async function POST(req: Request) {
     });
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : "头像上传失败";
+    return NextResponse.json({ success: false, message }, { status: 500 });
+  }
+}
+
+export async function DELETE(req: Request) {
+  try {
+    const auth = await requireManageAuth(req);
+    if (!auth.ok) return auth.response;
+
+    const body = await req.json();
+    const filePath = typeof body?.path === "string" ? body.path.trim() : "";
+
+    if (!filePath) {
+      return NextResponse.json(
+        { success: false, message: "缺少待删除的头像路径" },
+        { status: 400 },
+      );
+    }
+
+    await deleteLocalAvatarUpload(filePath);
+
+    return NextResponse.json({
+      success: true,
+      message: "头像删除成功",
+      data: {
+        path: filePath,
+      },
+    });
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : "头像删除失败";
     return NextResponse.json({ success: false, message }, { status: 500 });
   }
 }

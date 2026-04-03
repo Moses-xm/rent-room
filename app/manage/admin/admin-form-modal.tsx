@@ -3,6 +3,7 @@
 import { ChangeEvent, useEffect, useRef, useState } from "react";
 import { X, Eye, EyeOff, Loader2, Upload, ImagePlus } from "lucide-react";
 import { MANAGE_TOKEN_KEY } from "@/utils/manage-auth";
+import { request } from "@/utils/request";
 
 /* ─── Types ───────────────────────────────────────────────────────────────── */
 export type AdminFormData = {
@@ -50,6 +51,16 @@ type UploadResponse = {
     };
 };
 
+const LOCAL_AVATAR_PREFIX = "/upload/avatar/";
+
+function normalizeAvatarPath(value: string | null | undefined) {
+    return value?.trim() ?? "";
+}
+
+function isLocalAvatarUploadPath(value: string | null | undefined) {
+    return normalizeAvatarPath(value).startsWith(LOCAL_AVATAR_PREFIX);
+}
+
 /* ─── Component ───────────────────────────────────────────────────────────── */
 export default function AdminFormModal({ state, onClose, onSaved }: Props) {
     const [form, setForm] = useState<AdminFormData>({ username: "", password: "", avatar: "", isActive: true });
@@ -57,13 +68,16 @@ export default function AdminFormModal({ state, onClose, onSaved }: Props) {
     const [errors, setErrors] = useState<Partial<Record<keyof AdminFormData, string>>>({});
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isUploading, setIsUploading] = useState(false);
+    const [isCleaningAvatar, setIsCleaningAvatar] = useState(false);
     const [uploadError, setUploadError] = useState("");
     const fileInputRef = useRef<HTMLInputElement | null>(null);
+    const initialAvatarRef = useRef("");
 
     useEffect(() => {
         if (!state) return;
         if (state.mode === "edit") {
             const a = state.admin;
+            initialAvatarRef.current = normalizeAvatarPath(a.avatar);
             setForm({
                 username: a.username,
                 avatar: a.avatar ?? "",
@@ -71,11 +85,13 @@ export default function AdminFormModal({ state, onClose, onSaved }: Props) {
                 password: "",
             });
         } else {
+            initialAvatarRef.current = "";
             setForm({ username: "", password: "", avatar: "", isActive: true });
         }
         setErrors({});
         setIsSubmitting(false);
         setIsUploading(false);
+        setIsCleaningAvatar(false);
         setUploadError("");
         setShowPw(false);
     }, [state]);
@@ -94,10 +110,35 @@ export default function AdminFormModal({ state, onClose, onSaved }: Props) {
 
     const avatarPreview = form.avatar.trim();
 
+    const deleteUploadedAvatar = async (avatarPath: string) => {
+        await request("/upload/avatar", {
+            method: "DELETE",
+            json: { path: avatarPath },
+        });
+    };
+
+    const cleanupTransientAvatar = async (avatarPath: string, preservedAvatarPath?: string) => {
+        const normalizedAvatarPath = normalizeAvatarPath(avatarPath);
+        const normalizedInitialAvatar = normalizeAvatarPath(initialAvatarRef.current);
+        const normalizedPreservedAvatar = normalizeAvatarPath(preservedAvatarPath);
+
+        if (!normalizedAvatarPath) return;
+        if (!isLocalAvatarUploadPath(normalizedAvatarPath)) return;
+        if (normalizedAvatarPath === normalizedInitialAvatar) return;
+        if (normalizedPreservedAvatar && normalizedAvatarPath === normalizedPreservedAvatar) return;
+
+        try {
+            await deleteUploadedAvatar(normalizedAvatarPath);
+        } catch (error) {
+            console.error("Failed to delete transient avatar:", error);
+        }
+    };
+
     const handleAvatarUpload = async (event: ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0];
         if (!file) return;
 
+        const previousAvatar = normalizeAvatarPath(form.avatar);
         setUploadError("");
         setIsUploading(true);
 
@@ -119,6 +160,7 @@ export default function AdminFormModal({ state, onClose, onSaved }: Props) {
                 throw new Error(result.message || "头像上传失败");
             }
 
+            await cleanupTransientAvatar(previousAvatar, result.data.path);
             setForm((prev) => ({ ...prev, avatar: result.data!.path }));
         } catch (error) {
             setUploadError(error instanceof Error ? error.message : "头像上传失败");
@@ -127,6 +169,28 @@ export default function AdminFormModal({ state, onClose, onSaved }: Props) {
             if (event.target) {
                 event.target.value = "";
             }
+        }
+    };
+
+    const handleClearAvatar = async () => {
+        const currentAvatar = normalizeAvatarPath(form.avatar);
+        setIsCleaningAvatar(true);
+        try {
+            await cleanupTransientAvatar(currentAvatar);
+            setForm((prev) => ({ ...prev, avatar: "" }));
+        } finally {
+            setIsCleaningAvatar(false);
+        }
+    };
+
+    const handleClose = async () => {
+        const currentAvatar = normalizeAvatarPath(form.avatar);
+        setIsCleaningAvatar(true);
+        try {
+            await cleanupTransientAvatar(currentAvatar);
+            onClose();
+        } finally {
+            setIsCleaningAvatar(false);
         }
     };
 
@@ -158,7 +222,11 @@ export default function AdminFormModal({ state, onClose, onSaved }: Props) {
                                 : "填写基础信息后即可创建新的管理员账号。"}
                         </p>
                     </div>
-                    <button onClick={onClose} className="rounded-lg p-1.5 text-slate-400 transition-colors hover:bg-slate-50 hover:text-slate-600">
+                    <button
+                        onClick={handleClose}
+                        disabled={isSubmitting || isUploading || isCleaningAvatar}
+                        className="rounded-lg p-1.5 text-slate-400 transition-colors hover:bg-slate-50 hover:text-slate-600 disabled:cursor-not-allowed disabled:opacity-50"
+                    >
                         <X size={22} strokeWidth={2} />
                     </button>
                 </div>
@@ -229,7 +297,8 @@ export default function AdminFormModal({ state, onClose, onSaved }: Props) {
                                             {form.avatar ? (
                                                 <button
                                                     type="button"
-                                                    onClick={() => setForm((prev) => ({ ...prev, avatar: "" }))}
+                                                    onClick={handleClearAvatar}
+                                                    disabled={isUploading || isCleaningAvatar}
                                                     className="text-sm text-slate-400 transition hover:text-slate-600"
                                                 >
                                                     清空头像
@@ -306,15 +375,15 @@ export default function AdminFormModal({ state, onClose, onSaved }: Props) {
                         <div className="flex justify-end gap-3">
                             <button
                                 type="button"
-                                onClick={onClose}
-                                disabled={isSubmitting || isUploading}
+                                onClick={handleClose}
+                                disabled={isSubmitting || isUploading || isCleaningAvatar}
                                 className="rounded-xl border border-slate-200 bg-white px-5 py-2.5 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
                             >
                                 取消
                             </button>
                             <button
                                 type="submit"
-                                disabled={isSubmitting || isUploading}
+                                disabled={isSubmitting || isUploading || isCleaningAvatar}
                                 className="flex items-center gap-2 rounded-xl bg-primary px-5 py-2.5 text-sm font-medium text-white shadow-sm transition-colors hover:bg-primary-600 disabled:cursor-not-allowed disabled:opacity-50"
                             >
                                 {isSubmitting && <Loader2 size={16} className="animate-spin" />}
