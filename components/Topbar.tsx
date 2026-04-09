@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { LogOut } from "lucide-react";
-import { MANAGE_LOGIN_PATH, MANAGE_TOKEN_KEY } from "@/utils/manage-auth";
+import { MANAGE_LOGIN_PATH, clearManageToken } from "@/utils/manage-auth";
 
 export function Topbar() {
   const pathname = usePathname();
@@ -19,7 +19,7 @@ export function Topbar() {
   const subpage = getSubpage();
 
   const handleLogout = () => {
-    localStorage.removeItem(MANAGE_TOKEN_KEY);
+    clearManageToken();
     router.replace(MANAGE_LOGIN_PATH);
   };
 

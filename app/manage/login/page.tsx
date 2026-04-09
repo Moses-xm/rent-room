@@ -6,7 +6,7 @@ import { FormEvent, useEffect, useRef, useState } from "react";
 import { ShieldCheck } from "lucide-react";
 import { Toaster, toast } from "sonner";
 import { request } from "@/utils/request";
-import { MANAGE_HOME_PATH, MANAGE_TOKEN_KEY } from "@/utils/manage-auth";
+import { MANAGE_HOME_PATH, getManageToken, setManageToken } from "@/utils/manage-auth";
 
 type LoginResponse = {
   success: boolean;
@@ -30,7 +30,7 @@ export default function ManageLoginPage() {
   }, [isVerified]);
 
   useEffect(() => {
-    const token = localStorage.getItem(MANAGE_TOKEN_KEY);
+    const token = getManageToken();
     if (token) {
       router.replace(MANAGE_HOME_PATH);
     }
@@ -88,7 +88,7 @@ export default function ManageLoginPage() {
         throw new Error("登录成功但未收到凭证");
       }
 
-      localStorage.setItem(MANAGE_TOKEN_KEY, token);
+      setManageToken(token);
       toast.success(response.message || "登录成功");
       router.replace(MANAGE_HOME_PATH);
     } catch (submitError: unknown) {

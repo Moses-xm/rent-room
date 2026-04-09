@@ -1,48 +1,64 @@
 "use client";
 
-import { useEffect, useState, useSyncExternalStore } from "react";
+import { useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { Sidebar } from "@/components/Sidebar";
 import { Topbar } from "@/components/Topbar";
-import { MANAGE_HOME_PATH, MANAGE_LOGIN_PATH, MANAGE_TOKEN_KEY } from "@/utils/manage-auth";
+import {
+  MANAGE_AUTH_CHANGED_EVENT,
+  MANAGE_HOME_PATH,
+  MANAGE_LOGIN_PATH,
+  getManageToken,
+} from "@/utils/manage-auth";
+
+type AuthStatus = "checking" | "authenticated" | "unauthenticated";
 
 export function ManageLayoutShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
   const [isCollapsed, setIsCollapsed] = useState(false);
-  const token = useSyncExternalStore(
-    () => () => undefined,
-    () => localStorage.getItem(MANAGE_TOKEN_KEY),
-    () => null,
-  );
+  const [authStatus, setAuthStatus] = useState<AuthStatus>("checking");
 
   useEffect(() => {
+    const syncAuthStatus = () => {
+      setAuthStatus(getManageToken() ? "authenticated" : "unauthenticated");
+    };
+
+    syncAuthStatus();
+    window.addEventListener("storage", syncAuthStatus);
+    window.addEventListener(MANAGE_AUTH_CHANGED_EVENT, syncAuthStatus);
+
+    return () => {
+      window.removeEventListener("storage", syncAuthStatus);
+      window.removeEventListener(MANAGE_AUTH_CHANGED_EVENT, syncAuthStatus);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (authStatus === "checking") {
+      return;
+    }
+
     const isLoginPage = pathname === MANAGE_LOGIN_PATH;
 
     if (isLoginPage) {
-      if (token) {
+      if (authStatus === "authenticated") {
         router.replace(MANAGE_HOME_PATH);
       }
       return;
     }
 
-    if (!token) {
+    if (authStatus === "unauthenticated") {
       router.replace(MANAGE_LOGIN_PATH);
     }
-  }, [pathname, router, token]);
+  }, [authStatus, pathname, router]);
 
   if (pathname === MANAGE_LOGIN_PATH) {
     return children;
   }
 
-  if (!token) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-slate-950 text-slate-200">
-        <div className="rounded-2xl border border-white/10 bg-white/5 px-6 py-4 text-sm backdrop-blur-xl">
-          正在校验管理端登录状态...
-        </div>
-      </div>
-    );
+  if (authStatus !== "authenticated") {
+    return null;
   }
 
   return (

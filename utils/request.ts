@@ -1,4 +1,8 @@
-import { MANAGE_LOGIN_PATH, MANAGE_TOKEN_KEY } from "@/utils/manage-auth";
+import {
+  MANAGE_LOGIN_PATH,
+  clearManageToken,
+  getManageToken,
+} from "@/utils/manage-auth";
 
 const API_BASE = '/api';
 
@@ -19,7 +23,7 @@ export async function request<T = unknown>(
   const url = `${API_BASE}${path}`;
   const { skipDefaults, json, method = 'GET', headers = {}, ...rest } = options;
 
-  const token = typeof window !== "undefined" ? localStorage.getItem(MANAGE_TOKEN_KEY) : null;
+  const token = getManageToken();
 
   const init: RequestInit = {
     method,
@@ -58,7 +62,7 @@ export async function request<T = unknown>(
 
     if (res.status === 401 && typeof window !== 'undefined') {
       if (window.location.pathname !== MANAGE_LOGIN_PATH) {
-        localStorage.removeItem(MANAGE_TOKEN_KEY);
+        clearManageToken();
         window.location.href = MANAGE_LOGIN_PATH;
       }
     }
@@ -77,7 +81,7 @@ export async function requestBlob(
   const url = `${API_BASE}${path}`;
   const { skipDefaults, json, method = 'GET', headers = {}, ...rest } = options;
 
-  const token = typeof window !== "undefined" ? localStorage.getItem(MANAGE_TOKEN_KEY) : null;
+  const token = getManageToken();
 
   const init: RequestInit = {
     method,
@@ -101,7 +105,7 @@ export async function requestBlob(
 
     if (res.status === 401 && typeof window !== 'undefined') {
       if (window.location.pathname !== MANAGE_LOGIN_PATH) {
-        localStorage.removeItem(MANAGE_TOKEN_KEY);
+        clearManageToken();
         window.location.href = MANAGE_LOGIN_PATH;
       }
     }
