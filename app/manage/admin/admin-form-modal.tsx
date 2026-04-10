@@ -1,9 +1,11 @@
 'use client';
 
 import { ChangeEvent, useEffect, useRef, useState } from 'react';
-import Image from 'next/image';
 import { X, Eye, EyeOff, Loader2, Upload, ImagePlus } from 'lucide-react';
-import { isManagedAvatarUploadPath } from '@/lib/avatar-upload-path';
+import {
+  isManagedAvatarPath,
+  resolveAvatarUrl,
+} from '@/lib/avatar-upload-path';
 import { getManageToken } from '@/utils/manage-auth';
 import { request } from '@/utils/request';
 
@@ -51,7 +53,6 @@ type UploadResponse = {
   message?: string;
   data?: {
     path: string;
-    url: string;
   };
 };
 
@@ -114,6 +115,7 @@ export default function AdminFormModal({ state, onClose, onSaved }: Props) {
   };
 
   const avatarPreview = form.avatar.trim();
+  const avatarPreviewUrl = resolveAvatarUrl(avatarPreview);
 
   const deleteUploadedAvatar = async (avatarPath: string) => {
     await request('/upload/avatar', {
@@ -133,7 +135,7 @@ export default function AdminFormModal({ state, onClose, onSaved }: Props) {
     const normalizedPreservedAvatar = normalizeAvatarPath(preservedAvatarPath);
 
     if (!normalizedAvatarPath) return;
-    if (!isManagedAvatarUploadPath(normalizedAvatarPath)) return;
+    if (!isManagedAvatarPath(normalizedAvatarPath)) return;
     if (normalizedAvatarPath === normalizedInitialAvatar) return;
     if (
       normalizedPreservedAvatar &&
@@ -292,12 +294,10 @@ export default function AdminFormModal({ state, onClose, onSaved }: Props) {
               <div className="space-y-4">
                 <div className="flex items-start gap-4 rounded-2xl border border-dashed border-slate-200 bg-slate-50/70 p-4">
                   <div className="flex h-[72px] w-[72px] shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-white ring-1 ring-slate-200">
-                    {avatarPreview ? (
-                      <Image
-                        src={avatarPreview}
+                    {avatarPreviewUrl ? (
+                      <img
+                        src={avatarPreviewUrl}
                         alt="头像预览"
-                        width={72}
-                        height={72}
                         className="h-full w-full object-cover"
                       />
                     ) : (

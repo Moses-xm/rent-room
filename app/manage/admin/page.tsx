@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
+import { resolveAvatarUrl } from '@/lib/avatar-upload-path';
 import { request } from '@/utils/request';
 import {
   Plus,
@@ -275,7 +276,7 @@ export default function AdminPage() {
                             <div className="h-10 w-10 flex items-center justify-center rounded-full bg-primary-50 text-primary font-bold overflow-hidden border-2 border-white shadow-sm ring-1 ring-primary-100">
                               {admin.avatar ? (
                                 <img
-                                  src={admin.avatar}
+                                  src={resolveAvatarUrl(admin.avatar)}
                                   alt={admin.username}
                                   className="h-full w-full object-cover"
                                 />

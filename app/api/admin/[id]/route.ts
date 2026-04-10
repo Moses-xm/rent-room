@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { normalizeAvatarPathForStorage } from '@/lib/avatar-upload-path';
 import { serializeAdmin } from '@/lib/admin';
 import { requireManageAuth } from '@/lib/manage-auth';
 import { prisma } from '@/lib/prisma';
@@ -14,6 +15,7 @@ export async function PUT(req: Request, props: { params: Promise<{ id: string }>
     const adminId = parseInt(id);
     const body = await req.json();
     const { username, password, avatar, isActive } = body;
+    const normalizedAvatar = normalizeAvatarPathForStorage(avatar);
     const existingAdmin = await prisma.admin.findUnique({
       where: { id: adminId },
       select: { avatar: true },
@@ -31,7 +33,7 @@ export async function PUT(req: Request, props: { params: Promise<{ id: string }>
       password?: string;
     } = {
       username, 
-      avatar, 
+      avatar: normalizedAvatar || null, 
       isActive,
       modified: new Date() 
     };
@@ -47,7 +49,7 @@ export async function PUT(req: Request, props: { params: Promise<{ id: string }>
     });
 
     const previousAvatar = existingAdmin.avatar?.trim() || '';
-    const nextAvatar = typeof avatar === 'string' ? avatar.trim() : '';
+    const nextAvatar = normalizedAvatar;
 
     if (previousAvatar && previousAvatar !== nextAvatar) {
       try {

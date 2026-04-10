@@ -41,7 +41,6 @@ export async function POST(req: Request) {
       message: "头像上传成功",
       data: {
         path: uploadedFile.path,
-        url: uploadedFile.url,
       },
     });
   } catch (error: unknown) {
