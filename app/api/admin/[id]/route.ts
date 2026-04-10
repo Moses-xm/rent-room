@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { serializeAdmin } from '@/lib/admin';
 import { requireManageAuth } from '@/lib/manage-auth';
 import { prisma } from '@/lib/prisma';
-import { deleteLocalAvatarUpload } from '@/lib/uploaded-file';
+import { deleteUploadedAvatar } from '@/lib/uploaded-file';
 
 // Update Admin
 export async function PUT(req: Request, props: { params: Promise<{ id: string }> }) {
@@ -51,7 +51,7 @@ export async function PUT(req: Request, props: { params: Promise<{ id: string }>
 
     if (previousAvatar && previousAvatar !== nextAvatar) {
       try {
-        await deleteLocalAvatarUpload(previousAvatar);
+        await deleteUploadedAvatar(previousAvatar);
       } catch (cleanupError) {
         console.error('Failed to delete previous avatar:', cleanupError);
       }

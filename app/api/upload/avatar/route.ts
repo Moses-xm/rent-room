@@ -1,30 +1,9 @@
-import { mkdir, writeFile } from "fs/promises";
-import path from "path";
-import { randomUUID } from "crypto";
 import { NextResponse } from "next/server";
 import { requireManageAuth } from "@/lib/manage-auth";
-import { deleteLocalAvatarUpload } from "@/lib/uploaded-file";
+import { deleteUploadedAvatar, saveAvatarUpload } from "@/lib/uploaded-file";
 
 const ALLOWED_TYPES = new Set(["image/jpeg", "image/png", "image/webp", "image/gif"]);
 const MAX_FILE_SIZE = 5 * 1024 * 1024;
-
-function getDateFolder() {
-  const now = new Date();
-  const year = now.getFullYear();
-  const month = String(now.getMonth() + 1).padStart(2, "0");
-  const day = String(now.getDate()).padStart(2, "0");
-  return `${year}${month}${day}`;
-}
-
-function getExtension(fileName: string, mimeType: string) {
-  const ext = path.extname(fileName).toLowerCase();
-  if (ext) return ext;
-  if (mimeType === "image/jpeg") return ".jpg";
-  if (mimeType === "image/png") return ".png";
-  if (mimeType === "image/webp") return ".webp";
-  if (mimeType === "image/gif") return ".gif";
-  return "";
-}
 
 export async function POST(req: Request) {
   try {
@@ -55,23 +34,14 @@ export async function POST(req: Request) {
       );
     }
 
-    const dateFolder = getDateFolder();
-    const fileExt = getExtension(file.name, file.type);
-    const fileName = `${Date.now()}-${randomUUID()}${fileExt}`;
-    const relativePath = `/upload/avatar/${dateFolder}/${fileName}`;
-    const saveDir = path.join(process.cwd(), "public", "upload", "avatar", dateFolder);
-    const savePath = path.join(saveDir, fileName);
-    const buffer = Buffer.from(await file.arrayBuffer());
-
-    await mkdir(saveDir, { recursive: true });
-    await writeFile(savePath, buffer);
+    const uploadedFile = await saveAvatarUpload(file);
 
     return NextResponse.json({
       success: true,
       message: "头像上传成功",
       data: {
-        path: relativePath,
-        url: relativePath,
+        path: uploadedFile.path,
+        url: uploadedFile.url,
       },
     });
   } catch (error: unknown) {
@@ -95,7 +65,7 @@ export async function DELETE(req: Request) {
       );
     }
 
-    await deleteLocalAvatarUpload(filePath);
+    await deleteUploadedAvatar(filePath);
 
     return NextResponse.json({
       success: true,

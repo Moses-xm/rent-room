@@ -1,11 +1,52 @@
-import { unlink } from "fs/promises";
+import { randomUUID } from "crypto";
+import { del, put } from "@vercel/blob";
+import { mkdir, unlink, writeFile } from "fs/promises";
 import path from "path";
+import {
+  AVATAR_UPLOAD_PREFIX,
+  isBlobAvatarUploadUrl,
+  isLocalAvatarUploadPath,
+} from "@/lib/avatar-upload-path";
 
 const PUBLIC_DIR = path.join(process.cwd(), "public");
-const AVATAR_UPLOAD_PREFIX = "/upload/avatar/";
 
-export function isLocalAvatarUploadPath(filePath: string | null | undefined) {
-  return typeof filePath === "string" && filePath.startsWith(AVATAR_UPLOAD_PREFIX);
+function getDateFolder() {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, "0");
+  const day = String(now.getDate()).padStart(2, "0");
+  return `${year}${month}${day}`;
+}
+
+function getExtension(fileName: string, mimeType: string) {
+  const ext = path.extname(fileName).toLowerCase();
+  if (ext) return ext;
+  if (mimeType === "image/jpeg") return ".jpg";
+  if (mimeType === "image/png") return ".png";
+  if (mimeType === "image/webp") return ".webp";
+  if (mimeType === "image/gif") return ".gif";
+  return "";
+}
+
+function getAvatarUploadPathParts(fileName: string, mimeType: string) {
+  const dateFolder = getDateFolder();
+  const fileExt = getExtension(fileName, mimeType);
+  const storedFileName = `${Date.now()}-${randomUUID()}${fileExt}`;
+  const relativePath = `${AVATAR_UPLOAD_PREFIX}${dateFolder}/${storedFileName}`;
+
+  return {
+    relativePath,
+    pathname: relativePath.replace(/^\/+/, ""),
+    storedFileName,
+  };
+}
+
+function isBlobStorageEnabled() {
+  return Boolean(process.env.BLOB_READ_WRITE_TOKEN);
+}
+
+function isRunningOnVercel() {
+  return process.env.VERCEL === "1";
 }
 
 function resolveAvatarUploadPath(filePath: string) {
@@ -26,7 +67,40 @@ function resolveAvatarUploadPath(filePath: string) {
   return absolutePath;
 }
 
-export async function deleteLocalAvatarUpload(filePath: string | null | undefined) {
+export async function saveAvatarUpload(file: File) {
+  const { pathname, relativePath, storedFileName } = getAvatarUploadPathParts(file.name, file.type);
+
+  if (isBlobStorageEnabled()) {
+    const blob = await put(pathname, file, {
+      access: "public",
+    });
+
+    return {
+      path: blob.url,
+      url: blob.url,
+      fileName: storedFileName,
+    };
+  }
+
+  if (isRunningOnVercel()) {
+    throw new Error("Vercel 线上环境缺少 BLOB_READ_WRITE_TOKEN，无法保存上传图片");
+  }
+
+  const saveDir = path.join(process.cwd(), "public", path.dirname(pathname));
+  const savePath = path.join(saveDir, storedFileName);
+  const buffer = Buffer.from(await file.arrayBuffer());
+
+  await mkdir(saveDir, { recursive: true });
+  await writeFile(savePath, buffer);
+
+  return {
+    path: relativePath,
+    url: relativePath,
+    fileName: storedFileName,
+  };
+}
+
+async function deleteLocalAvatarUpload(filePath: string) {
   if (!filePath) return;
 
   const absolutePath = resolveAvatarUploadPath(filePath);
@@ -45,5 +119,18 @@ export async function deleteLocalAvatarUpload(filePath: string | null | undefine
     }
 
     throw error;
+  }
+}
+
+export async function deleteUploadedAvatar(filePath: string | null | undefined) {
+  if (!filePath) return;
+
+  if (isLocalAvatarUploadPath(filePath)) {
+    await deleteLocalAvatarUpload(filePath);
+    return;
+  }
+
+  if (isBlobAvatarUploadUrl(filePath)) {
+    await del(filePath);
   }
 }
