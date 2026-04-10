@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { normalizeAvatarPathForStorage } from '@/lib/avatar-upload-path';
+import { normalizeUploadPathForStorage } from '@/lib/upload-path';
 import { serializeAdmin } from '@/lib/admin';
 import { requireManageAuth } from '@/lib/manage-auth';
 import { prisma } from '@/lib/prisma';
@@ -53,7 +53,7 @@ export async function POST(req: Request) {
 
     const body = await req.json();
     const { username, password, avatar, isActive } = body;
-    const normalizedAvatar = normalizeAvatarPathForStorage(avatar);
+    const normalizedAvatar = normalizeUploadPathForStorage(avatar);
     
     if (!username || !password) {
       return NextResponse.json({ success: false, message: '用户名和密码必填' }, { status: 400 });

@@ -3,10 +3,9 @@
 import { ChangeEvent, useEffect, useRef, useState } from 'react';
 import { X, Eye, EyeOff, Loader2, Upload, ImagePlus } from 'lucide-react';
 import {
-  isManagedAvatarPath,
-  resolveAvatarUrl,
-} from '@/lib/avatar-upload-path';
-import { getManageToken } from '@/utils/manage-auth';
+  isManagedUploadPath,
+  resolveUploadedFileUrl,
+} from '@/lib/upload-path';
 import { request } from '@/utils/request';
 
 /* ─── Types ───────────────────────────────────────────────────────────────── */
@@ -115,7 +114,7 @@ export default function AdminFormModal({ state, onClose, onSaved }: Props) {
   };
 
   const avatarPreview = form.avatar.trim();
-  const avatarPreviewUrl = resolveAvatarUrl(avatarPreview);
+  const avatarPreviewUrl = resolveUploadedFileUrl(avatarPreview);
 
   const deleteUploadedAvatar = async (avatarPath: string) => {
     await request('/upload/avatar', {
@@ -135,7 +134,7 @@ export default function AdminFormModal({ state, onClose, onSaved }: Props) {
     const normalizedPreservedAvatar = normalizeAvatarPath(preservedAvatarPath);
 
     if (!normalizedAvatarPath) return;
-    if (!isManagedAvatarPath(normalizedAvatarPath)) return;
+    if (!isManagedUploadPath(normalizedAvatarPath)) return;
     if (normalizedAvatarPath === normalizedInitialAvatar) return;
     if (
       normalizedPreservedAvatar &&
@@ -162,17 +161,12 @@ export default function AdminFormModal({ state, onClose, onSaved }: Props) {
       const formData = new FormData();
       formData.append('file', file);
 
-      const response = await fetch('/api/upload/avatar', {
+      const result = await request<UploadResponse>('/upload/avatar', {
         method: 'POST',
-        headers: {
-          Authorization: `Bearer ${getManageToken() || ''}`,
-        },
-        body: formData,
+        formData,
       });
 
-      const result = (await response.json()) as UploadResponse;
-
-      if (!response.ok || !result.success || !result.data?.path) {
+      if (!result.success || !result.data?.path) {
         throw new Error(result.message || '头像上传失败');
       }
 

@@ -7,11 +7,12 @@ import {
 const API_BASE = '/api';
 
 export type RequestOptions = Omit<RequestInit, 'body' | 'method'> & {
-  /** if set to true the helper will not attach the default JSON headers
-   * or send credentials.  Useful for public endpoints or file uploads. */
+  /** if set to true the helper will not attach auth headers or credentials. */
   skipDefaults?: boolean;
   /** object payload that will be JSON.stringified automatically */
   json?: unknown;
+  /** multipart payload for uploads; do not combine with json */
+  formData?: FormData;
   /** HTTP method, defaults to 'GET' */
   method?: string;
 };
@@ -21,7 +22,11 @@ export async function request<T = unknown>(
   options: RequestOptions = {}
 ): Promise<T> {
   const url = `${API_BASE}${path}`;
-  const { skipDefaults, json, method = 'GET', headers = {}, ...rest } = options;
+  const { skipDefaults, json, formData, method = 'GET', headers = {}, ...rest } = options;
+
+  if (json !== undefined && formData !== undefined) {
+    throw new Error('request() cannot send both json and formData in the same call');
+  }
 
   const token = getManageToken();
 
@@ -32,7 +37,7 @@ export async function request<T = unknown>(
       ...(skipDefaults || !token ? {} : {
         'Authorization': `Bearer ${token}`,
       }),
-      'Content-Type': 'application/json',
+      ...(json !== undefined ? { 'Content-Type': 'application/json' } : {}),
       ...headers,
     },
     credentials: skipDefaults ? undefined : 'include',
@@ -40,6 +45,8 @@ export async function request<T = unknown>(
 
   if (json !== undefined) {
     init.body = JSON.stringify(json);
+  } else if (formData !== undefined) {
+    init.body = formData;
   }
 
   const res = await fetch(url, init);
@@ -71,46 +78,4 @@ export async function request<T = unknown>(
   }
 
   return data as T;
-}
-
-/** Like request(), but returns a Blob – use for CSV / file download endpoints. */
-export async function requestBlob(
-  path: string,
-  options: RequestOptions = {}
-): Promise<Blob> {
-  const url = `${API_BASE}${path}`;
-  const { skipDefaults, json, method = 'GET', headers = {}, ...rest } = options;
-
-  const token = getManageToken();
-
-  const init: RequestInit = {
-    method,
-    ...rest,
-    headers: {
-      ...(skipDefaults || !token ? {} : { 'Authorization': `Bearer ${token}` }),
-      ...headers,
-    },
-    credentials: skipDefaults ? undefined : 'include',
-  };
-
-  if (json !== undefined) init.body = JSON.stringify(json);
-
-  const res = await fetch(url, init);
-  if (!res.ok) {
-    const msg = await res.text().catch(() => `HTTP ${res.status} ${res.statusText}`);
-    const err = new Error(msg || `HTTP ${res.status} ${res.statusText}`) as Error & {
-      status?: number;
-    };
-    err.status = res.status;
-
-    if (res.status === 401 && typeof window !== 'undefined') {
-      if (window.location.pathname !== MANAGE_LOGIN_PATH) {
-        clearManageToken();
-        window.location.href = MANAGE_LOGIN_PATH;
-      }
-    }
-
-    throw err;
-  }
-  return res.blob();
 }

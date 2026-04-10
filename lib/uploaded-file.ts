@@ -2,9 +2,9 @@ import { randomUUID } from "crypto";
 import { del, put } from "@vercel/blob";
 import path from "path";
 import {
-  AVATAR_PATH_PREFIX,
-  toAvatarBlobPathname,
-} from "@/lib/avatar-upload-path";
+  AVATAR_UPLOAD_PREFIX,
+  toBlobPathname,
+} from "@/lib/upload-path";
 
 function getAvatarDateFolder() {
   const now = new Date();
@@ -28,7 +28,7 @@ function buildAvatarBlobPath(fileName: string, mimeType: string) {
   const dateFolder = getAvatarDateFolder();
   const fileExtension = getAvatarFileExtension(fileName, mimeType);
   const storedFileName = `${Date.now()}-${randomUUID()}${fileExtension}`;
-  const storedPath = `${AVATAR_PATH_PREFIX}${dateFolder}/${storedFileName}`;
+  const storedPath = `${AVATAR_UPLOAD_PREFIX}${dateFolder}/${storedFileName}`;
 
   return {
     storedPath,
@@ -54,7 +54,7 @@ export async function saveAvatarUpload(file: File) {
 }
 
 export async function deleteUploadedAvatar(filePath: string | null | undefined) {
-  const blobPathname = toAvatarBlobPathname(filePath);
+  const blobPathname = toBlobPathname(filePath);
 
   if (!blobPathname) {
     return;
