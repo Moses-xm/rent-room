@@ -14,9 +14,13 @@ import {
 } from 'lucide-react';
 import { Toaster, toast } from 'sonner';
 import { resolveUploadedFileUrl, isManagedUploadPath } from '@/lib/upload-path';
-import { MANAGE_HOME_PATH } from '@/utils/manage-auth';
+import {
+  clearManageToken,
+  MANAGE_HOME_PATH,
+  MANAGE_LOGIN_PATH,
+  setManageProfile,
+} from '@/utils/manage-auth';
 import { request } from '@/utils/request';
-import { setManageProfile } from '@/utils/manage-auth';
 
 type ManageProfileResponse = {
   success: boolean;
@@ -209,6 +213,8 @@ export default function ManageProfilePage() {
     event.preventDefault();
     if (!validate()) return;
 
+    const nextPassword = password.trim();
+    const shouldLogoutAfterSave = Boolean(nextPassword);
     setSaving(true);
 
     try {
@@ -216,22 +222,30 @@ export default function ManageProfilePage() {
         method: 'PUT',
         json: {
           avatar,
-          ...(password.trim() ? { password: password.trim() } : {}),
+          ...(shouldLogoutAfterSave ? { password: nextPassword } : {}),
         },
       });
 
       const nextAvatar = normalizeAvatarPath(response.data.avatar);
+      const nextProfile = nextAvatar
+        ? { username: response.data.username, avatar: nextAvatar }
+        : { username: response.data.username };
+
       savedAvatarRef.current = nextAvatar;
       currentAvatarRef.current = nextAvatar;
       setUsername(response.data.username);
       setAvatar(nextAvatar);
       setPassword('');
       setConfirmPassword('');
-      setManageProfile(
-        nextAvatar
-          ? { username: response.data.username, avatar: nextAvatar }
-          : { username: response.data.username },
-      );
+      setManageProfile(nextProfile);
+
+      if (shouldLogoutAfterSave) {
+        toast.success('密码已更新，请重新登录');
+        clearManageToken();
+        router.replace(MANAGE_LOGIN_PATH);
+        return;
+      }
+
       toast.success(response.message || '个人资料已更新');
     } catch (error: unknown) {
       toast.error(error instanceof Error ? error.message : '个人资料更新失败');
