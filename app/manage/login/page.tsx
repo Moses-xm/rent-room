@@ -6,13 +6,24 @@ import { FormEvent, useEffect, useRef, useState } from "react";
 import { ShieldCheck } from "lucide-react";
 import { Toaster, toast } from "sonner";
 import { request } from "@/utils/request";
-import { MANAGE_HOME_PATH, getManageToken, setManageToken } from "@/utils/manage-auth";
+import {
+  MANAGE_HOME_PATH,
+  getManageToken,
+  setManageProfile,
+  setManageToken,
+} from "@/utils/manage-auth";
+
+type LoggedInAdmin = {
+  username: string;
+  avatar?: string | null;
+};
 
 type LoginResponse = {
   success: boolean;
   message?: string;
   manageToken?: string;
   "manage-token"?: string;
+  admin?: LoggedInAdmin;
 };
 
 export default function ManageLoginPage() {
@@ -89,6 +100,10 @@ export default function ManageLoginPage() {
       }
 
       setManageToken(token);
+      setManageProfile({
+        username: response.admin?.username || username.trim(),
+        ...(response.admin?.avatar ? { avatar: response.admin.avatar } : {}),
+      });
       toast.success(response.message || "登录成功");
       router.replace(MANAGE_HOME_PATH);
     } catch (submitError: unknown) {

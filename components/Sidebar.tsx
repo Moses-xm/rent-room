@@ -57,7 +57,7 @@ export function Sidebar({ isCollapsed, toggleCollapse }: { isCollapsed: boolean,
         >
           <Image
             src="/images/logo2.png"
-            alt="雅阁房产管理 Logo"
+            alt="雅阁租房管系统 Logo"
             width={716}
             height={716}
             className="h-full w-full object-contain"
@@ -66,7 +66,7 @@ export function Sidebar({ isCollapsed, toggleCollapse }: { isCollapsed: boolean,
         </Link>
         {!isCollapsed && (
           <div className="overflow-hidden">
-            <div className="font-bold text-slate-900 text-sm whitespace-nowrap">雅阁房产管理</div>
+            <div className="font-bold text-slate-900 text-sm whitespace-nowrap">雅阁租房系统</div>
           </div>
         )}
       </div>
