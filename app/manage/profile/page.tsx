@@ -253,12 +253,12 @@ export default function ManageProfilePage() {
     return (
       <>
         <Toaster position="top-right" richColors />
-        <div className="mx-auto max-w-5xl space-y-6">
+        <div className="mx-auto max-w-6xl space-y-5">
           <div className="space-y-2">
             <div className="h-8 w-40 animate-pulse rounded-xl bg-slate-200" />
             <div className="h-4 w-72 animate-pulse rounded-lg bg-slate-100" />
           </div>
-          <div className="grid gap-6 lg:grid-cols-2">
+          <div className="grid gap-5 lg:grid-cols-2">
             <div className="h-80 animate-pulse rounded-3xl border border-slate-200 bg-white" />
             <div className="h-80 animate-pulse rounded-3xl border border-slate-200 bg-white" />
           </div>
@@ -268,7 +268,7 @@ export default function ManageProfilePage() {
   }
 
   return (
-    <div className="mx-auto max-w-5xl space-y-5">
+    <div className="mx-auto max-w-6xl space-y-4">
       <Toaster position="top-right" richColors />
 
       <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
@@ -284,17 +284,17 @@ export default function ManageProfilePage() {
         </div>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-5">
-        <div className="grid gap-6 lg:grid-cols-[1.15fr_0.85fr]">
-          <section className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
-            <div className="mb-5 space-y-2">
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div className="grid gap-5 lg:grid-cols-[1.15fr_0.85fr]">
+          <section className="rounded-3xl border border-slate-200 bg-white p-4 shadow-sm">
+            <div className="mb-4 space-y-2">
               <h2 className="text-lg font-semibold text-slate-900">头像信息</h2>
               <p className="text-sm leading-6 text-slate-500">
                 支持上传新的管理员头像，也可以清空头像，顶栏会自动回退为用户名首字母。
               </p>
             </div>
 
-            <div className="space-y-6">
+            <div className="space-y-5">
               <div className="flex flex-col gap-5 rounded-3xl border border-dashed border-slate-200 bg-slate-50/70 p-4 sm:flex-row sm:items-start">
                 <div className="flex h-24 w-24 shrink-0 items-center justify-center overflow-hidden rounded-3xl bg-white ring-1 ring-slate-200">
                   {avatarPreviewUrl ? (
@@ -357,10 +357,10 @@ export default function ManageProfilePage() {
                 </div>
               </div>
 
-              <div className="space-y-3">
+              <div>
                 <label
                   htmlFor="username"
-                  className="text-sm font-medium text-slate-700"
+                  className="mb-5 block text-sm font-medium text-slate-700"
                 >
                   用户名
                 </label>
@@ -370,15 +370,15 @@ export default function ManageProfilePage() {
                   readOnly
                   className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-500 outline-none"
                 />
-                <p className="text-xs leading-5 text-slate-500">
+                <p className="mt-3 text-xs leading-5 text-slate-500">
                   当前版本暂不开放用户名自助修改，如需调整可在管理员管理页处理。
                 </p>
               </div>
 
-              <div className="space-y-3">
+              <div>
                 <label
                   htmlFor="avatar"
-                  className="text-sm font-medium text-slate-700"
+                  className="mb-5 block text-sm font-medium text-slate-700"
                 >
                   头像地址
                 </label>
@@ -396,19 +396,19 @@ export default function ManageProfilePage() {
             </div>
           </section>
 
-          <section className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
-            <div className="mb-5 space-y-2">
+          <section className="rounded-3xl border border-slate-200 bg-white p-4 shadow-sm">
+            <div className="mb-4 space-y-2">
               <h2 className="text-lg font-semibold text-slate-900">安全设置</h2>
               <p className="text-sm leading-6 text-slate-500">
                 如需修改登录密码，请输入新密码并重复确认；留空则保持当前密码不变。
               </p>
             </div>
 
-            <div className="space-y-6">
-              <div className="space-y-3">
+            <div className="space-y-5">
+              <div>
                 <label
                   htmlFor="password"
-                  className="text-sm font-medium text-slate-700"
+                  className="mb-5 block text-sm font-medium text-slate-700"
                 >
                   新密码
                 </label>
@@ -431,10 +431,10 @@ export default function ManageProfilePage() {
                 </div>
               </div>
 
-              <div className="space-y-3">
+              <div>
                 <label
                   htmlFor="confirmPassword"
-                  className="text-sm font-medium text-slate-700"
+                  className="mb-5 block text-sm font-medium text-slate-700"
                 >
                   确认新密码
                 </label>
