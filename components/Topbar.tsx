@@ -167,20 +167,16 @@ export function Topbar() {
               aria-controls="manage-profile-menu"
               aria-haspopup="menu"
               onClick={() => setMenuOpen((value) => !value)}
-              className={`group flex items-center gap-3 rounded-full border pl-1 pr-3 py-1 shadow-sm transition-all duration-200 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-100 ${
+              className={`group flex items-center gap-3 rounded-full border bg-white pl-1 pr-3 py-1 shadow-sm transition-all duration-200 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-100 ${
                 menuOpen
-                  ? "border-primary/30 bg-primary-50/80 shadow-[0_14px_34px_rgba(124,58,237,0.14)]"
-                  : "border-slate-200 bg-white"
+                  ? "border-primary/60 shadow-[0_14px_34px_rgba(15,23,42,0.12)]"
+                  : "border-slate-200 hover:border-primary/60"
               }`}
             >
-              <div
-                className={`rounded-full p-0.5 transition-colors duration-200 ${
-                  menuOpen
-                    ? "bg-primary/15"
-                    : "bg-transparent group-hover:bg-primary/12"
-                }`}
-              >
-                <div className="flex h-9 w-9 items-center justify-center overflow-hidden rounded-full bg-primary text-sm font-bold text-white ring-2 ring-primary-50">
+              <div className="rounded-full border border-transparent p-0.5 transition-colors duration-200">
+                <div
+                  className="flex h-9 w-9 items-center justify-center overflow-hidden rounded-full bg-primary text-sm font-bold text-white ring-2 ring-slate-200 transition-colors duration-200"
+                >
                   {avatarUrl ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img
@@ -197,21 +193,13 @@ export function Topbar() {
                 <p className="max-w-32 truncate text-sm font-semibold text-slate-900">
                   {profile?.username || "管理员"}
                 </p>
-                <p
-                  className={`text-xs transition-colors duration-200 ${
-                    menuOpen
-                      ? "text-primary"
-                      : "text-slate-400 group-hover:text-primary"
-                  }`}
-                >
+                <p className="text-xs text-slate-400 transition-colors duration-200">
                   账户中心
                 </p>
               </div>
               <ChevronDown
-                className={`h-4 w-4 transition-all duration-300 ease-out ${
-                  menuOpen
-                    ? "rotate-180 text-primary"
-                    : "text-slate-400 group-hover:text-primary"
+                className={`h-4 w-4 text-slate-400 transition-all duration-300 ease-out ${
+                  menuOpen ? "rotate-180" : ""
                 }`}
               />
             </button>
@@ -225,7 +213,6 @@ export function Topbar() {
               }`}
             >
               <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-[0_22px_50px_rgba(15,23,42,0.15)]">
-                <div className="h-1 w-full bg-[linear-gradient(90deg,rgba(124,58,237,0.14),rgba(124,58,237,0.3),rgba(124,58,237,0.14))]" />
                 <div className="flex items-center gap-3 border-b border-slate-100 px-4 py-4">
                   <div className="flex h-11 w-11 items-center justify-center overflow-hidden rounded-full bg-primary text-sm font-bold text-white">
                     {avatarUrl ? (
