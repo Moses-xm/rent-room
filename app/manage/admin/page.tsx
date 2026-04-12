@@ -86,7 +86,7 @@ async function fetchAdmins(params: FetchParams): Promise<AdminsResponse> {
   qs.set('page', String(params.page));
   qs.set('limit', String(params.limit));
   if (params.search) qs.set('search', params.search);
-  return request<AdminsResponse>(`/admin?${qs.toString()}`);
+  return request<AdminsResponse>(`/manage/admin?${qs.toString()}`);
 }
 
 /* ─── Page ────────────────────────────────────────────────────────────────── */
@@ -159,10 +159,10 @@ export default function AdminPage() {
   const handleSaved = async (data: AdminFormData, editingId?: number) => {
     try {
       if (editingId) {
-        await request(`/admin/${editingId}`, { method: 'PUT', json: data });
+        await request(`/manage/admin/${editingId}`, { method: 'PUT', json: data });
         toast.success(adminToast.updateSuccess);
       } else {
-        await request('/admin', { method: 'POST', json: data });
+        await request('/manage/admin', { method: 'POST', json: data });
         toast.success(adminToast.createSuccess);
       }
       refreshData();
@@ -179,7 +179,7 @@ export default function AdminPage() {
     if (!deleteTarget || isDeleting) return;
     try {
       setIsDeleting(true);
-      await request(`/admin/${deleteTarget.id}`, { method: 'DELETE' });
+      await request(`/manage/admin/${deleteTarget.id}`, { method: 'DELETE' });
       setDeleteTarget(null);
       refreshData();
       toast.success(adminToast.deleteSuccess);
@@ -254,7 +254,7 @@ export default function AdminPage() {
                     <tr>
                       <td colSpan={5} className="py-24 text-center">
                         {loading ? (
-                          <div className="h-[140px]" />
+                          <div className="h-35" />
                         ) : (
                           <div className="flex flex-col items-center gap-3 opacity-30">
                             <ShieldCheck size={48} className="text-slate-300" />
