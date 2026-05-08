@@ -1,44 +1,28 @@
 # 雅阁租房系统
 
-全栈租房平台，含两个独立子应用：`/manage/*`（管理平台）和 `/portal/*`（用户平台）。
+全栈租房平台。`/manage/*` 管理平台，`/portal/*` 用户平台，共享数据库，认证独立。完整设计见 [doc/design.md](doc/design.md)。
 
 ## 技术栈
-
-- **框架**：Next.js 15 App Router（混合渲染）
-- **UI**：shadcn/ui + Tailwind CSS v4
-- **数据库**：Neon Postgres + Prisma ORM
-- **认证**：自实现 HS256 JWT（环境变量 `MANAGE_JWT_SECRET`）
-- **文件存储**：Vercel Blob（via `lib/uploaded-file.ts`）
-- **地图**：百度地图 JS API（环境变量 `NEXT_PUBLIC_BAIDU_MAP_AK`）
+Next.js 15 App Router · shadcn/ui + Tailwind CSS v4 · Neon Postgres + Prisma · 自实现 HS256 JWT（`MANAGE_JWT_SECRET`）· Vercel Blob（`lib/uploaded-file.ts`）· 百度地图 JS API（`NEXT_PUBLIC_BAIDU_MAP_AK`）
 
 ## 开发命令
-
-```bash
-npm run dev    # 启动开发服务器
-npm run build  # 构建
-npm run lint   # ESLint
-npx prisma db push   # 同步 Schema 到数据库
-```
+`npm run dev` · `npm run build` · `npm run lint` · `npx prisma db push`
 
 ## 数据库规范
-
-- 所有表含 `id`（自增主键）、`createdAt`、`updatedAt`
-- 无软删除，删除即硬删除
-- 字段名使用 camelCase
+所有表含 `id`（自增主键）、`createdAt`、`updatedAt`。无软删除，硬删除。字段名 camelCase。
 
 ## API 规范
+模板参照 `app/api/manage/admin/`：`route.ts` → GET(列表)/POST(创建)，`[id]/route.ts` → PUT(更新)/DELETE(删除)。
+成功：`{ success: true, data }` 列表额外含 `total, page, limit, totalPages`。失败：`{ success: false, message }`（含对应 HTTP 状态码）。
 
-参照 `app/api/manage/admin/` 作为标准实现模板：
-- `route.ts`：GET（列表）/ POST（创建）
-- `[id]/route.ts`：PUT（更新）/ DELETE（删除）
-- 成功返回：`{ success: true, data: ... }`（列表额外含 `total, page, limit, totalPages`）
-- 失败返回：`{ success: false, message: '...' }`（附对应 HTTP 状态码）
+## 前端规范
+- 请求统一用 `utils/request.ts` 的 `request<T>()`；不满足需求时扩展参数，不另起炉灶
+- 新增普通 CRUD 模块时参照管理员管理模块，保持表格/表单/筛选/分页/弹窗风格一致
 
 ## 文件上传
-
-1. `POST /api/upload/avatar`（FormData）→ 返回 `{ path: string }`
-2. 入库前用 `normalizeUploadPathForStorage()`，展示时用 `resolveUploadedFileUrl()`
-3. 替换/关闭表单时调用 `DELETE /api/upload/avatar` 清理旧图
+1. `POST /api/upload/avatar`（FormData）→ `{ path: string }`
+2. 入库前 `normalizeUploadPathForStorage()`，展示时 `resolveUploadedFileUrl()`
+3. 替换或关闭表单时调 `DELETE /api/upload/avatar` 清理临时文件
 
 ## 项目结构
 
@@ -99,17 +83,9 @@ rent-room/
 ```
 
 ## 实现状态
+管理平台：登录 ✅、个人资料 ✅、管理员管理 ✅、其余模块 ⬜。用户平台：全部 ⬜。数据库：`admin` 表 ✅，其余 ⬜。
 
-**管理平台**：登录 ✅、个人资料 ✅、管理员管理 ✅、其余模块 ⬜
-
-**用户平台**：全部待实现 ⬜
-
-**数据库**：`admin` 表已建，其余待建 ⬜
-
-> 完整设计文档见 [doc/design.md](doc/design.md)
-
-## 需要注意的事情
-
-1.和我对话的时候说中文，并且以My lord开头
-3.在我和你对话的时候，如果让你对项目做了某些改动，在代码改动完毕之后记得更新一下design文档的相对应的内容，确保design文档一直和实际的代码的内容是保持同步和一致的。如果修改了design文档，就告诉我修改了哪些部分，如果不需要修改，就告诉我不需要修改。
-4.在我和你对话的时候，如果让你对项目的目录结构做了某些改动，在改动完毕之后记得更新一下本文档的项目结构。
+## 协作约定
+- 回复用中文，以 **My lord** 开头
+- 代码改动完成后同步更新 [doc/design.md](doc/design.md)，并告知修改了哪些部分；无需修改也须说明
+- 目录结构变化时同步更新本文档「项目结构」章节
