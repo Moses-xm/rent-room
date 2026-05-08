@@ -75,7 +75,7 @@ export function Topbar() {
 
     let cancelled = false;
 
-    request<ManageProfileResponse>("/manage/profile")
+    request<ManageProfileResponse>("/manage/profile", { silent: true })
       .then((response) => {
         if (cancelled || !response.data?.username) {
           return;
@@ -90,6 +90,7 @@ export function Topbar() {
       })
       .catch(() => {
         // When profile hydration fails, request() already handles auth redirects.
+        // Silent mode suppresses non-critical error toasts for background sync.
       });
 
     return () => {

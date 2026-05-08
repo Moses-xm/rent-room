@@ -92,6 +92,7 @@ export default function ManageLoginPage() {
           password,
           sliderVerified: true,
         },
+        silent: true,
       });
 
       const token = response["manage-token"] || response.manageToken;

@@ -18,6 +18,7 @@ Next.js 15 App Router · shadcn/ui + Tailwind CSS v4 · Neon Postgres + Prisma �
 ## 前端规范
 - 请求统一用 `utils/request.ts` 的 `request<T>()`；不满足需求时扩展参数，不另起炉灶
 - 新增普通 CRUD 模块时参照管理员管理模块，保持表格/表单/筛选/分页/弹窗风格一致
+- **错误处理**：`request()` 自动处理 4xx/5xx 异常并显示 toast 错误提示，页面层只需处理业务逻辑和成功提示；特殊场景（表单级错误展示、后台清理操作）传 `silent: true` 参数抑制 toast
 
 ## 文件上传
 1. `POST /api/upload/avatar`（FormData）→ `{ path: string }`

@@ -1,3 +1,4 @@
+import { toast } from 'sonner';
 import {
   MANAGE_LOGIN_PATH,
   clearManageToken,
@@ -5,6 +6,11 @@ import {
 } from "@/utils/manage-auth";
 
 const API_BASE = '/api';
+
+export interface ApiError extends Error {
+  status: number;
+  data: unknown;
+}
 
 export type RequestOptions = Omit<RequestInit, 'body' | 'method'> & {
   /** if set to true the helper will not attach auth headers or credentials. */
@@ -15,6 +21,8 @@ export type RequestOptions = Omit<RequestInit, 'body' | 'method'> & {
   formData?: FormData;
   /** HTTP method, defaults to 'GET' */
   method?: string;
+  /** Suppress request-level toast notifications for error responses. */
+  silent?: boolean;
 };
 
 export async function request<T = unknown>(
@@ -22,7 +30,7 @@ export async function request<T = unknown>(
   options: RequestOptions = {}
 ): Promise<T> {
   const url = `${API_BASE}${path}`;
-  const { skipDefaults, json, formData, method = 'GET', headers = {}, ...rest } = options;
+  const { skipDefaults, json, formData, method = 'GET', headers = {}, silent = false, ...rest } = options;
 
   if (json !== undefined && formData !== undefined) {
     throw new Error('request() cannot send both json and formData in the same call');
@@ -64,15 +72,30 @@ export async function request<T = unknown>(
       typeof data === "object" && data !== null && "message" in data
         ? String(data.message)
         : `HTTP ${res.status} ${res.statusText}`;
-    const err = new Error(message) as Error & { status?: number };
-    err.status = res.status;
-
+    
+    // Handle 401: clear token and redirect to login
     if (res.status === 401 && typeof window !== 'undefined') {
       if (window.location.pathname !== MANAGE_LOGIN_PATH) {
         clearManageToken();
-        window.location.href = MANAGE_LOGIN_PATH;
+        if (!silent) {
+          toast.error('登录已过期，请重新登录');
+          setTimeout(() => {
+            window.location.href = MANAGE_LOGIN_PATH;
+          }, 800);
+        } else {
+          window.location.href = MANAGE_LOGIN_PATH;
+        }
       }
     }
+    
+    // Show error toast unless silent mode
+    if (!silent) {
+      toast.error(message);
+    }
+    
+    const err = new Error(message) as ApiError;
+    err.status = res.status;
+    err.data = data;
 
     throw err;
   }

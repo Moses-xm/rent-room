@@ -120,6 +120,7 @@ export default function AdminFormModal({ state, onClose, onSaved }: Props) {
     await request('/upload/avatar', {
       method: 'DELETE',
       json: { path: avatarPath },
+      silent: true,
     });
   };
 
@@ -164,6 +165,7 @@ export default function AdminFormModal({ state, onClose, onSaved }: Props) {
       const result = await request<UploadResponse>('/upload/avatar', {
         method: 'POST',
         formData,
+        silent: true,
       });
 
       if (!result.success || !result.data?.path) {
