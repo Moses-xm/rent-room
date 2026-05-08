@@ -273,6 +273,7 @@ export function Topbar() {
         confirmText="退出登录"
         cancelText="取消"
         icon={<LogOut size={32} />}
+        danger
         onClose={() => setLogoutDialogOpen(false)}
         onConfirm={handleLogout}
       />
