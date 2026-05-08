@@ -8,18 +8,17 @@
 
 1. [项目概述](#1-项目概述)
 2. [技术栈](#2-技术栈)
-3. [项目结构](#3-项目结构)
-4. [认证机制](#4-认证机制)
-5. [文件上传](#5-文件上传)
-6. [数据库设计](#6-数据库设计)
-7. [API 设计规范](#7-api-设计规范)
-8. [前端开发规范](#8-前端开发规范)
-9. [管理平台模块](#9-管理平台模块)
-10. [用户平台模块](#10-用户平台模块)
-11. [响应式布局要求](#11-响应式布局要求)
-12. [百度地图集成](#12-百度地图集成)
-13. [数据迁移说明](#13-数据迁移说明)
-14. [已实现 vs 待实现](#14-已实现-vs-待实现)
+3. [认证机制](#3-认证机制)
+4. [文件上传](#4-文件上传)
+5. [数据库设计](#5-数据库设计)
+6. [API 设计规范](#6-api-设计规范)
+7. [前端开发规范](#7-前端开发规范)
+8. [管理平台模块](#8-管理平台模块)
+9. [用户平台模块](#9-用户平台模块)
+10. [响应式布局要求](#10-响应式布局要求)
+11. [百度地图集成](#11-百度地图集成)
+12. [数据迁移说明](#12-数据迁移说明)
+13. [已实现 vs 待实现](#13-已实现-vs-待实现)
 
 ---
 
@@ -51,67 +50,7 @@
 
 ---
 
-## 3. 项目结构
-
-```
-rent-room/
-├── app/
-│   ├── api/                        # API Routes (Next.js Route Handlers)
-│   │   ├── manage/                 # 管理平台专用 API
-│   │   │   ├── login/route.ts      # 管理员登录
-│   │   │   ├── profile/route.ts    # 管理员个人信息
-│   │   │   ├── admin/
-│   │   │   │   ├── route.ts        # GET(list) / POST(create)
-│   │   │   │   └── [id]/route.ts   # PUT(update) / DELETE
-│   │   │   ├── user/               # 用户管理 (待实现)
-│   │   │   ├── community/          # 小区管理 (待实现)
-│   │   │   ├── room/               # 房源管理 (待实现)
-│   │   │   ├── facility/           # 设施管理 (待实现)
-│   │   │   ├── carousel/           # 轮播图管理 (待实现)
-│   │   │   ├── appointment/        # 预约管理 (待实现)
-│   │   │   ├── collection/         # 收藏管理 (待实现)
-│   │   │   ├── contract/           # 合同管理 (待实现)
-│   │   │   └── order/              # 订单管理 (待实现)
-│   │   ├── portal/                 # 用户平台专用 API (待实现)
-│   │   └── upload/
-│   │       └── avatar/route.ts     # 图片上传 / 删除
-│   ├── manage/                     # 管理平台页面
-│   │   ├── layout.tsx
-│   │   ├── login/page.tsx
-│   │   ├── page.tsx                # Dashboard
-│   │   ├── profile/page.tsx
-│   │   ├── admin/
-│   │   │   ├── page.tsx
-│   │   │   └── admin-form-modal.tsx
-│   │   └── ...                     # 其他待实现页面
-│   ├── portal/                     # 用户平台页面 (待实现)
-│   └── layout.tsx                  # 根布局
-├── components/                     # 共享 UI 组件
-│   ├── Sidebar.tsx
-│   ├── Topbar.tsx
-│   ├── ManageLayoutShell.tsx
-│   ├── ConfirmDialog.tsx
-│   ├── AppLoading.tsx
-│   ├── LoadingDimmer.tsx
-│   └── CitySelector.tsx
-├── lib/                            # 服务端工具库
-│   ├── prisma.ts                   # Prisma 客户端单例
-│   ├── manage-auth.ts              # JWT 签发 / 验证 / 鉴权中间件
-│   ├── admin.ts                    # admin 序列化工具
-│   ├── upload-path.ts              # 上传路径工具
-│   └── uploaded-file.ts            # Vercel Blob 操作封装
-├── utils/                          # 客户端工具库
-│   ├── request.ts                  # fetch 封装，自动注入 token
-│   ├── manage-auth.ts              # token 本地存取
-│   └── manage-city.ts              # 城市数据工具
-├── prisma/
-│   └── schema.prisma               # 数据库 Schema
-└── localData/                      # 城市数据等本地静态数据
-```
-
----
-
-## 4. 认证机制
+## 3. 认证机制
 
 ### 管理平台
 
@@ -138,7 +77,7 @@ export async function requireManageAuth(request: Request): Promise<
 
 ---
 
-## 5. 文件上传
+## 4. 文件上传
 
 所有图片统一上传至 **Vercel Blob**，通过 `lib/uploaded-file.ts` 封装的 `saveAvatarUpload` / `deleteUploadedAvatar` 操作。
 
@@ -162,7 +101,7 @@ export async function requireManageAuth(request: Request): Promise<
 
 ---
 
-## 6. 数据库设计
+## 5. 数据库设计
 
 数据库使用 **Neon Postgres**，ORM 为 **Prisma**。所有表定义写在 `prisma/schema.prisma`。
 
@@ -408,7 +347,7 @@ model Order {
 
 ---
 
-## 7. API 设计规范
+## 6. API 设计规范
 
 ### 路由规则
 
@@ -519,7 +458,7 @@ export function serializeAdmin(admin: Admin) {
 
 ---
 
-## 8. 前端开发规范
+## 7. 前端开发规范
 
 ### 页面组件规则
 
@@ -614,11 +553,11 @@ useEffect(() => {
 
 ---
 
-## 9. 管理平台模块
+## 8. 管理平台模块
 
 管理平台路由全部在 `/manage/*`，侧边栏在 `components/Sidebar.tsx` 中维护导航项。
 
-### 9.1 已实现模块
+### 8.1 已实现模块
 
 #### 管理员登录 (`/manage/login`)
 
@@ -639,7 +578,7 @@ useEffect(() => {
 
 - 当前为静态占位页（含营收统计卡片和图表骨架），后续接入真实数据
 
-### 9.2 待实现模块
+### 8.2 待实现模块
 
 以下模块按优先级排列，均以管理员管理为开发标准（Schema + API + 页面 + Modal）。
 
@@ -702,7 +641,7 @@ useEffect(() => {
 
 ---
 
-## 10. 用户平台模块
+## 9. 用户平台模块
 
 用户平台路由全部在 `/portal/*`，与管理平台完全独立。
 
@@ -786,7 +725,7 @@ useEffect(() => {
 
 ---
 
-## 11. 响应式布局要求
+## 10. 响应式布局要求
 
 - **管理平台**：侧边栏在移动端（`< lg`）折叠为底部 Tab Bar 或汉堡菜单；表格支持横向滚动（`overflow-x-auto`）；表单 Modal 在移动端全屏展示
 - **用户平台**：所有页面完全支持移动端，导航使用底部 Tab Bar；筛选条件在移动端以抽屉/底部弹层展示；图片使用 `object-fit: cover` 自适应容器
@@ -799,7 +738,7 @@ useEffect(() => {
 
 ---
 
-## 12. 百度地图集成
+## 11. 百度地图集成
 
 ### 用途
 
@@ -833,7 +772,7 @@ API Key 存放在环境变量 `NEXT_PUBLIC_BAIDU_MAP_AK`（客户端可访问）
 
 ---
 
-## 13. 数据迁移说明
+## 12. 数据迁移说明
 
 从 MySQL 老数据迁移到 Neon Postgres 的脚本位于（待创建）`scripts/migrate.ts`。
 
@@ -864,7 +803,7 @@ API Key 存放在环境变量 `NEXT_PUBLIC_BAIDU_MAP_AK`（客户端可访问）
 
 ---
 
-## 14. 已实现 vs 待实现
+## 13. 已实现 vs 待实现
 
 ### 管理平台
 
