@@ -185,10 +185,10 @@ export default function AdminPage() {
             统一维护管理员账号、启用状态与基础资料，相关操作将记录到审计日志。
           </div>
         </div>
-        <div className="flex gap-2 shrink-0 w-full sm:w-auto">
+        <div className="flex gap-2 shrink-0">
           <button
             onClick={() => setModalState({ mode: 'add' })}
-            className="flex-1 sm:flex-none h-[34px] px-[14px] text-body rounded-sm font-medium
+            className="h-8.5 px-3.5 text-body rounded-sm font-medium
                        bg-primary text-white hover:bg-primary-dark transition-colors
                        flex items-center justify-center gap-2"
           >

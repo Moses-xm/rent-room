@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import { Bell, ChevronDown, LogOut, Settings, UserRound } from "lucide-react";
+import { Bell, ChevronDown, LogOut, Menu, Settings, UserRound } from "lucide-react";
 import { CitySelector } from "@/components/CitySelector";
 import ConfirmDialog from "@/components/ConfirmDialog";
 import { resolveUploadedFileUrl } from "@/lib/upload-path";
@@ -35,7 +35,7 @@ const CRUMB_MAP: Record<string, string> = {
   "/manage/profile": "个人资料",
 };
 
-export function Topbar() {
+export function Topbar({ onMobileMenuToggle }: { onMobileMenuToggle?: () => void }) {
   const pathname = usePathname();
   const router   = useRouter();
   const [profile, setProfile]           = useState<ManageProfile | null>(null);
@@ -114,6 +114,16 @@ export function Topbar() {
         className="sticky top-0 z-40 w-full flex items-center bg-card border-b border-border"
         style={{ height: 60, padding: "0 28px" }}
       >
+        {/* 汉堡菜单按钮（仅移动端） */}
+        <button
+          onClick={onMobileMenuToggle}
+          title="打开菜单"
+          className="lg:hidden w-8.5 h-8.5 mr-2 rounded-sm grid place-items-center
+                     text-text-2 hover:bg-surface-2 hover:text-text transition-colors"
+        >
+          <Menu className="w-4.5 h-4.5" />
+        </button>
+
         {/* 面包屑 */}
         <nav className="flex items-center gap-2 text-body-sm">
           <Link
