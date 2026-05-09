@@ -116,119 +116,111 @@ export default function ManageLoginPage() {
   };
 
   return (
-    <div className="relative min-h-screen overflow-hidden bg-slate-100">
-      <Toaster
-        position="top-center"
-        richColors
-        toastOptions={{
-          classNames: {
-            toast: "!rounded-2xl !shadow-lg",
-            title: "!text-sm !font-medium",
-            description: "!text-xs",
-          },
-        }}
-      />
+    <div className="min-h-screen bg-surface flex items-center justify-center px-5 py-10">
+      <Toaster position="top-center" richColors />
 
-      <div className="absolute inset-0 bg-slate-100" />
-      <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(255,255,255,0.65),rgba(241,245,249,0.92))]" />
+      <div className="w-full max-w-md rounded-lg border border-border bg-card px-8 py-9 shadow-sm">
 
-      <div className="relative flex min-h-screen items-center justify-center px-5 py-10">
-        <div className="w-full max-w-lg rounded-[30px] border border-slate-200/80 bg-white px-8 py-9 shadow-[0_24px_60px_rgba(15,23,42,0.08)] sm:px-10">
-          <div className="mb-9 flex items-center gap-4">
-            <div className="flex h-16 w-16 items-center justify-center rounded-[20px] bg-primary-50 p-2.5 ring-1 ring-primary-100">
-              <Image
-                src="/images/logo2.png"
-                alt="雅阁租房平台 Logo"
-                width={716}
-                height={716}
-                className="h-full w-full object-contain"
-                priority
-              />
+        {/* ── 头部：居中竖排 ── */}
+        <div className="mb-8 flex flex-col items-center gap-3 text-center">
+          <div className="h-16 w-16 overflow-hidden rounded-xl border border-border">
+            <Image
+              src="/images/logo2.png"
+              alt="雅阁租房平台 Logo"
+              width={716}
+              height={716}
+              className="h-full w-full object-contain"
+              priority
+            />
+          </div>
+          <div>
+            <h1 className="font-(family-name:--typeface-display) text-[22px] font-medium tracking-tight text-text leading-tight">
+              雅阁租房平台
+            </h1>
+            <p className="mt-1 text-[13px] text-text-muted">管理端账号登录</p>
+          </div>
+        </div>
+
+        <form className="space-y-5" onSubmit={handleSubmit}>
+          <div>
+            <label className="block text-[12.5px] font-medium text-text-2 mb-1.5" htmlFor="username">
+              用户名
+            </label>
+            <input
+              id="username"
+              value={username}
+              onChange={(event) => setUsername(event.target.value)}
+              placeholder="请输入管理员用户名"
+              className="h-9.5 w-full rounded-sm border border-border bg-card px-3 text-[13px] text-text outline-none
+                         transition-[border-color,box-shadow] hover:border-text-disabled placeholder:text-text-subtle
+                         focus:border-primary focus:shadow-[0_0_0_3px_color-mix(in_srgb,var(--color-primary)_15%,transparent)]"
+            />
+          </div>
+
+          <div>
+            <label className="block text-[12.5px] font-medium text-text-2 mb-1.5" htmlFor="password">
+              密码
+            </label>
+            <input
+              id="password"
+              type="password"
+              value={password}
+              onChange={(event) => setPassword(event.target.value)}
+              placeholder="请输入密码"
+              className="h-9.5 w-full rounded-sm border border-border bg-card px-3 text-[13px] text-text outline-none
+                         transition-[border-color,box-shadow] hover:border-text-disabled placeholder:text-text-subtle
+                         focus:border-primary focus:shadow-[0_0_0_3px_color-mix(in_srgb,var(--color-primary)_15%,transparent)]"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <div className="inline-flex items-center gap-1.5 text-[12.5px] font-medium text-text-2">
+              <ShieldCheck className="h-3.5 w-3.5 text-primary" />
+              安全验证
             </div>
-            <div>
-              <h1 className="text-2xl font-bold text-slate-900">雅阁租房平台</h1>
-              <p className="mt-1 text-sm text-slate-500">管理端账号登录</p>
+
+            <div
+              className={`relative h-10 overflow-hidden rounded-sm border ${
+                isVerified ? "border-primary bg-primary-tint" : "border-border bg-surface-2"
+              }`}
+            >
+              <div
+                className="pointer-events-none absolute inset-y-0 left-0 bg-primary opacity-10"
+                style={{ width: `${sliderValue}%` }}
+              />
+              <div className="pointer-events-none absolute inset-0 flex items-center justify-center px-14 text-[12.5px] text-text-muted">
+                {isVerified ? "验证通过" : "拖动滑块到最右侧完成验证"}
+              </div>
+              <input
+                type="range"
+                min={0}
+                max={100}
+                step={1}
+                value={sliderValue}
+                onChange={(event) => handleSliderChange(Number(event.target.value))}
+                onMouseUp={finalizeSlider}
+                onTouchEnd={finalizeSlider}
+                aria-label="滑块验证"
+                className="manage-slider relative z-10 h-10 w-full cursor-grab appearance-none bg-transparent active:cursor-grabbing"
+              />
+              <div
+                className="pointer-events-none absolute top-0 z-20 flex h-10 w-10 items-center justify-center rounded-sm bg-primary text-[13px] font-semibold text-white transition-transform"
+                style={{ left: `calc((100% - 40px) * ${sliderValue / 100})` }}
+              >
+                {isVerified ? "✓" : "›"}
+              </div>
             </div>
           </div>
 
-          <form className="space-y-6" onSubmit={handleSubmit}>
-            <div>
-              <label className="mb-3 block text-sm font-medium text-slate-700" htmlFor="username">
-                用户名
-              </label>
-              <input
-                id="username"
-                value={username}
-                onChange={(event) => setUsername(event.target.value)}
-                placeholder="请输入管理员用户名"
-                className="h-12 w-full rounded-2xl border border-slate-200 bg-slate-50/80 px-4 text-sm text-slate-900 outline-none transition focus:border-primary focus:bg-white focus:ring-4 focus:ring-primary-50"
-              />
-            </div>
-
-            <div>
-              <label className="mb-3 block text-sm font-medium text-slate-700" htmlFor="password">
-                密码
-              </label>
-              <input
-                id="password"
-                type="password"
-                value={password}
-                onChange={(event) => setPassword(event.target.value)}
-                placeholder="请输入密码"
-                className="h-12 w-full rounded-2xl border border-slate-200 bg-slate-50/80 px-4 text-sm text-slate-900 outline-none transition focus:border-primary focus:bg-white focus:ring-4 focus:ring-primary-50"
-              />
-            </div>
-
-            <div className="space-y-3">
-              <div className="inline-flex items-center gap-2 text-sm font-medium text-slate-700">
-                <ShieldCheck className="h-4 w-4 text-primary" />
-                安全验证
-              </div>
-
-              <div
-                className={`relative h-12 overflow-hidden rounded-2xl border px-3 ${
-                  isVerified ? "border-primary-200 bg-primary-50" : "border-slate-200 bg-slate-100"
-                }`}
-              >
-                <div
-                  className={`pointer-events-none absolute inset-y-0 left-0 rounded-2xl ${
-                    isVerified ? "bg-primary-100" : "bg-primary-200/70"
-                  }`}
-                  style={{ width: `${sliderValue}%` }}
-                />
-                <div className="pointer-events-none absolute inset-0 flex items-center justify-center px-16 text-sm text-slate-500">
-                  {isVerified ? "验证通过" : "拖动滑块到最右侧完成验证"}
-                </div>
-                <input
-                  type="range"
-                  min={0}
-                  max={100}
-                  step={1}
-                  value={sliderValue}
-                  onChange={(event) => handleSliderChange(Number(event.target.value))}
-                  onMouseUp={finalizeSlider}
-                  onTouchEnd={finalizeSlider}
-                  aria-label="滑块验证"
-                  className="manage-slider relative z-10 h-12 w-full cursor-grab appearance-none bg-transparent active:cursor-grabbing"
-                />
-                <div
-                  className="pointer-events-none absolute top-0 z-20 flex h-12 w-12 items-center justify-center rounded-xl bg-primary text-base font-semibold text-white shadow-sm transition-transform"
-                  style={{ left: `calc((100% - 40px) * ${sliderValue / 100})` }}
-                >
-                  {isVerified ? "✓" : "›"}
-                </div>
-              </div>
-            </div>
-
-            <button
-              type="submit"
-              disabled={submitting}
-              className="h-12 w-full rounded-2xl bg-primary text-sm font-semibold text-white shadow-[0_12px_30px_rgba(124,58,237,0.22)] transition hover:bg-primary-600 disabled:cursor-not-allowed disabled:opacity-70"
-            >
-              {submitting ? "登录中..." : "登录"}
-            </button>
-          </form>
-        </div>
+          <button
+            type="submit"
+            disabled={submitting}
+            className="mt-1 h-9.5 w-full rounded-sm bg-primary text-[13.5px] font-medium text-white
+                       transition-colors hover:bg-primary-dark disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            {submitting ? "登录中..." : "登录"}
+          </button>
+        </form>
       </div>
     </div>
   );

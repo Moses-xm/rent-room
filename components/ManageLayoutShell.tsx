@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { Sidebar } from "@/components/Sidebar";
 import { Topbar } from "@/components/Topbar";
+import { Toaster } from "sonner";
 import {
   MANAGE_AUTH_CHANGED_EVENT,
   MANAGE_HOME_PATH,
@@ -49,15 +50,17 @@ export function ManageLayoutShell({ children }: { children: React.ReactNode }) {
   if (authStatus !== "authenticated") return null;
 
   return (
-    // CSS grid + sticky sidebar：侧边栏宽度变化时平滑过渡
-    <div
-      className="min-h-screen bg-[var(--color-surface)]"
-      style={{
-        display: "grid",
-        gridTemplateColumns: `${isCollapsed ? 72 : 232}px 1fr`,
-        transition: "grid-template-columns 300ms ease",
-      }}
-    >
+    <>
+      <Toaster position="top-right" richColors />
+      {/* CSS grid + sticky sidebar：侧边栏宽度变化时平滑过渡 */}
+      <div
+        className="min-h-screen bg-[var(--color-surface)]"
+        style={{
+          display: "grid",
+          gridTemplateColumns: `${isCollapsed ? 72 : 232}px 1fr`,
+          transition: "grid-template-columns 300ms ease",
+        }}
+      >
       <Sidebar
         isCollapsed={isCollapsed}
         toggleCollapse={() => setIsCollapsed((v) => !v)}
@@ -65,9 +68,12 @@ export function ManageLayoutShell({ children }: { children: React.ReactNode }) {
       <div className="flex flex-col min-w-0">
         <Topbar />
         <main className="flex-1 px-8 py-7 pb-12">
-          {children}
+          <div className="max-w-6xl mx-auto">
+            {children}
+          </div>
         </main>
       </div>
     </div>
+    </>
   );
 }

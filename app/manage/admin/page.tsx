@@ -14,7 +14,7 @@ import {
   ChevronsRight,
   ShieldCheck,
 } from 'lucide-react';
-import { toast, Toaster } from 'sonner';
+import { toast } from 'sonner';
 import AdminFormModal, {
   type ModalState,
   type AdminFormData,
@@ -185,13 +185,12 @@ export default function AdminPage() {
   };
 
   return (
-    <div className="max-w-6xl mx-auto space-y-5">
-      <Toaster position="top-right" richColors />
+    <div className="space-y-5">
 
       {/* ── 页面头部 ── */}
       <div className="flex items-end justify-between gap-4">
         <div>
-          <h1 className="font-(family-name:--typeface-display) text-[32px] font-medium tracking-tight text-text leading-[1.1] m-0">
+          <h1 className="font-(family-name:--typeface-display) text-[26px] font-medium tracking-tight text-text leading-[1.1] m-0">
             管理员账号
           </h1>
           <div className="text-[13px] text-text-muted mt-[6px]">

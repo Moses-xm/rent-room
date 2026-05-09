@@ -3,7 +3,7 @@
 import { type ChangeEvent, useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Eye, EyeOff, ImagePlus, Loader2, LockKeyhole, Save, Upload, UserRound } from 'lucide-react';
-import { Toaster, toast } from 'sonner';
+import { toast } from 'sonner';
 import { resolveUploadedFileUrl, isManagedUploadPath } from '@/lib/upload-path';
 import { clearManageToken, MANAGE_HOME_PATH, MANAGE_LOGIN_PATH, setManageProfile } from '@/utils/manage-auth';
 import { request } from '@/utils/request';
@@ -176,25 +176,21 @@ export default function ManageProfilePage() {
   /* ── 加载骨架 ── */
   if (loading) {
     return (
-      <>
-        <Toaster position="top-right" richColors />
-        <div className="mx-auto max-w-6xl space-y-5">
-          <div className="space-y-2">
-            <div className="h-8 w-44 animate-pulse rounded bg-surface-2" />
-            <div className="h-4 w-72 animate-pulse rounded bg-surface-2 opacity-60" />
-          </div>
-          <div className="grid gap-4 lg:grid-cols-2">
-            <div className="h-80 animate-pulse rounded bg-surface-2" />
-            <div className="h-80 animate-pulse rounded bg-surface-2" />
-          </div>
+      <div className="space-y-5">
+        <div className="space-y-2">
+          <div className="h-8 w-44 animate-pulse rounded bg-surface-2" />
+          <div className="h-4 w-72 animate-pulse rounded bg-surface-2 opacity-60" />
         </div>
-      </>
+        <div className="grid gap-4 lg:grid-cols-2">
+          <div className="h-80 animate-pulse rounded bg-surface-2" />
+          <div className="h-80 animate-pulse rounded bg-surface-2" />
+        </div>
+      </div>
     );
   }
 
   return (
-    <div className="mx-auto max-w-6xl space-y-5">
-      <Toaster position="top-right" richColors />
+    <div className="space-y-5">
 
       {/* ── 页面头部 ── */}
       <div className="flex items-end justify-between gap-4">
