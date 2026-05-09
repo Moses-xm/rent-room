@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { resolveUploadedFileUrl } from '@/lib/upload-path';
 import { request } from '@/utils/request';
 import {
@@ -8,10 +8,6 @@ import {
   Search,
   Pencil,
   Trash2,
-  ChevronLeft,
-  ChevronRight,
-  ChevronsLeft,
-  ChevronsRight,
   ShieldCheck,
 } from 'lucide-react';
 import { toast } from 'sonner';
@@ -23,6 +19,7 @@ import ConfirmDialog from '@/components/ConfirmDialog';
 import { StatusPill } from '@/components/StatusPill';
 import AppLoading from '@/components/AppLoading';
 import LoadingDimmer from '@/components/LoadingDimmer';
+import Pagination from '@/components/Pagination';
 
 /* ─── Types ───────────────────────────────────────────────────────────────── */
 type Admin = {
@@ -39,11 +36,11 @@ function fmtDateTime(iso: string) {
   if (!iso) return '—';
   const d = new Date(iso);
   const y = d.getFullYear();
-  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const mo = String(d.getMonth() + 1).padStart(2, '0');
   const day = String(d.getDate()).padStart(2, '0');
   const h = String(d.getHours()).padStart(2, '0');
   const min = String(d.getMinutes()).padStart(2, '0');
-  return `${y}-${m}-${day} ${h}:${min}`;
+  return `${y}-${mo}-${day} ${h}:${min}`;
 }
 
 function initials(name: string) {
@@ -66,15 +63,11 @@ type AdminsResponse = {
   totalPages: number;
 };
 
-type FetchParams = { page: number; limit: number; search?: string };
-
-const adminToast = {
-  createSuccess: '管理员创建成功',
-  updateSuccess: '管理员信息修改成功',
-  deleteSuccess: '管理员删除成功',
-} as const;
-
-async function fetchAdmins(params: FetchParams): Promise<AdminsResponse> {
+async function fetchAdmins(params: {
+  page: number;
+  limit: number;
+  search?: string;
+}): Promise<AdminsResponse> {
   const qs = new URLSearchParams();
   qs.set('page', String(params.page));
   qs.set('limit', String(params.limit));
@@ -90,12 +83,6 @@ const thCls =
 const tdCls =
   'px-4 py-[14px] border-b border-border-subtle align-middle text-text-2 text-body';
 
-const navBtnCls =
-  'min-w-[30px] h-[30px] rounded-sm grid place-items-center text-body-sm ' +
-  'text-text-2 hover:bg-surface-2 disabled:text-text-disabled disabled:cursor-not-allowed transition-colors';
-
-const pageSizeOptions = [5, 10, 20, 50];
-
 /* ─── Page ────────────────────────────────────────────────────────────────── */
 export default function AdminPage() {
   const [modalState, setModalState] = useState<ModalState>(null);
@@ -108,6 +95,7 @@ export default function AdminPage() {
   const [query, setQuery] = useState('');
   const [pageSize, setPageSize] = useState(10);
   const [page, setPage] = useState(1);
+  const [refreshKey, setRefreshKey] = useState(0);
 
   const [debouncedQuery, setDebouncedQuery] = useState('');
   useEffect(() => {
@@ -115,61 +103,53 @@ export default function AdminPage() {
     return () => clearTimeout(t);
   }, [query]);
 
-  const refreshData = () => {
+  // 单一数据拉取 effect，所有触发条件统一在此
+  useEffect(() => {
+    let cancelled = false;
     setLoading(true);
+
     fetchAdmins({ page, limit: pageSize, search: debouncedQuery || undefined })
       .then((res) => {
+        if (cancelled) return;
         if (res.success) {
           setList(res.data);
           setTotal(res.total);
           setTotalPages(res.totalPages);
+          // 当前页超出范围时（如筛选后总页数缩减）自动跳回末页
+          if (res.totalPages > 0 && page > res.totalPages) {
+            setPage(res.totalPages);
+          }
         }
       })
       .catch(console.error)
       .finally(() => {
-        setLoading(false);
-        setHasLoadedOnce(true);
+        if (!cancelled) {
+          setLoading(false);
+          setHasLoadedOnce(true);
+        }
       });
-  };
 
-  useEffect(() => {
-    refreshData();
-  }, [page, pageSize, debouncedQuery]);
+    return () => { cancelled = true; };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [page, pageSize, debouncedQuery, refreshKey]);
 
-  const safePage = Math.min(page, totalPages || 1);
-
-  const pageNums = useMemo(() => {
-    const pages: (number | '...')[] = [];
-    if (totalPages <= 9) {
-      for (let i = 1; i <= totalPages; i++) pages.push(i);
-    } else {
-      pages.push(1);
-      if (safePage > 4) pages.push('...');
-      for (
-        let i = Math.max(2, safePage - 2);
-        i <= Math.min(totalPages - 1, safePage + 2);
-        i++
-      )
-        pages.push(i);
-      if (safePage < totalPages - 3) pages.push('...');
-      pages.push(totalPages);
-    }
-    return pages;
-  }, [totalPages, safePage]);
-
-  const [deleteTarget, setDeleteTarget] = useState<Admin | null>(null);
-  const [isDeleting, setIsDeleting] = useState(false);
+  const handlePageChange = (p: number) => setPage(Math.max(1, Math.min(p, totalPages)));
+  const handlePageSizeChange = (s: number) => { setPageSize(s); setPage(1); };
 
   const handleSaved = async (data: AdminFormData, editingId?: number) => {
     if (editingId) {
       await request(`/manage/admin/${editingId}`, { method: 'PUT', json: data });
-      toast.success(adminToast.updateSuccess);
+      toast.success('管理员信息修改成功');
     } else {
       await request('/manage/admin', { method: 'POST', json: data });
-      toast.success(adminToast.createSuccess);
+      toast.success('管理员创建成功');
+      setPage(1);
     }
-    refreshData();
+    setRefreshKey((k) => k + 1);
   };
+
+  const [deleteTarget, setDeleteTarget] = useState<Admin | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const confirmDelete = async () => {
     if (!deleteTarget || isDeleting) return;
@@ -177,18 +157,26 @@ export default function AdminPage() {
     try {
       await request(`/manage/admin/${deleteTarget.id}`, { method: 'DELETE' });
       setDeleteTarget(null);
-      refreshData();
-      toast.success(adminToast.deleteSuccess);
+      toast.success('管理员删除成功');
+      // 若当前页只剩一条且不在第一页，删后回退一页；否则原地刷新
+      if (list.length === 1 && page > 1) {
+        setPage((p) => p - 1);
+      } else {
+        setRefreshKey((k) => k + 1);
+      }
     } finally {
       setIsDeleting(false);
     }
   };
 
+  const cardActionBtnCls =
+    'w-[30px] h-[30px] rounded-sm grid place-items-center text-text-muted transition-colors active:scale-95';
+
   return (
     <div className="space-y-5">
 
       {/* ── 页面头部 ── */}
-      <div className="flex items-end justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
         <div>
           <h1 className="font-(family-name:--typeface-display) text-h1 font-heading tracking-tight text-text leading-[1.1] m-0">
             管理员账号
@@ -197,12 +185,12 @@ export default function AdminPage() {
             统一维护管理员账号、启用状态与基础资料，相关操作将记录到审计日志。
           </div>
         </div>
-        <div className="flex gap-2 shrink-0">
+        <div className="flex gap-2 shrink-0 w-full sm:w-auto">
           <button
             onClick={() => setModalState({ mode: 'add' })}
-            className="h-[34px] px-[14px] text-body rounded-sm font-medium
+            className="flex-1 sm:flex-none h-[34px] px-[14px] text-body rounded-sm font-medium
                        bg-primary text-white hover:bg-primary-dark transition-colors
-                       flex items-center gap-2"
+                       flex items-center justify-center gap-2"
           >
             <Plus size={14} strokeWidth={2.5} />
             新建管理员
@@ -212,7 +200,7 @@ export default function AdminPage() {
 
       {/* ── 筛选区 ── */}
       <div className="py-[14px] flex items-center gap-[10px] flex-wrap">
-        <div className="relative w-60">
+        <div className="relative w-full sm:w-60">
           <Search
             className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none"
             size={13}
@@ -237,13 +225,93 @@ export default function AdminPage() {
         </div>
       </div>
 
-      {/* ── 卡片：表格 + 分页 ── */}
+      {/* ── 移动端卡片列表（< md）── */}
+      <div className="md:hidden space-y-3">
+        {!hasLoadedOnce ? (
+          <AppLoading rows={4} columns={1} />
+        ) : list.length === 0 ? (
+          <div className="bg-card border border-border rounded shadow-sm py-20 flex flex-col items-center gap-3 opacity-40">
+            <ShieldCheck size={36} className="text-text-disabled" />
+            <p className="text-body text-text-muted">{getEmptyStateText(debouncedQuery)}</p>
+          </div>
+        ) : (
+          list.map((admin) => (
+            <div
+              key={admin.id}
+              className="bg-card border border-border rounded shadow-sm p-4 flex items-center gap-3"
+            >
+              {/* 头像 */}
+              <div className="w-[38px] h-[38px] rounded-full grid place-items-center overflow-hidden shrink-0 bg-primary-tint text-primary-dark text-xs font-semibold border border-border">
+                {admin.avatar ? (
+                  <img
+                    src={resolveUploadedFileUrl(admin.avatar)}
+                    alt={admin.username}
+                    className="h-full w-full object-cover"
+                  />
+                ) : (
+                  initials(admin.username)
+                )}
+              </div>
+
+              {/* 信息 */}
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <p className="text-body font-emphasis text-text">{admin.username}</p>
+                  <StatusPill variant={admin.isActive ? 'success' : 'muted'}>
+                    {admin.isActive ? '正常' : '停用'}
+                  </StatusPill>
+                </div>
+                <p className="text-tiny text-text-muted font-mono mt-0.5">
+                  创建 {fmtDateTime(admin.created)}
+                </p>
+                <p className="text-tiny text-text-muted font-mono mt-0.5">
+                  修改 {fmtDateTime(admin.modified)}
+                </p>
+              </div>
+
+              {/* 操作 */}
+              <div className="flex items-center gap-0.5 shrink-0">
+                <button
+                  onClick={() => setModalState({ mode: 'edit', admin })}
+                  title="编辑管理员"
+                  className={`${cardActionBtnCls} hover:bg-surface-2 hover:text-text`}
+                >
+                  <Pencil size={15} />
+                </button>
+                <button
+                  onClick={() => setDeleteTarget(admin)}
+                  title="删除管理员"
+                  className={`${cardActionBtnCls} hover:text-danger hover:bg-danger-bg`}
+                >
+                  <Trash2 size={15} />
+                </button>
+              </div>
+            </div>
+          ))
+        )}
+
+        {hasLoadedOnce && total > 0 && (
+          <div className="bg-card border border-border rounded shadow-sm overflow-hidden">
+            <Pagination
+              page={page}
+              pageSize={pageSize}
+              total={total}
+              totalPages={totalPages}
+              onPageChange={handlePageChange}
+              onPageSizeChange={handlePageSizeChange}
+            />
+          </div>
+        )}
+      </div>
+
+      {/* ── 桌面端表格（≥ md）── */}
       {!hasLoadedOnce ? (
-        <AppLoading rows={5} columns={5} />
+        <div className="hidden md:block">
+          <AppLoading rows={5} columns={5} />
+        </div>
       ) : (
-        <div className="bg-card border border-border rounded shadow-sm overflow-hidden">
+        <div className="hidden md:block bg-card border border-border rounded shadow-sm overflow-hidden">
           <LoadingDimmer loading={loading}>
-            {/* 表格 */}
             <div className="overflow-x-auto">
               <table className="w-full text-left whitespace-nowrap">
                 <thead>
@@ -274,7 +342,6 @@ export default function AdminPage() {
                   ) : (
                     list.map((admin) => (
                       <tr key={admin.id} className="hover:bg-surface transition-colors">
-                        {/* 用户名 */}
                         <td className={tdCls}>
                           <div className="flex items-center gap-3">
                             <div className="w-[30px] h-[30px] rounded-full grid place-items-center overflow-hidden shrink-0 bg-primary-tint text-primary-dark text-xs font-semibold border border-border">
@@ -299,22 +366,15 @@ export default function AdminPage() {
                           </div>
                         </td>
 
-                        {/* 状态 */}
                         <td className={`${tdCls} text-center`}>
                           <StatusPill variant={admin.isActive ? 'success' : 'muted'}>
                             {admin.isActive ? '正常' : '停用'}
                           </StatusPill>
                         </td>
 
-                        {/* 时间 */}
-                        <td className={`${tdCls} font-mono`}>
-                          {fmtDateTime(admin.created)}
-                        </td>
-                        <td className={`${tdCls} font-mono`}>
-                          {fmtDateTime(admin.modified)}
-                        </td>
+                        <td className={`${tdCls} font-mono`}>{fmtDateTime(admin.created)}</td>
+                        <td className={`${tdCls} font-mono`}>{fmtDateTime(admin.modified)}</td>
 
-                        {/* 操作 */}
                         <td className={`${tdCls} text-right`}>
                           <div className="flex justify-end items-center gap-0.5">
                             <button
@@ -342,92 +402,15 @@ export default function AdminPage() {
               </table>
             </div>
 
-            {/* 分页 */}
             {total > 0 && (
-              <div className="flex flex-col sm:flex-row items-center justify-between gap-4 px-[18px] py-[14px] border-t border-border-subtle">
-                {/* 每页条数 */}
-                <div className="flex items-center gap-2 text-body-sm text-text-muted">
-                  <span>每页</span>
-                  <select
-                    value={pageSize}
-                    onChange={(e) => {
-                      setPageSize(Number(e.target.value));
-                      setPage(1);
-                    }}
-                    aria-label="选择每页显示条数"
-                    className="h-[28px] px-2 border border-border rounded-sm bg-card
-                               text-text-2 text-body-sm outline-none
-                               focus:border-primary transition-colors"
-                  >
-                    {pageSizeOptions.map((size) => (
-                      <option key={size} value={size}>
-                        {size}
-                      </option>
-                    ))}
-                  </select>
-                  <span>
-                    条，共{' '}
-                    <span className="font-semibold text-text tabular-nums">{total}</span>{' '}
-                    项
-                  </span>
-                </div>
-
-                {/* 页码 */}
-                <div className="flex items-center gap-0.5">
-                  <button
-                    onClick={() => setPage(1)}
-                    disabled={safePage === 1}
-                    className={navBtnCls}
-                  >
-                    <ChevronsLeft size={14} />
-                  </button>
-                  <button
-                    onClick={() => setPage((p) => Math.max(1, p - 1))}
-                    disabled={safePage === 1}
-                    className={navBtnCls}
-                  >
-                    <ChevronLeft size={14} />
-                  </button>
-
-                  {pageNums.map((p, i) =>
-                    p === '...' ? (
-                      <span
-                        key={`e${i}`}
-                        className="min-w-[30px] h-[30px] grid place-items-center text-body-sm text-text-disabled"
-                      >
-                        …
-                      </span>
-                    ) : (
-                      <button
-                        key={p}
-                        onClick={() => setPage(p as number)}
-                        className={`min-w-[30px] h-[30px] rounded-sm text-body-sm transition-colors ${
-                          p === safePage
-                            ? 'font-semibold bg-primary text-white'
-                            : 'text-text-2 hover:bg-surface-2'
-                        }`}
-                      >
-                        {p}
-                      </button>
-                    ),
-                  )}
-
-                  <button
-                    onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                    disabled={safePage === totalPages}
-                    className={navBtnCls}
-                  >
-                    <ChevronRight size={14} />
-                  </button>
-                  <button
-                    onClick={() => setPage(totalPages)}
-                    disabled={safePage === totalPages}
-                    className={navBtnCls}
-                  >
-                    <ChevronsRight size={14} />
-                  </button>
-                </div>
-              </div>
+              <Pagination
+                page={page}
+                pageSize={pageSize}
+                total={total}
+                totalPages={totalPages}
+                onPageChange={handlePageChange}
+                onPageSizeChange={handlePageSizeChange}
+              />
             )}
           </LoadingDimmer>
         </div>

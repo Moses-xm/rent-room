@@ -274,61 +274,130 @@ export default function RootLayout({ children }) {
 每个列表页维护以下状态：
 
 ```ts
-const [list, setList]             = useState<T[]>([]);
-const [total, setTotal]           = useState(0);
-const [totalPages, setTotalPages] = useState(1);
-const [page, setPage]             = useState(1);
-const [pageSize, setPageSize]     = useState(10);
-const [query, setQuery]           = useState('');
-const [loading, setLoading]       = useState(true);
+const [list, setList]                   = useState<T[]>([]);
+const [total, setTotal]                 = useState(0);
+const [totalPages, setTotalPages]       = useState(1);
+const [page, setPage]                   = useState(1);
+const [pageSize, setPageSize]           = useState(10);
+const [query, setQuery]                 = useState('');
+const [debouncedQuery, setDebouncedQuery] = useState('');
+const [loading, setLoading]             = useState(true);
 const [hasLoadedOnce, setHasLoadedOnce] = useState(false);
-// hasLoadedOnce：首次加载完成前显示骨架屏，之后切页用遮罩而非骨架屏
+const [refreshKey, setRefreshKey]       = useState(0);
+// hasLoadedOnce：首次加载前显示骨架屏，之后切页用遮罩而非骨架屏
+// refreshKey：CRUD 操作后自增，触发数据重拉而不改变其他状态
 ```
 
 ### 4.2 搜索防抖
 
 ```ts
-const [debouncedQuery, setDebouncedQuery] = useState('');
 useEffect(() => {
   const t = setTimeout(() => setDebouncedQuery(query), 300);
   return () => clearTimeout(t);
 }, [query]);
 ```
 
-搜索词变化 → 重置到第 1 页：
+搜索词变化时在 `onChange` 中同步重置页码，防止防抖期间页码错位：
+
 ```ts
 onChange={(e) => { setQuery(e.target.value); setPage(1); }}
 ```
 
 ### 4.3 切换 pageSize
 
-切换每页条数时同样重置到第 1 页（否则可能超出范围）：
+切换每页条数时同样重置到第 1 页：
 
 ```ts
-onChange={(e) => { setPageSize(Number(e.target.value)); setPage(1); }}
+const handlePageSizeChange = (s: number) => { setPageSize(s); setPage(1); };
 ```
 
-### 4.4 页码展示算法
+### 4.4 单一数据拉取 effect
 
-总页数 ≤ 9 时全部显示；超过时用省略号：
+**所有触发条件（翻页、换页大小、搜索、CRUD 刷新）统一在一个 effect 中处理**，不拆多个 effect 以免逻辑重复。必须用 `cancelled` 标志防止竞态：
 
 ```ts
-function buildPageNums(totalPages: number, currentPage: number): (number | '...')[] {
-  if (totalPages <= 9) {
-    return Array.from({ length: totalPages }, (_, i) => i + 1);
-  }
-  const pages: (number | '...')[] = [1];
-  if (currentPage > 4) pages.push('...');
-  for (let i = Math.max(2, currentPage - 2); i <= Math.min(totalPages - 1, currentPage + 2); i++) {
-    pages.push(i);
-  }
-  if (currentPage < totalPages - 3) pages.push('...');
-  pages.push(totalPages);
-  return pages;
+useEffect(() => {
+  let cancelled = false;
+  setLoading(true);
+
+  fetchList({ page, limit: pageSize, search: debouncedQuery || undefined })
+    .then((res) => {
+      if (cancelled) return;
+      if (res.success) {
+        setList(res.data);
+        setTotal(res.total);
+        setTotalPages(res.totalPages);
+        // 筛选后总页数缩减时，自动跳回末页（会再次触发 effect 用新 page 拉数据）
+        if (res.totalPages > 0 && page > res.totalPages) {
+          setPage(res.totalPages);
+        }
+      }
+    })
+    .catch(console.error)
+    .finally(() => {
+      if (!cancelled) {
+        setLoading(false);
+        setHasLoadedOnce(true);
+      }
+    });
+
+  return () => { cancelled = true; };
+// eslint-disable-next-line react-hooks/exhaustive-deps
+}, [page, pageSize, debouncedQuery, refreshKey]);
+```
+
+CRUD 操作后通过自增 `refreshKey` 触发刷新，不修改其他状态：
+
+```ts
+// 创建后跳回第 1 页再刷新
+setPage(1);
+setRefreshKey((k) => k + 1);
+
+// 更新后原地刷新
+setRefreshKey((k) => k + 1);
+```
+
+### 4.5 翻页边界处理
+
+页码变更统一经过钳制函数，防止传入非法值：
+
+```ts
+const handlePageChange = (p: number) => setPage(Math.max(1, Math.min(p, totalPages)));
+```
+
+删除操作后的页码回退：若删除的是当前页最后一条且不在第 1 页，回退到上一页；否则原地刷新：
+
+```ts
+if (list.length === 1 && page > 1) {
+  setPage((p) => p - 1);  // page 变化会自动触发 effect
+} else {
+  setRefreshKey((k) => k + 1);
 }
 ```
 
-### 4.5 骨架屏 vs 遮罩
+### 4.6 页码展示算法
+
+总页数 ≤ 9 时全部显示，超过时用省略号；放在 `Pagination` 组件的 `useMemo` 里：
+
+```ts
+const pageButtons = useMemo(() => {
+  const items: (number | '...')[] = [];
+  if (totalPages <= 9) {
+    for (let i = 1; i <= totalPages; i++) items.push(i);
+  } else {
+    items.push(1);
+    if (page > 4) items.push('...');
+    for (let i = Math.max(2, page - 2); i <= Math.min(totalPages - 1, page + 2); i++) {
+      items.push(i);
+    }
+    if (page < totalPages - 3) items.push('...');
+    items.push(totalPages);
+  }
+  return items;
+}, [totalPages, page]);
+```
+
+### 4.7 骨架屏 vs 遮罩
 
 - **首次加载**（`!hasLoadedOnce`）：显示 `<AppLoading>`，让用户看到页面结构
 - **切页/刷新**（`hasLoadedOnce && loading`）：显示 `<LoadingDimmer>`，防止闪烁
@@ -371,36 +440,89 @@ function buildPageNums(totalPages: number, currentPage: number): (number | '...'
 <main className="lg:ml-[var(--sidebar-w)] px-4 lg:px-8 py-6">
 ```
 
-### 5.3 表格的移动适配
+### 5.3 表格的移动适配：卡片化
 
-表格在移动端不缩放，而是横向滚动：
-
-```tsx
-<div className="overflow-x-auto">
-  <table className="w-full whitespace-nowrap min-w-[640px]">
-```
-
-### 5.4 筛选区折叠
-
-移动端筛选条件过多时，超出部分用"展开筛选"按钮折叠：
+移动端（`< md`）表格改为**卡片列表**，桌面端（`≥ md`）显示完整表格：
 
 ```tsx
-<div className="flex flex-wrap gap-2">
-  <input className="w-full sm:w-60" />  {/* 搜索框移动端全宽 */}
-  {/* 其他筛选项 */}
+{/* 移动端卡片列表 */}
+<div className="md:hidden space-y-3">
+  {list.map((item) => (
+    <div key={item.id} className="bg-card border border-border rounded shadow-sm p-4 flex items-center gap-3">
+      {/* 头像 / 图标 */}
+      <div className="w-9.5 h-9.5 rounded-full shrink-0 ...">
+        {initials(item.name)}
+      </div>
+      {/* 核心信息：名称 + 状态徽章 */}
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center gap-2 flex-wrap">
+          <p className="text-body font-emphasis text-text">{item.name}</p>
+          <StatusPill variant="success">正常</StatusPill>
+        </div>
+        {/* 次要信息用 text-tiny 展示 */}
+        <p className="text-tiny text-text-muted font-mono mt-0.5">创建 {fmtDateTime(item.createdAt)}</p>
+      </div>
+      {/* 操作按钮 */}
+      <div className="flex items-center gap-0.5 shrink-0">
+        <button className="w-7.5 h-7.5 ..."><Pencil size={15} /></button>
+        <button className="w-7.5 h-7.5 ..."><Trash2 size={15} /></button>
+      </div>
+    </div>
+  ))}
+  {/* 分页也在卡片列表下方展示 */}
+  {total > 0 && (
+    <div className="bg-card border border-border rounded shadow-sm overflow-hidden">
+      <Pagination ... />
+    </div>
+  )}
+</div>
+
+{/* 桌面端表格 */}
+<div className="hidden md:block bg-card border border-border rounded shadow-sm overflow-hidden">
+  <div className="overflow-x-auto">
+    <table className="w-full text-left whitespace-nowrap">...</table>
+  </div>
+  {total > 0 && <Pagination ... />}
 </div>
 ```
 
-### 5.5 操作按钮区
+**卡片设计原则：**
+- 头像/图标 + 名称 + 状态徽章在同一行，次要信息（时间等）用 `text-tiny font-mono` 降级展示
+- 操作按钮收拢在右侧，与桌面端保持相同触发逻辑
+- 分页控件复用同一个 `<Pagination>` 组件，分别挂在移动端和桌面端区块下方
+
+### 5.4 页面头部响应式
 
 ```tsx
-<div className="flex items-end justify-between gap-4 flex-wrap">
+<div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
   <div>{/* 标题 + 描述 */}</div>
   <div className="flex gap-2 shrink-0 w-full sm:w-auto">
-    <button className="flex-1 sm:flex-none">新建</button>
+    {/* 移动端按钮全宽（flex-1），桌面端自适应（sm:flex-none） */}
+    <button className="flex-1 sm:flex-none h-8.5 px-3.5 ...">新建</button>
   </div>
 </div>
 ```
+
+### 5.5 筛选区响应式
+
+搜索框移动端全宽，桌面端固定宽度：
+
+```tsx
+<div className="flex items-center gap-2.5 flex-wrap">
+  <div className="relative w-full sm:w-60">
+    <input ... />
+  </div>
+  {/* 其他筛选项同理，宽度用 w-full sm:w-auto */}
+</div>
+```
+
+### 5.6 Checklist
+
+- [ ] 每个列表页同时实现移动端卡片视图（`md:hidden`）和桌面端表格（`hidden md:block`）
+- [ ] 页面头部标题区与操作按钮区使用 `flex-col sm:flex-row` 响应式排列
+- [ ] 搜索框等筛选输入框使用 `w-full sm:w-60` 在移动端全宽展开
+- [ ] 分页组件在移动端和桌面端各挂一次，共用相同状态
+- [ ] 新页面开发完后在 375px 宽度下测试布局
 
 ---
 
