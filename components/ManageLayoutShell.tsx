@@ -100,9 +100,7 @@ export function ManageLayoutShell({ children }: { children: React.ReactNode }) {
         <div className="flex-1 flex flex-col min-w-0">
           <Topbar onMobileMenuToggle={() => setIsMobileOpen((v) => !v)} />
           <main className="flex-1 px-4 sm:px-6 md:px-8 py-5 md:py-7 pb-12">
-            <div className="max-w-6xl mx-auto">
-              {children}
-            </div>
+            {children}
           </main>
         </div>
       </div>
