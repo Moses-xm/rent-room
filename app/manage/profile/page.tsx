@@ -26,15 +26,15 @@ function normalizeAvatarPath(value: string | null | undefined) {
 
 /* ─── 共享样式 ────────────────────────────────────────────── */
 const inputCls =
-  'w-full h-[36px] px-3 border border-border rounded-sm bg-card text-text text-[13px] outline-none ' +
+  'w-full h-[36px] px-3 border border-border rounded-sm bg-card text-text text-body outline-none ' +
   'transition-[border-color,box-shadow] hover:border-text-disabled placeholder:text-text-subtle ' +
   'focus:border-primary focus:shadow-[0_0_0_3px_color-mix(in_srgb,var(--color-primary)_15%,transparent)]';
 
 const inputReadonlyCls =
-  'w-full h-[36px] px-3 border border-border-subtle rounded-sm bg-surface text-text-muted text-[13px] outline-none cursor-default';
+  'w-full h-[36px] px-3 border border-border-subtle rounded-sm bg-surface text-text-muted text-body outline-none cursor-default';
 
-const labelCls = 'block text-[12.5px] font-medium text-text-2 mb-1.5';
-const hintCls = 'text-[11.5px] text-text-muted leading-relaxed mt-1.5';
+const labelCls = 'block text-body-sm font-emphasis text-text-2 mb-1.5';
+const hintCls = 'text-caption text-text-muted leading-relaxed mt-1.5';
 
 /* ─── Page ────────────────────────────────────────────────── */
 export default function ManageProfilePage() {
@@ -195,14 +195,14 @@ export default function ManageProfilePage() {
       {/* ── 页面头部 ── */}
       <div className="flex items-end justify-between gap-4">
         <div>
-          <h1 className="font-(family-name:--typeface-display) text-[32px] font-medium tracking-tight text-text leading-[1.1] m-0">
+          <h1 className="font-(family-name:--typeface-display) text-h1 font-heading tracking-tight text-text leading-[1.1] m-0">
             个人资料
           </h1>
-          <div className="text-[13px] text-text-muted mt-1.5">
+          <div className="text-body text-text-muted mt-1.5">
             维护当前管理员的头像与登录密码，保存后顶栏信息立即同步。
           </div>
         </div>
-        <div className="flex items-center gap-1.5 rounded-sm bg-primary-tint px-3 py-1.5 text-[12.5px] font-medium text-primary-dark shrink-0">
+        <div className="flex items-center gap-1.5 rounded-sm bg-primary-tint px-3 py-1.5 text-body-sm font-medium text-primary-dark shrink-0">
           <UserRound size={13} />
           {username}
         </div>
@@ -214,11 +214,11 @@ export default function ManageProfilePage() {
           {/* ── 头像信息卡 ── */}
           <div className="bg-card border border-border rounded shadow-sm">
             <div className="px-5.5 py-4.5 border-b border-border-subtle">
-              <div className="font-(family-name:--typeface-display) text-[16px] font-semibold text-text flex items-baseline gap-2.5">
+              <div className="font-(family-name:--typeface-display) text-h3 font-heading text-text flex items-baseline gap-2.5">
                 <span className="inline-block w-0.75 h-3.5 rounded-sm bg-primary translate-y-0.5 shrink-0" />
                 头像信息
               </div>
-              <div className="text-[12px] text-text-muted mt-0.75">
+              <div className="text-xs text-text-muted mt-0.75">
                 支持上传新头像，顶栏会自动同步；清空后回退为用户名首字母。
               </div>
             </div>
@@ -239,7 +239,7 @@ export default function ManageProfilePage() {
                       type="button"
                       disabled={isUploading || isCleaningAvatar}
                       onClick={() => fileInputRef.current?.click()}
-                      className="h-7 px-3 text-[12.5px] rounded-sm font-medium
+                      className="h-7 px-3 text-body-sm rounded-sm font-medium
                                  bg-card border border-border text-text-2
                                  hover:bg-surface-2 transition-colors
                                  disabled:opacity-50 disabled:cursor-not-allowed
@@ -253,14 +253,14 @@ export default function ManageProfilePage() {
                         type="button"
                         disabled={isUploading || isCleaningAvatar}
                         onClick={handleClearAvatar}
-                        className="text-[12.5px] text-text-muted hover:text-text transition-colors disabled:opacity-40"
+                        className="text-body-sm text-text-muted hover:text-text transition-colors disabled:opacity-40"
                       >
                         {isCleaningAvatar ? '清理中…' : '清空头像'}
                       </button>
                     )}
                   </div>
-                  <p className="text-[11.5px] text-text-muted">支持 JPG、PNG、WEBP、GIF，建议不超过 5 MB。</p>
-                  {uploadError && <p className="text-[11.5px] text-danger">{uploadError}</p>}
+                  <p className="text-caption text-text-muted">支持 JPG、PNG、WEBP、GIF，建议不超过 5 MB。</p>
+                  {uploadError && <p className="text-caption text-danger">{uploadError}</p>}
                 </div>
               </div>
               <input ref={fileInputRef} type="file" accept="image/png,image/jpeg,image/webp,image/gif" onChange={handleAvatarUpload} className="hidden" />
@@ -292,11 +292,11 @@ export default function ManageProfilePage() {
           {/* ── 安全设置卡 ── */}
           <div className="bg-card border border-border rounded shadow-sm">
             <div className="px-5.5 py-4.5 border-b border-border-subtle">
-              <div className="font-(family-name:--typeface-display) text-[16px] font-semibold text-text flex items-baseline gap-2.5">
+              <div className="font-(family-name:--typeface-display) text-h3 font-heading text-text flex items-baseline gap-2.5">
                 <span className="inline-block w-0.75 h-3.5 rounded-sm bg-primary translate-y-0.5 shrink-0" />
                 安全设置
               </div>
-              <div className="text-[12px] text-text-muted mt-0.75">
+              <div className="text-xs text-text-muted mt-0.75">
                 修改登录密码后需重新登录；留空则保持当前密码不变。
               </div>
             </div>
@@ -338,7 +338,7 @@ export default function ManageProfilePage() {
               </div>
 
               {/* 提示框 */}
-              <div className="rounded-sm bg-surface border border-border-subtle px-4 py-3 text-[12.5px] text-text-muted">
+              <div className="rounded-sm bg-surface border border-border-subtle px-4 py-3 text-body-sm text-text-muted">
                 <div className="flex items-center gap-2 font-medium text-text-2 mb-1">
                   <LockKeyhole size={13} className="text-primary" />
                   密码更新提示
@@ -355,7 +355,7 @@ export default function ManageProfilePage() {
             type="button"
             disabled={busy}
             onClick={handleCancel}
-            className="h-8.5 px-3.5 text-[13px] rounded-sm font-medium
+            className="h-8.5 px-3.5 text-body rounded-sm font-medium
                        bg-card border border-border text-text-2
                        hover:bg-surface-2 transition-colors
                        disabled:opacity-50 disabled:cursor-not-allowed"
@@ -365,7 +365,7 @@ export default function ManageProfilePage() {
           <button
             type="submit"
             disabled={busy}
-            className="h-8.5 px-3.5 text-[13px] rounded-sm font-medium
+            className="h-8.5 px-3.5 text-body rounded-sm font-medium
                        bg-primary text-white hover:bg-primary-dark transition-colors
                        flex items-center gap-2
                        disabled:opacity-50 disabled:cursor-not-allowed"

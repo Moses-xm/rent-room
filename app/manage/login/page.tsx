@@ -134,16 +134,16 @@ export default function ManageLoginPage() {
             />
           </div>
           <div>
-            <h1 className="font-(family-name:--typeface-display) text-[22px] font-medium tracking-tight text-text leading-tight">
+            <h1 className="font-(family-name:--typeface-display) text-h2 font-heading tracking-tight text-text leading-tight">
               雅阁租房平台
             </h1>
-            <p className="mt-1 text-[13px] text-text-muted">管理端账号登录</p>
+            <p className="mt-1 text-body text-text-muted">管理端账号登录</p>
           </div>
         </div>
 
         <form className="space-y-5" onSubmit={handleSubmit}>
           <div>
-            <label className="block text-[12.5px] font-medium text-text-2 mb-1.5" htmlFor="username">
+            <label className="block text-body-sm font-emphasis text-text-2 mb-1.5" htmlFor="username">
               用户名
             </label>
             <input
@@ -151,14 +151,14 @@ export default function ManageLoginPage() {
               value={username}
               onChange={(event) => setUsername(event.target.value)}
               placeholder="请输入管理员用户名"
-              className="h-9.5 w-full rounded-sm border border-border bg-card px-3 text-[13px] text-text outline-none
+              className="h-9.5 w-full rounded-sm border border-border bg-card px-3 text-body text-text outline-none
                          transition-[border-color,box-shadow] hover:border-text-disabled placeholder:text-text-subtle
                          focus:border-primary focus:shadow-[0_0_0_3px_color-mix(in_srgb,var(--color-primary)_15%,transparent)]"
             />
           </div>
 
           <div>
-            <label className="block text-[12.5px] font-medium text-text-2 mb-1.5" htmlFor="password">
+            <label className="block text-body-sm font-emphasis text-text-2 mb-1.5" htmlFor="password">
               密码
             </label>
             <input
@@ -167,14 +167,14 @@ export default function ManageLoginPage() {
               value={password}
               onChange={(event) => setPassword(event.target.value)}
               placeholder="请输入密码"
-              className="h-9.5 w-full rounded-sm border border-border bg-card px-3 text-[13px] text-text outline-none
+              className="h-9.5 w-full rounded-sm border border-border bg-card px-3 text-body text-text outline-none
                          transition-[border-color,box-shadow] hover:border-text-disabled placeholder:text-text-subtle
                          focus:border-primary focus:shadow-[0_0_0_3px_color-mix(in_srgb,var(--color-primary)_15%,transparent)]"
             />
           </div>
 
           <div className="space-y-2">
-            <div className="inline-flex items-center gap-1.5 text-[12.5px] font-medium text-text-2">
+            <div className="inline-flex items-center gap-1.5 text-body-sm font-emphasis text-text-2">
               <ShieldCheck className="h-3.5 w-3.5 text-primary" />
               安全验证
             </div>
@@ -188,7 +188,7 @@ export default function ManageLoginPage() {
                 className="pointer-events-none absolute inset-y-0 left-0 bg-primary opacity-10"
                 style={{ width: `${sliderValue}%` }}
               />
-              <div className="pointer-events-none absolute inset-0 flex items-center justify-center px-14 text-[12.5px] text-text-muted">
+              <div className="pointer-events-none absolute inset-0 flex items-center justify-center px-14 text-body-sm text-text-muted">
                 {isVerified ? "验证通过" : "拖动滑块到最右侧完成验证"}
               </div>
               <input
@@ -204,7 +204,7 @@ export default function ManageLoginPage() {
                 className="manage-slider relative z-10 h-10 w-full cursor-grab appearance-none bg-transparent active:cursor-grabbing"
               />
               <div
-                className="pointer-events-none absolute top-0 z-20 flex h-10 w-10 items-center justify-center rounded-sm bg-primary text-[13px] font-semibold text-white transition-transform"
+                className="pointer-events-none absolute top-0 z-20 flex h-10 w-10 items-center justify-center rounded-sm bg-primary text-body font-semibold text-white transition-transform"
                 style={{ left: `calc((100% - 40px) * ${sliderValue / 100})` }}
               >
                 {isVerified ? "✓" : "›"}

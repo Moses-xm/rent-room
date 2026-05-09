@@ -37,7 +37,7 @@ type Props = {
 
 /* ─── Shared styles ───────────────────────────────────────────────────────── */
 const inputCls = (err?: string) =>
-  `w-full h-[36px] px-3 border rounded-sm bg-card text-text text-[13px] outline-none
+  `w-full h-[36px] px-3 border rounded-sm bg-card text-text text-body outline-none
    transition-[border-color,box-shadow]
    hover:border-text-disabled
    placeholder:text-text-subtle ${
@@ -46,8 +46,8 @@ const inputCls = (err?: string) =>
        : 'border-border focus:border-primary focus:shadow-[0_0_0_3px_color-mix(in_srgb,var(--color-primary)_15%,transparent)]'
    }`;
 
-const labelCls = 'block text-[12.5px] font-medium text-text-2 mb-1.5';
-const hintCls = 'text-[11.5px] text-text-muted leading-relaxed';
+const labelCls = 'block text-body-sm font-emphasis text-text-2 mb-1.5';
+const hintCls = 'text-caption text-text-muted leading-relaxed';
 
 type UploadResponse = {
   success: boolean;
@@ -176,10 +176,10 @@ export default function AdminFormModal({ state, onClose, onSaved }: Props) {
         {/* ── 头部 ── */}
         <div className="flex items-start justify-between border-b border-border-subtle px-6 py-5">
           <div className="pr-4">
-            <h2 className="font-(family-name:--typeface-display) text-[22px] font-medium text-text leading-tight">
+            <h2 className="font-(family-name:--typeface-display) text-h2 font-heading text-text leading-tight">
               {editingId ? '编辑管理员' : '新增管理员'}
             </h2>
-            <p className="text-[12.5px] text-text-muted mt-1">
+            <p className="text-body-sm text-text-muted mt-1">
               {editingId
                 ? '更新管理员账号信息、头像与启用状态。'
                 : '填写基础信息后即可创建新的管理员账号。'}
@@ -213,7 +213,7 @@ export default function AdminFormModal({ state, onClose, onSaved }: Props) {
                 placeholder="请输入用户名"
               />
               {errors.username && (
-                <p className="text-[11.5px] text-danger">{errors.username}</p>
+                <p className="text-caption text-danger">{errors.username}</p>
               )}
             </div>
 
@@ -235,7 +235,7 @@ export default function AdminFormModal({ state, onClose, onSaved }: Props) {
                     }`}
                   />
                 </button>
-                <span className="text-[13px] text-text-2">
+                <span className="text-body text-text-2">
                   {form.isActive ? '启用' : '禁用'}
                 </span>
               </div>
@@ -266,7 +266,7 @@ export default function AdminFormModal({ state, onClose, onSaved }: Props) {
                       type="button"
                       disabled={isUploading}
                       onClick={() => fileInputRef.current?.click()}
-                      className="h-7 px-3 text-[12.5px] rounded-sm font-medium
+                      className="h-7 px-3 text-body-sm rounded-sm font-medium
                                  bg-card border border-border text-text-2
                                  hover:bg-surface-2 transition-colors
                                  disabled:opacity-50 disabled:cursor-not-allowed
@@ -284,14 +284,14 @@ export default function AdminFormModal({ state, onClose, onSaved }: Props) {
                         type="button"
                         onClick={handleClearAvatar}
                         disabled={isUploading || isCleaningAvatar}
-                        className="text-[12.5px] text-text-muted hover:text-text transition-colors disabled:opacity-40"
+                        className="text-body-sm text-text-muted hover:text-text transition-colors disabled:opacity-40"
                       >
                         清空
                       </button>
                     )}
                   </div>
                   <p className={hintCls}>支持 JPG、PNG、WEBP、GIF，建议不超过 5 MB。</p>
-                  {uploadError && <p className="text-[11.5px] text-danger">{uploadError}</p>}
+                  {uploadError && <p className="text-caption text-danger">{uploadError}</p>}
                 </div>
               </div>
 
@@ -318,7 +318,7 @@ export default function AdminFormModal({ state, onClose, onSaved }: Props) {
                 登录密码
                 {!editingId && <span className="ml-1 text-danger">*</span>}
                 {editingId && (
-                  <span className="ml-1 text-[11.5px] font-normal text-text-muted">
+                  <span className="ml-1 text-caption font-normal text-text-muted">
                     （留空则保持当前密码）
                   </span>
                 )}
@@ -340,7 +340,7 @@ export default function AdminFormModal({ state, onClose, onSaved }: Props) {
                 </button>
               </div>
               {errors.password ? (
-                <p className="text-[11.5px] text-danger">{errors.password}</p>
+                <p className="text-caption text-danger">{errors.password}</p>
               ) : (
                 <p className={hintCls}>
                   {editingId
@@ -357,7 +357,7 @@ export default function AdminFormModal({ state, onClose, onSaved }: Props) {
               type="button"
               onClick={handleClose}
               disabled={busy}
-              className="h-8.5 px-3.5 text-[13px] rounded-sm font-medium
+              className="h-8.5 px-3.5 text-body rounded-sm font-medium
                          bg-card border border-border text-text-2
                          hover:bg-surface-2 transition-colors
                          disabled:opacity-50 disabled:cursor-not-allowed"
@@ -367,7 +367,7 @@ export default function AdminFormModal({ state, onClose, onSaved }: Props) {
             <button
               type="submit"
               disabled={busy}
-              className="h-8.5 px-3.5 text-[13px] rounded-sm font-medium
+              className="h-8.5 px-3.5 text-body rounded-sm font-medium
                          bg-primary text-white hover:bg-primary-dark transition-colors
                          flex items-center gap-2
                          disabled:opacity-50 disabled:cursor-not-allowed"

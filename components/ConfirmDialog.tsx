@@ -53,13 +53,13 @@ export default function ConfirmDialog({
           >
             {renderIcon()}
           </div>
-          <h3 className="font-(family-name:--typeface-display) text-[22px] font-medium text-text leading-tight mt-1">
+          <h3 className="font-(family-name:--typeface-display) text-h2 font-heading text-text leading-tight mt-1">
             {title}
           </h3>
         </div>
 
         {description && (
-          <p className="text-[13px] text-text-muted leading-relaxed mb-5 ml-15">
+          <p className="text-body text-text-muted leading-relaxed mb-5 ml-15">
             {description}
           </p>
         )}
@@ -70,7 +70,7 @@ export default function ConfirmDialog({
           <button
             onClick={onClose}
             disabled={loading}
-            className="h-8.5 px-3.5 text-[13px] rounded-sm font-medium transition-colors
+            className="h-8.5 px-3.5 text-body rounded-sm font-medium transition-colors
                        bg-card border border-border text-text-2
                        hover:bg-surface-2
                        disabled:cursor-not-allowed disabled:opacity-50"
@@ -82,7 +82,7 @@ export default function ConfirmDialog({
           <button
             onClick={onConfirm}
             disabled={loading}
-            className="h-8.5 px-3.5 text-[13px] rounded-sm font-medium transition-colors
+            className="h-8.5 px-3.5 text-body rounded-sm font-medium transition-colors
                        bg-danger text-white hover:opacity-90 active:scale-95
                        disabled:cursor-not-allowed disabled:opacity-50
                        flex items-center justify-center gap-2"

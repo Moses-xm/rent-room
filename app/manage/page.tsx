@@ -150,26 +150,26 @@ function TypeDonut() {
         </svg>
         <div className="absolute inset-0 grid place-items-center text-center">
           <div>
-            <div className="font-(family-name:--typeface-display) text-[26px] font-medium text-text leading-none tabular-nums">6,204</div>
-            <div className="text-[11px] text-text-muted mt-0.5">在租总数</div>
+            <div className="font-(family-name:--typeface-display) text-h1 font-emphasis text-text leading-none tabular-nums">6,204</div>
+            <div className="text-tiny text-text-muted mt-0.5">在租总数</div>
           </div>
         </div>
       </div>
 
       <div className="flex-1 flex flex-col gap-3">
         {segments.map(d => (
-          <div key={d.label} className="flex items-center gap-2.5 text-[13px]">
+          <div key={d.label} className="flex items-center gap-2.5 text-body">
             <span className="w-2 h-2 rounded-xs shrink-0" style={{ background: d.color }}/>
             <span className="flex-1 text-text-2">{d.label}</span>
             <span className="font-medium text-text tabular-nums">{d.pct}%</span>
           </div>
         ))}
         <div className="border-t border-border-subtle pt-3 space-y-2">
-          <div className="flex justify-between text-[12.5px]">
+          <div className="flex justify-between text-body-sm">
             <span className="text-text-muted">环比上月</span>
             <span className="font-medium text-success">+ 8.4%</span>
           </div>
-          <div className="flex justify-between text-[12.5px]">
+          <div className="flex justify-between text-body-sm">
             <span className="text-text-muted">空置率</span>
             <span className="font-medium text-text-2">5.2%</span>
           </div>
@@ -189,18 +189,18 @@ export default function DashboardPage() {
       {/* ── 页面头部 ── */}
       <div className="flex items-end justify-between gap-4">
         <div>
-          <h1 className="font-(family-name:--typeface-display) text-[26px] font-medium tracking-tight text-text leading-[1.1] m-0">
+          <h1 className="font-(family-name:--typeface-display) text-h1 font-heading tracking-tight text-text leading-[1.1] m-0">
             数据看板
           </h1>
-          <div className="text-[13px] text-text-muted mt-1.5">
+          <div className="text-body text-text-muted mt-1.5">
             实时业务指标 · 截至 {today}
           </div>
         </div>
         <div className="flex gap-2 shrink-0">
-          <button className="h-8.5 px-3.5 text-[13px] rounded-sm font-medium flex items-center gap-1.5 bg-card border border-border text-text-2 hover:bg-surface-2 transition-colors">
+          <button className="h-8.5 px-3.5 text-body rounded-sm font-medium flex items-center gap-1.5 bg-card border border-border text-text-2 hover:bg-surface-2 transition-colors">
             <Calendar size={13} /> 本月 <ChevronDown size={12} />
           </button>
-          <button className="h-8.5 px-3.5 text-[13px] rounded-sm font-medium flex items-center gap-1.5 bg-primary text-white hover:bg-primary-dark transition-colors">
+          <button className="h-8.5 px-3.5 text-body rounded-sm font-medium flex items-center gap-1.5 bg-primary text-white hover:bg-primary-dark transition-colors">
             <Plus size={14} strokeWidth={2.5} /> 快速创建
           </button>
         </div>
@@ -212,16 +212,16 @@ export default function DashboardPage() {
           const StatIcon = statIcons[icon];
           return (
             <div key={label} className="bg-card border border-border rounded p-[20px_22px]">
-              <div className="flex justify-between items-center text-[12px] text-text-muted font-medium tracking-[.02em]">
+              <div className="flex justify-between items-center text-xs text-text-muted font-emphasis tracking-[.02em]">
                 <span>{label}</span>
                 <span className="w-7.5 h-7.5 rounded-sm bg-primary-tint text-primary grid place-items-center shrink-0">
                   <StatIcon size={15} />
                 </span>
               </div>
-              <div className="font-(family-name:--typeface-display) text-[32px] font-medium text-text tracking-tight mt-3 leading-none tabular-nums">
+              <div className="font-(family-name:--typeface-display) text-stat font-emphasis text-text tracking-tight mt-3 leading-none tabular-nums">
                 {value}
               </div>
-              <div className="mt-2.5 text-[11.5px] text-text-muted flex items-center gap-1.5">
+              <div className="mt-2.5 text-caption text-text-muted flex items-center gap-1.5">
                 <span className={`font-semibold tabular-nums ${up ? 'text-success' : 'text-danger'}`}>
                   {up ? '↑' : '↓'} {delta}
                 </span>
@@ -238,12 +238,12 @@ export default function DashboardPage() {
         <div className="col-span-2 bg-card border border-border rounded shadow-sm">
           <div className="px-5.5 py-4.5 flex items-center justify-between border-b border-border-subtle">
             <div>
-              <div className="text-[14.5px] font-semibold text-text tracking-tight">营收趋势</div>
-              <div className="text-[12px] text-text-muted mt-0.75">过去 12 个月 · 单位：千元</div>
+              <div className="text-h4 font-heading text-text tracking-tight">营收趋势</div>
+              <div className="text-xs text-text-muted mt-0.75">过去 12 个月 · 单位：千元</div>
             </div>
             <div className="flex gap-1">
               {['本年', '近半年', '近一月'].map((l, i) => (
-                <button key={l} className={`h-7 px-2.5 text-[12px] rounded-sm transition-colors ${
+                <button key={l} className={`h-7 px-2.5 text-xs rounded-sm transition-colors ${
                   i === 0
                     ? 'bg-primary-tint text-primary-dark font-semibold'
                     : 'text-text-muted hover:text-text hover:bg-surface-2'
@@ -259,8 +259,8 @@ export default function DashboardPage() {
         {/* 房源类型分布 */}
         <div className="col-span-1 bg-card border border-border rounded shadow-sm">
           <div className="px-5.5 py-4.5 border-b border-border-subtle">
-            <div className="text-[14.5px] font-semibold text-text tracking-tight">房源类型分布</div>
-            <div className="text-[12px] text-text-muted mt-0.75">当前在租结构</div>
+            <div className="text-h4 font-heading text-text tracking-tight">房源类型分布</div>
+            <div className="text-xs text-text-muted mt-0.75">当前在租结构</div>
           </div>
           <div className="px-5.5 py-5">
             <TypeDonut />
@@ -274,10 +274,10 @@ export default function DashboardPage() {
         <div className="bg-card border border-border rounded shadow-sm">
           <div className="px-5.5 py-4.5 flex items-center justify-between border-b border-border-subtle">
             <div>
-              <div className="text-[14.5px] font-semibold text-text tracking-tight">收藏量 Top 5</div>
-              <div className="text-[12px] text-text-muted mt-0.75">最受欢迎的房源</div>
+              <div className="text-h4 font-heading text-text tracking-tight">收藏量 Top 5</div>
+              <div className="text-xs text-text-muted mt-0.75">最受欢迎的房源</div>
             </div>
-            <button className="text-[12px] text-primary hover:text-primary-dark transition-colors flex items-center gap-0.5">
+            <button className="text-xs text-primary hover:text-primary-dark transition-colors flex items-center gap-0.5">
               查看全部 <ChevronRight size={12} />
             </button>
           </div>
@@ -285,7 +285,7 @@ export default function DashboardPage() {
             {tops.map((t, i) => (
               <div key={t.name} className={`flex items-center gap-3 py-3 ${i < tops.length - 1 ? 'border-b border-dashed border-border-subtle' : ''}`}>
                 <span
-                  className="w-6 h-6 text-[11px] font-semibold grid place-items-center shrink-0 font-(family-name:--typeface-display)"
+                  className="w-6 h-6 text-tiny font-semibold grid place-items-center shrink-0 font-(family-name:--typeface-display)"
                   style={{
                     color: i < 3 ? 'var(--color-primary)' : 'var(--color-text-disabled)',
                     borderBottom: `1px solid ${i < 3 ? 'var(--color-primary)' : 'var(--color-border)'}`,
@@ -294,8 +294,8 @@ export default function DashboardPage() {
                   0{i + 1}
                 </span>
                 <div className="flex-1 min-w-0">
-                  <div className="text-[13px] font-medium text-text truncate">{t.name}</div>
-                  <div className="text-[11px] text-text-muted mt-0.5">评分 {t.score} · {t.fav} 收藏</div>
+                  <div className="text-body font-emphasis text-text truncate">{t.name}</div>
+                  <div className="text-tiny text-text-muted mt-0.5">评分 {t.score} · {t.fav} 收藏</div>
                 </div>
                 <div className="w-17.5 shrink-0">
                   <div className="h-1 bg-surface-2 rounded overflow-hidden">
@@ -311,25 +311,25 @@ export default function DashboardPage() {
         <div className="bg-card border border-border rounded shadow-sm">
           <div className="px-5.5 py-4.5 flex items-center justify-between border-b border-border-subtle">
             <div>
-              <div className="text-[14.5px] font-semibold text-text tracking-tight">最新订单</div>
-              <div className="text-[12px] text-text-muted mt-0.75">实时支付记录</div>
+              <div className="text-h4 font-heading text-text tracking-tight">最新订单</div>
+              <div className="text-xs text-text-muted mt-0.75">实时支付记录</div>
             </div>
-            <button className="text-[12px] text-primary hover:text-primary-dark transition-colors flex items-center gap-0.5">
+            <button className="text-xs text-primary hover:text-primary-dark transition-colors flex items-center gap-0.5">
               查看全部 <ChevronRight size={12} />
             </button>
           </div>
           <div className="px-5.5 py-2">
             {orders.map((o, i) => (
               <div key={i} className={`flex items-center gap-3 py-3 ${i < orders.length - 1 ? 'border-b border-dashed border-border-subtle' : ''}`}>
-                <div className="w-7.5 h-7.5 rounded-full shrink-0 grid place-items-center bg-primary-tint text-primary-dark text-[12px] font-semibold border border-border">
+                <div className="w-7.5 h-7.5 rounded-full shrink-0 grid place-items-center bg-primary-tint text-primary-dark text-xs font-semibold border border-border">
                   {o.user[0]}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <div className="text-[13px] font-medium text-text truncate">{o.user} · {o.room}</div>
-                  <div className="text-[11px] text-text-muted mt-0.5">{o.t}</div>
+                  <div className="text-body font-emphasis text-text truncate">{o.user} · {o.room}</div>
+                  <div className="text-tiny text-text-muted mt-0.5">{o.t}</div>
                 </div>
                 <div className="text-right shrink-0">
-                  <div className="text-[13px] font-semibold text-text tabular-nums">¥{o.amt.toLocaleString()}</div>
+                  <div className="text-body font-semibold text-text tabular-nums">¥{o.amt.toLocaleString()}</div>
                   <div className="mt-1">
                     <StatusPill variant={o.sk as 'success' | 'warning' | 'danger'}>{o.s}</StatusPill>
                   </div>

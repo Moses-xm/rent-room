@@ -96,7 +96,7 @@ export function Topbar() {
   };
 
   const Avatar = ({ size }: { size: "sm" | "lg" }) => {
-    const cls = size === "sm" ? "w-7 h-7 text-[11.5px]" : "w-9.5 h-9.5 text-[14px]";
+    const cls = size === "sm" ? "w-7 h-7 text-caption" : "w-9.5 h-9.5 text-[14px]";
     return (
       <div className={`${cls} rounded-full overflow-hidden grid place-items-center shrink-0
                        bg-primary-tint text-primary-dark font-semibold`}>
@@ -115,17 +115,17 @@ export function Topbar() {
         style={{ height: 60, padding: "0 28px" }}
       >
         {/* 面包屑 */}
-        <nav className="flex items-center gap-2 text-[12.5px]">
+        <nav className="flex items-center gap-2 text-body-sm">
           <Link
             href="/manage"
-            className={`transition-colors ${subpage ? "text-text-muted hover:text-text" : "text-text font-medium"}`}
+            className={`transition-colors ${subpage ? "text-text-muted hover:text-text" : "text-text font-emphasis"}`}
           >
             Dashboard
           </Link>
           {subpage && (
             <>
               <span className="text-text-disabled">/</span>
-              <span className="text-text font-medium">{subpage}</span>
+              <span className="text-text font-emphasis">{subpage}</span>
             </>
           )}
         </nav>
@@ -154,7 +154,7 @@ export function Topbar() {
             <button
               type="button"
               onClick={() => setMenuOpen((v) => !v)}
-              className="flex items-center gap-2 px-2 py-1 rounded-sm text-[12.5px]
+              className="flex items-center gap-2 px-2 py-1 rounded-sm text-body-sm
                          hover:bg-surface-2 transition-colors"
             >
               <Avatar size="sm" />
@@ -187,7 +187,7 @@ export function Topbar() {
                     <div className="text-[13.5px] font-semibold text-text truncate">
                       {profile?.username ?? "管理员"}
                     </div>
-                    <div className="text-[11.5px] text-text-muted mt-0.5">管理端账户</div>
+                    <div className="text-caption text-text-muted mt-0.5">管理端账户</div>
                   </div>
                 </div>
 
@@ -195,7 +195,7 @@ export function Topbar() {
                   href={MANAGE_PROFILE_PATH}
                   onClick={() => setMenuOpen(false)}
                   className="flex items-center gap-2.5 w-full px-3 py-2.25 rounded-sm
-                             text-[13px] text-text-2 hover:bg-surface hover:text-text transition-colors"
+                             text-body text-text-2 hover:bg-surface hover:text-text transition-colors"
                 >
                   <UserRound className="w-4 h-4 text-text-muted" />
                   个人资料
@@ -204,7 +204,7 @@ export function Topbar() {
                   type="button"
                   disabled
                   className="flex items-center gap-2.5 w-full px-3 py-2.25 rounded-sm
-                             text-[13px] text-text-2 opacity-40 cursor-not-allowed"
+                             text-body text-text-2 opacity-40 cursor-not-allowed"
                 >
                   <Settings className="w-4 h-4 text-text-muted" />
                   账号设置
@@ -216,7 +216,7 @@ export function Topbar() {
                   type="button"
                   onClick={() => { setMenuOpen(false); setLogoutOpen(true); }}
                   className="flex items-center gap-2.5 w-full px-3 py-2.25 rounded-sm
-                             text-[13px] text-danger hover:bg-danger-bg transition-colors"
+                             text-body text-danger hover:bg-danger-bg transition-colors"
                 >
                   <LogOut className="w-4 h-4 text-danger" />
                   退出登录

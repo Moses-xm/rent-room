@@ -19,7 +19,7 @@ type StatusPillProps = {
 export function StatusPill({ variant, children }: StatusPillProps) {
   return (
     <span
-      className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11.5px] font-medium ${variants[variant]}`}
+      className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-caption font-emphasis ${variants[variant]}`}
     >
       <span className="w-1.25 h-1.25 rounded-full bg-current opacity-70 shrink-0" />
       {children}

@@ -129,7 +129,7 @@ export function CitySelector() {
         <div className="flex items-center justify-between border-b border-border-subtle px-6 py-4 shrink-0">
           <div>
             <h3 className="text-[17px] font-semibold text-text">更多城市</h3>
-            <p className="mt-1 text-[12.5px] text-text-muted">选择城市后即时更新并保存到本地</p>
+            <p className="mt-1 text-body-sm text-text-muted">选择城市后即时更新并保存到本地</p>
           </div>
           <button
             type="button"
@@ -151,7 +151,7 @@ export function CitySelector() {
               value={keyword}
               onChange={(e) => setKeyword(e.target.value)}
               placeholder="输入城市或省份快速搜索"
-              className="w-full h-9 pl-9 pr-3 text-[13px] outline-none bg-card
+              className="w-full h-9 pl-9 pr-3 text-body outline-none bg-card
                          border border-border rounded-sm text-text
                          placeholder:text-text-subtle transition-[border-color,box-shadow]
                          focus:border-primary
@@ -159,14 +159,14 @@ export function CitySelector() {
             />
           </div>
           <div className="flex items-start gap-2">
-            <span className="pt-1 text-[12.5px] font-medium text-text-muted whitespace-nowrap">热门城市</span>
+            <span className="pt-1 text-body-sm font-emphasis text-text-muted whitespace-nowrap">热门城市</span>
             <div className="flex flex-wrap gap-2">
               {HOT_CITIES.map((item) => (
                 <button
                   key={item.name}
                   type="button"
                   onClick={() => handleCityChange(item.name)}
-                  className={`px-3 py-1 rounded-sm text-[12.5px] font-medium border transition-colors
+                  className={`px-3 py-1 rounded-sm text-body-sm font-medium border transition-colors
                     ${item.name === currentCity
                       ? "bg-primary-tint text-primary border-transparent font-semibold"
                       : "bg-card text-text-2 border-border hover:border-text-disabled hover:text-text"
@@ -182,7 +182,7 @@ export function CitySelector() {
         {/* 省市列表 */}
         <div className="flex-1 min-h-0 overflow-y-auto px-6 py-5 space-y-1">
           {filteredProvinceCities.length === 0 ? (
-            <p className="py-10 text-center text-[13px] text-text-muted">没有找到匹配城市</p>
+            <p className="py-10 text-center text-body text-text-muted">没有找到匹配城市</p>
           ) : (
             filteredProvinceCities.map((group) => (
               <div
@@ -190,14 +190,14 @@ export function CitySelector() {
                 className="grid gap-3 py-3 border-b border-border-subtle last:border-none"
                 style={{ gridTemplateColumns: "130px 1fr" }}
               >
-                <p className="pt-1 text-[13px] font-medium text-text-muted">{group.province}</p>
+                <p className="pt-1 text-body font-emphasis text-text-muted">{group.province}</p>
                 <div className="flex flex-wrap gap-2">
                   {group.cities.map((city) => (
                     <button
                       key={`${group.province}-${city}`}
                       type="button"
                       onClick={() => handleCityChange(city)}
-                      className={`px-2.5 py-1 rounded-sm text-[12.5px] font-medium transition-colors
+                      className={`px-2.5 py-1 rounded-sm text-body-sm font-medium transition-colors
                         ${city === currentCity
                           ? "bg-primary-tint text-primary"
                           : "bg-surface-2 text-text-2 hover:text-text hover:bg-surface"
@@ -223,7 +223,7 @@ export function CitySelector() {
         <button
           type="button"
           onClick={() => setPopoverOpen((v) => !v)}
-          className="flex items-center gap-2 px-2 py-1 rounded-sm text-[12.5px]
+          className="flex items-center gap-2 px-2 py-1 rounded-sm text-body-sm
                      hover:bg-surface-2 transition-colors"
         >
           <MapPin className="w-[14px] h-[14px] text-primary shrink-0" />
@@ -262,7 +262,7 @@ export function CitySelector() {
                       : "none",
                   }}
                 >
-                  <p className="pt-0.5 text-[11.5px] font-medium text-text-muted leading-tight">
+                  <p className="pt-0.5 text-caption font-emphasis text-text-muted leading-tight">
                     {group.name}
                   </p>
                   {/* gap-1 使城市排列紧凑，自然约 4 个/行 */}
@@ -272,7 +272,7 @@ export function CitySelector() {
                         key={city.name}
                         type="button"
                         onClick={() => handleCityChange(city.name)}
-                        className={`px-2 py-0.5 rounded-sm text-[11.5px] font-medium
+                        className={`px-2 py-0.5 rounded-sm text-caption font-medium
                           transition-colors
                           ${city.name === currentCity
                             ? "bg-primary-tint text-primary font-semibold"
@@ -292,7 +292,7 @@ export function CitySelector() {
               <button
                 type="button"
                 onClick={() => { setPopoverOpen(false); setModalOpen(true); }}
-                className="flex items-center gap-1 text-[12.5px] font-medium
+                className="flex items-center gap-1 text-body-sm font-medium
                            text-primary hover:text-primary-dark transition-colors"
               >
                 更多城市

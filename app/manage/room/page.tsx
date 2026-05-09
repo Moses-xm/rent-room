@@ -28,10 +28,10 @@ export default function RoomPage() {
       {/* ── 页面头部 ── */}
       <div className="flex items-end justify-between gap-4">
         <div>
-          <h1 className="font-(family-name:--typeface-display) text-[26px] font-medium tracking-tight text-text leading-[1.1] m-0">
+          <h1 className="font-(family-name:--typeface-display) text-h1 font-heading tracking-tight text-text leading-[1.1] m-0">
             房源管理
           </h1>
-          <div className="text-[13px] text-text-muted mt-1.5">
+          <div className="text-body text-text-muted mt-1.5">
             管理所有已发布租赁房源的状态信息，跟踪签约进度。
           </div>
         </div>
@@ -42,7 +42,7 @@ export default function RoomPage() {
         {tabs.map((tab) => (
           <div
             key={tab.key}
-            className={`flex items-center gap-2 px-4 py-2 rounded-sm border cursor-pointer transition-colors text-[13px] ${
+            className={`flex items-center gap-2 px-4 py-2 rounded-sm border cursor-pointer transition-colors text-body ${
               tab.active
                 ? 'bg-primary-tint border-primary text-primary font-semibold'
                 : 'bg-card border-border text-text-2 hover:bg-surface-2'
@@ -50,7 +50,7 @@ export default function RoomPage() {
           >
             <span>{tab.label}</span>
             <span
-              className={`text-[11.5px] font-semibold tabular-nums ${
+              className={`text-caption font-semibold tabular-nums ${
                 tab.active ? 'text-primary' : 'text-text-muted'
               }`}
             >
@@ -70,7 +70,7 @@ export default function RoomPage() {
               type="text"
               placeholder="搜索房源名称或编号…"
               className="w-full h-8.5 pl-9 pr-3 border border-border rounded-sm
-                         bg-card text-text text-[13px] outline-none
+                         bg-card text-text text-body outline-none
                          transition-[border-color,box-shadow]
                          hover:border-text-disabled
                          focus:border-primary
@@ -78,13 +78,13 @@ export default function RoomPage() {
                          placeholder:text-text-subtle"
             />
           </div>
-          <select className="h-8.5 px-3 border border-border rounded-sm bg-card text-text-2 text-[13px] outline-none focus:border-primary transition-colors min-w-35">
+          <select className="h-8.5 px-3 border border-border rounded-sm bg-card text-text-2 text-body outline-none focus:border-primary transition-colors min-w-35">
             <option>所有区域</option>
             <option>朝阳区</option>
             <option>海淀区</option>
             <option>静安区</option>
           </select>
-          <span className="ml-auto text-[12.5px] text-text-muted tabular-nums">
+          <span className="ml-auto text-body-sm text-text-muted tabular-nums">
             共 <span className="font-semibold text-text">{mockData.length}</span> 件房源
           </span>
         </div>
@@ -94,37 +94,37 @@ export default function RoomPage() {
           <table className="w-full text-left whitespace-nowrap">
             <thead>
               <tr>
-                <th className="text-left text-[11.5px] font-medium text-text-muted uppercase tracking-[.04em] px-4 py-2.5 bg-surface-2 border-t border-b border-border-subtle">房东 / 业主</th>
-                <th className="text-left text-[11.5px] font-medium text-text-muted uppercase tracking-[.04em] px-4 py-2.5 bg-surface-2 border-t border-b border-border-subtle">房源名称</th>
-                <th className="text-left text-[11.5px] font-medium text-text-muted uppercase tracking-[.04em] px-4 py-2.5 bg-surface-2 border-t border-b border-border-subtle">状态</th>
-                <th className="text-left text-[11.5px] font-medium text-text-muted uppercase tracking-[.04em] px-4 py-2.5 bg-surface-2 border-t border-b border-border-subtle">发布时间</th>
-                <th className="text-left text-[11.5px] font-medium text-text-muted uppercase tracking-[.04em] px-4 py-2.5 bg-surface-2 border-t border-b border-border-subtle">位置</th>
+                <th className="text-left text-caption font-emphasis text-text-muted uppercase tracking-[.04em] px-4 py-2.5 bg-surface-2 border-t border-b border-border-subtle">房东 / 业主</th>
+                <th className="text-left text-caption font-emphasis text-text-muted uppercase tracking-[.04em] px-4 py-2.5 bg-surface-2 border-t border-b border-border-subtle">房源名称</th>
+                <th className="text-left text-caption font-emphasis text-text-muted uppercase tracking-[.04em] px-4 py-2.5 bg-surface-2 border-t border-b border-border-subtle">状态</th>
+                <th className="text-left text-caption font-emphasis text-text-muted uppercase tracking-[.04em] px-4 py-2.5 bg-surface-2 border-t border-b border-border-subtle">发布时间</th>
+                <th className="text-left text-caption font-emphasis text-text-muted uppercase tracking-[.04em] px-4 py-2.5 bg-surface-2 border-t border-b border-border-subtle">位置</th>
               </tr>
             </thead>
             <tbody>
               {mockData.map((row) => (
                 <tr key={row.id} className="hover:bg-surface transition-colors">
-                  <td className="px-4 py-3.5 border-b border-border-subtle align-middle text-text-2 text-[13px]">
+                  <td className="px-4 py-3.5 border-b border-border-subtle align-middle text-text-2 text-body">
                     <div className="flex items-center gap-3">
-                      <div className="w-7.5 h-7.5 rounded-full shrink-0 grid place-items-center bg-surface-2 text-text-muted text-[11px] font-semibold border border-border">
+                      <div className="w-7.5 h-7.5 rounded-full shrink-0 grid place-items-center bg-surface-2 text-text-muted text-tiny font-semibold border border-border">
                         {initials(row.client)}
                       </div>
                       <div>
-                        <p className="text-[13px] font-medium text-text leading-none">{row.client}</p>
-                        <p className="text-[11px] text-text-muted mt-0.5">{row.code} · {row.source}</p>
+                        <p className="text-body font-emphasis text-text leading-none">{row.client}</p>
+                        <p className="text-tiny text-text-muted mt-0.5">{row.code} · {row.source}</p>
                       </div>
                     </div>
                   </td>
-                  <td className="px-4 py-3.5 border-b border-border-subtle align-middle text-text-2 text-[13px]">
+                  <td className="px-4 py-3.5 border-b border-border-subtle align-middle text-text-2 text-body">
                     {row.name}
                   </td>
                   <td className="px-4 py-3.5 border-b border-border-subtle align-middle">
                     <StatusPill variant="accent">待出租</StatusPill>
                   </td>
-                  <td className="px-4 py-3.5 border-b border-border-subtle align-middle text-text-2 text-[13px] font-mono">
+                  <td className="px-4 py-3.5 border-b border-border-subtle align-middle text-text-2 text-body font-mono">
                     {row.date}
                   </td>
-                  <td className="px-4 py-3.5 border-b border-border-subtle align-middle text-text-2 text-[13px]">
+                  <td className="px-4 py-3.5 border-b border-border-subtle align-middle text-text-2 text-body">
                     {row.loc}
                   </td>
                 </tr>
@@ -135,12 +135,12 @@ export default function RoomPage() {
 
         {/* 分页占位 */}
         <div className="flex items-center justify-between px-4.5 py-3.5 border-t border-border-subtle">
-          <span className="text-[12.5px] text-text-muted">第 1 / 1 页</span>
+          <span className="text-body-sm text-text-muted">第 1 / 1 页</span>
           <div className="flex items-center gap-0.5">
             {['«', '‹', '1', '›', '»'].map((p, i) => (
               <button
                 key={i}
-                className={`min-w-7.5 h-7.5 rounded-sm text-[12.5px] transition-colors ${
+                className={`min-w-7.5 h-7.5 rounded-sm text-body-sm transition-colors ${
                   p === '1'
                     ? 'font-semibold bg-primary text-white'
                     : 'text-text-2 hover:bg-surface-2'

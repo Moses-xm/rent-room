@@ -84,14 +84,14 @@ async function fetchAdmins(params: FetchParams): Promise<AdminsResponse> {
 
 /* ─── Shared className fragments ─────────────────────────────────────────── */
 const thCls =
-  'text-left text-[11.5px] font-medium text-text-muted uppercase tracking-[.04em] ' +
+  'text-left text-caption font-emphasis text-text-muted uppercase tracking-[.04em] ' +
   'px-4 py-[10px] bg-surface-2 border-t border-b border-border-subtle whitespace-nowrap';
 
 const tdCls =
-  'px-4 py-[14px] border-b border-border-subtle align-middle text-text-2 text-[13px]';
+  'px-4 py-[14px] border-b border-border-subtle align-middle text-text-2 text-body';
 
 const navBtnCls =
-  'min-w-[30px] h-[30px] rounded-sm grid place-items-center text-[12.5px] ' +
+  'min-w-[30px] h-[30px] rounded-sm grid place-items-center text-body-sm ' +
   'text-text-2 hover:bg-surface-2 disabled:text-text-disabled disabled:cursor-not-allowed transition-colors';
 
 const pageSizeOptions = [5, 10, 20, 50];
@@ -190,17 +190,17 @@ export default function AdminPage() {
       {/* ── 页面头部 ── */}
       <div className="flex items-end justify-between gap-4">
         <div>
-          <h1 className="font-(family-name:--typeface-display) text-[26px] font-medium tracking-tight text-text leading-[1.1] m-0">
+          <h1 className="font-(family-name:--typeface-display) text-h1 font-heading tracking-tight text-text leading-[1.1] m-0">
             管理员账号
           </h1>
-          <div className="text-[13px] text-text-muted mt-[6px]">
+          <div className="text-body text-text-muted mt-1.5">
             统一维护管理员账号、启用状态与基础资料，相关操作将记录到审计日志。
           </div>
         </div>
         <div className="flex gap-2 shrink-0">
           <button
             onClick={() => setModalState({ mode: 'add' })}
-            className="h-[34px] px-[14px] text-[13px] rounded-sm font-medium
+            className="h-[34px] px-[14px] text-body rounded-sm font-medium
                        bg-primary text-white hover:bg-primary-dark transition-colors
                        flex items-center gap-2"
           >
@@ -233,7 +233,7 @@ export default function AdminPage() {
                     setPage(1);
                   }}
                   className="w-full h-[34px] pl-9 pr-3 border border-border rounded-sm
-                             bg-card text-text text-[13px] outline-none
+                             bg-card text-text text-body outline-none
                              transition-[border-color,box-shadow]
                              hover:border-text-disabled
                              focus:border-primary
@@ -264,7 +264,7 @@ export default function AdminPage() {
                         ) : (
                           <div className="flex flex-col items-center gap-3 opacity-40">
                             <ShieldCheck size={36} className="text-text-disabled" />
-                            <p className="text-[13px] text-text-muted">
+                            <p className="text-body text-text-muted">
                               {getEmptyStateText(debouncedQuery)}
                             </p>
                           </div>
@@ -277,7 +277,7 @@ export default function AdminPage() {
                         {/* 用户名 */}
                         <td className={tdCls}>
                           <div className="flex items-center gap-3">
-                            <div className="w-[30px] h-[30px] rounded-full grid place-items-center overflow-hidden shrink-0 bg-primary-tint text-primary-dark text-[12px] font-semibold border border-border">
+                            <div className="w-[30px] h-[30px] rounded-full grid place-items-center overflow-hidden shrink-0 bg-primary-tint text-primary-dark text-xs font-semibold border border-border">
                               {admin.avatar ? (
                                 <img
                                   src={resolveUploadedFileUrl(admin.avatar)}
@@ -289,10 +289,10 @@ export default function AdminPage() {
                               )}
                             </div>
                             <div>
-                              <p className="text-[13px] font-medium text-text leading-none">
+                              <p className="text-body font-emphasis text-text leading-none">
                                 {admin.username}
                               </p>
-                              <p className="text-[11px] text-text-muted font-mono mt-0.5">
+                              <p className="text-tiny text-text-muted font-mono mt-0.5">
                                 UID:{admin.id}
                               </p>
                             </div>
@@ -346,7 +346,7 @@ export default function AdminPage() {
             {total > 0 && (
               <div className="flex flex-col sm:flex-row items-center justify-between gap-4 px-[18px] py-[14px] border-t border-border-subtle">
                 {/* 每页条数 */}
-                <div className="flex items-center gap-2 text-[12.5px] text-text-muted">
+                <div className="flex items-center gap-2 text-body-sm text-text-muted">
                   <span>每页</span>
                   <select
                     value={pageSize}
@@ -356,7 +356,7 @@ export default function AdminPage() {
                     }}
                     aria-label="选择每页显示条数"
                     className="h-[28px] px-2 border border-border rounded-sm bg-card
-                               text-text-2 text-[12.5px] outline-none
+                               text-text-2 text-body-sm outline-none
                                focus:border-primary transition-colors"
                   >
                     {pageSizeOptions.map((size) => (
@@ -393,7 +393,7 @@ export default function AdminPage() {
                     p === '...' ? (
                       <span
                         key={`e${i}`}
-                        className="min-w-[30px] h-[30px] grid place-items-center text-[12.5px] text-text-disabled"
+                        className="min-w-[30px] h-[30px] grid place-items-center text-body-sm text-text-disabled"
                       >
                         …
                       </span>
@@ -401,7 +401,7 @@ export default function AdminPage() {
                       <button
                         key={p}
                         onClick={() => setPage(p as number)}
-                        className={`min-w-[30px] h-[30px] rounded-sm text-[12.5px] transition-colors ${
+                        className={`min-w-[30px] h-[30px] rounded-sm text-body-sm transition-colors ${
                           p === safePage
                             ? 'font-semibold bg-primary text-white'
                             : 'text-text-2 hover:bg-surface-2'

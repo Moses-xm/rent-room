@@ -542,6 +542,33 @@ useEffect(() => {
 
 分页使用内联实现（见 `app/manage/admin/page.tsx`），包括首页/上一页/下一页/末页按钮，中间展示页码数字，超过 9 页使用省略号。每页条数选项：`[5, 10, 20, 50]`。
 
+### 排版令牌
+
+字号和字重统一由 CSS 变量维护，在 `app/globals.css` 的 `:root` 中定义，通过 `@theme inline` 映射为 Tailwind 工具类。修改排版时**只改 CSS 变量值**，组件代码无需变动。
+
+#### 字号变量 → Tailwind 工具类
+
+| 变量 | 默认值 | Tailwind 类 | 用途 |
+|------|--------|-------------|------|
+| `--fs-h1` | 26px | `text-h1` | 页面主标题（`<h1>`） |
+| `--fs-h2` | 22px | `text-h2` | 弹窗 / 次级页标题（`<h2>`）|
+| `--fs-h3` | 16px | `text-h3` | 卡片节标题 |
+| `--fs-h4` | 14.5px | `text-h4` | 图表 / 组件标题 |
+| `--fs-stat` | 32px | `text-stat` | 数据看板大数字 |
+| `--fs-body` | 13px | `text-body` | 正文 |
+| `--fs-body-sm` | 12.5px | `text-body-sm` | 标签、次要正文 |
+| `--fs-caption` | 11.5px | `text-caption` | 说明、提示文字 |
+| `--fs-tiny` | 11px | `text-tiny` | 极小辅助文字 |
+
+#### 字重变量 → Tailwind 工具类
+
+| 变量 | 默认值 | Tailwind 类 | 用途 |
+|------|--------|-------------|------|
+| `--fw-heading` | 600 | `font-heading` | 标题字重（h1–h4、stat） |
+| `--fw-emphasis` | 500 | `font-emphasis` | 强调字重（标签、正文内容名） |
+
+> **规则**：按钮、UI 徽标、动态激活态的字重直接用 Tailwind 原生类（`font-medium`、`font-semibold`），不走语义变量，避免全局字重调整误伤 UI 交互元素。
+
 ### 样式规范
 
 - 卡片容器：`bg-white border border-slate-200 rounded-2xl shadow-sm`

@@ -12,6 +12,21 @@
   --radius:    8px;
   --radius-lg: 12px;
 
+  /* —— 排版令牌（前缀 --fs- / --fw- 避开 Tailwind 的 --font-* 命名空间）——
+     修改字号/字重只需改这里，组件中的 text-h1 / font-heading 等工具类自动跟随。
+     平台主题（styles/themes/*.css）可在各自作用域内覆盖这些变量。          */
+  --fs-h1:      26px;    /* 页面主标题 */
+  --fs-h2:      22px;    /* 弹窗 / 次级页标题 */
+  --fs-h3:      16px;    /* 卡片节标题 */
+  --fs-h4:      14.5px;  /* 图表 / 组件标题 */
+  --fs-stat:    32px;    /* 数据看板大数字 */
+  --fs-body:    13px;    /* 正文 */
+  --fs-body-sm: 12.5px;  /* 标签、次要正文 */
+  --fs-caption: 11.5px;  /* 说明、提示文字 */
+  --fs-tiny:    11px;    /* 极小辅助文字 */
+  --fw-heading:  600;    /* 标题字重 */
+  --fw-emphasis: 500;    /* 强调字重 */
+
   --shadow-sm: 0 1px 2px rgba(0, 0, 0, .05);
   --shadow:    0 4px 16px rgba(0, 0, 0, .07);
   --shadow-lg: 0 12px 40px rgba(0, 0, 0, .13);
@@ -189,3 +204,22 @@ body {
   border: 0;
   cursor: grab;
 }
+
+/* ─── 语义排版工具类 ─────────────────────────────────────────
+   通过 @layer utilities 注册，与 Tailwind 工具类同层，
+   不存在优先级异常。引用 :root 排版令牌，平台主题可覆盖。
+   ──────────────────────────────────────────────────────── */
+@layer utilities {
+  .text-h1      { font-size: var(--fs-h1); }
+  .text-h2      { font-size: var(--fs-h2); }
+  .text-h3      { font-size: var(--fs-h3); }
+  .text-h4      { font-size: var(--fs-h4); }
+  .text-stat    { font-size: var(--fs-stat); }
+  .text-body    { font-size: var(--fs-body); }
+  .text-body-sm { font-size: var(--fs-body-sm); }
+  .text-caption { font-size: var(--fs-caption); }
+  .text-tiny    { font-size: var(--fs-tiny); }
+  .font-heading  { font-weight: var(--fw-heading); }
+  .font-emphasis { font-weight: var(--fw-emphasis); }
+}
+

@@ -44,7 +44,7 @@ export function Drawer({ open, title, subtitle, onClose, children, footer }: Dra
               </div>
             )}
             {subtitle && (
-              <div className="text-[12.5px] text-[var(--color-text-muted)] mt-1">{subtitle}</div>
+              <div className="text-body-sm text-[var(--color-text-muted)] mt-1">{subtitle}</div>
             )}
           </div>
           <button
