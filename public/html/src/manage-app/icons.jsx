@@ -1,0 +1,32 @@
+/* 雅阁租房 · 管理后台 · 极简金色主题 · 图标库
+   Stroke-based, 1.6 weight — neutral, currentColor-driven */
+const Icon = {
+  Dashboard: p => <svg viewBox="0 0 24 24" {...p} fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><rect x="3.5" y="3.5" width="7" height="9" rx="1.2"/><rect x="13.5" y="3.5" width="7" height="5" rx="1.2"/><rect x="3.5" y="15.5" width="7" height="5" rx="1.2"/><rect x="13.5" y="11.5" width="7" height="9" rx="1.2"/></svg>,
+  Users:    p => <svg viewBox="0 0 24 24" {...p} fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><circle cx="9" cy="8.5" r="3.2"/><path d="M3 19c.8-3 3.2-4.6 6-4.6s5.2 1.6 6 4.6"/><circle cx="17" cy="9.5" r="2.6"/><path d="M16.5 14.4c2 .1 3.7 1.4 4.5 3.6"/></svg>,
+  Building: p => <svg viewBox="0 0 24 24" {...p} fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><path d="M4 21V6.5L12 3l8 3.5V21"/><path d="M4 21h16M9 10h.01M12 10h.01M15 10h.01M9 14h.01M12 14h.01M15 14h.01M10 21v-4h4v4"/></svg>,
+  Pin:      p => <svg viewBox="0 0 24 24" {...p} fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><path d="M12 21s7-6.2 7-11.5a7 7 0 1 0-14 0C5 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.6"/></svg>,
+  Order:    p => <svg viewBox="0 0 24 24" {...p} fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><rect x="4" y="3.5" width="16" height="17" rx="1.5"/><path d="M8 8h8M8 12h8M8 16h5"/></svg>,
+  Doc:      p => <svg viewBox="0 0 24 24" {...p} fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><path d="M6 3.5h8l4 4v13H6z"/><path d="M14 3.5v4h4M9 12h6M9 16h6"/></svg>,
+  Heart:    p => <svg viewBox="0 0 24 24" {...p} fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/></svg>,
+  Calendar: p => <svg viewBox="0 0 24 24" {...p} fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round"><rect x="3.5" y="5" width="17" height="15" rx="1.5"/><path d="M3.5 10h17M8 3v4M16 3v4"/></svg>,
+  Bill:     p => <svg viewBox="0 0 24 24" {...p} fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round"><path d="M5 3.5h14v17l-2.5-1.6L14 20.5l-2-1.6-2 1.6-2.5-1.6L5 20.5z"/><path d="M9 8h6M9 12h6M9 16h4"/></svg>,
+  Megaphone:p => <svg viewBox="0 0 24 24" {...p} fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><path d="M3 9.5v5L13 19V5z"/><path d="M13 8h2a3.5 3.5 0 0 1 0 7h-2M7 14.5V19c0 1 1 2 2 2s2-1 2-2v-1.5"/></svg>,
+  Gear:     p => <svg viewBox="0 0 24 24" {...p} fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round"><circle cx="12" cy="12" r="2.8"/><path d="M19.4 12c0-.5 0-.9-.1-1.4l1.8-1.4-1.8-3.1-2.2.7c-.7-.6-1.5-1.1-2.4-1.4L14.4 3h-3.6l-.3 2.4c-.9.3-1.7.8-2.4 1.4l-2.2-.7-1.8 3.1 1.8 1.4c-.1.5-.1.9-.1 1.4s0 .9.1 1.4l-1.8 1.4 1.8 3.1 2.2-.7c.7.6 1.5 1.1 2.4 1.4l.3 2.4h3.6l.3-2.4c.9-.3 1.7-.8 2.4-1.4l2.2.7 1.8-3.1-1.8-1.4c.1-.5.1-.9.1-1.4z"/></svg>,
+  Search:   p => <svg viewBox="0 0 24 24" {...p} fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><circle cx="11" cy="11" r="6.5"/><path d="m20 20-3.5-3.5"/></svg>,
+  Bell:     p => <svg viewBox="0 0 24 24" {...p} fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><path d="M6 16V11a6 6 0 1 1 12 0v5l1.5 2H4.5z"/><path d="M10 21a2 2 0 0 0 4 0"/></svg>,
+  Plus:     p => <svg viewBox="0 0 24 24" {...p} fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><path d="M12 5v14M5 12h14"/></svg>,
+  Edit:     p => <svg viewBox="0 0 24 24" {...p} fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round" strokeLinecap="round"><path d="M4 20h4l10-10-4-4L4 16z"/><path d="m13.5 6.5 4 4"/></svg>,
+  Trash:    p => <svg viewBox="0 0 24 24" {...p} fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13M10 11v6M14 11v6"/></svg>,
+  Eye:      p => <svg viewBox="0 0 24 24" {...p} fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>,
+  X:        p => <svg viewBox="0 0 24 24" {...p} fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg>,
+  Chev:     p => <svg viewBox="0 0 24 24" {...p} fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="m9 6 6 6-6 6"/></svg>,
+  ChevD:    p => <svg viewBox="0 0 24 24" {...p} fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6"/></svg>,
+  Filter:   p => <svg viewBox="0 0 24 24" {...p} fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><path d="M4 5h16l-6 8v6l-4-2v-4z"/></svg>,
+  Up:       p => <svg viewBox="0 0 24 24" {...p} fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="m6 14 6-6 6 6"/></svg>,
+  Down:     p => <svg viewBox="0 0 24 24" {...p} fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="m6 10 6 6 6-6"/></svg>,
+  Wallet:   p => <svg viewBox="0 0 24 24" {...p} fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round"><rect x="3" y="6" width="18" height="13" rx="2"/><path d="M3 10h18M16 14h2"/></svg>,
+  Alert:    p => <svg viewBox="0 0 24 24" {...p} fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"><path d="M12 3 2 20h20zM12 10v5M12 17.5v.5"/></svg>,
+  Logout:   p => <svg viewBox="0 0 24 24" {...p} fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><path d="M14 4h5v16h-5M9 8l-4 4 4 4M5 12h11"/></svg>,
+  Logo:     p => <svg viewBox="0 0 32 32" {...p} fill="none"><path d="M6 26V12l10-7 10 7v14H6z" stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round"/><path d="M12 26v-7h8v7" stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round"/></svg>,
+};
+window.Icon = Icon;
