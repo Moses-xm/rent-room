@@ -221,5 +221,32 @@ body {
   .text-tiny    { font-size: var(--fs-tiny); }
   .font-heading  { font-weight: var(--fw-heading); }
   .font-emphasis { font-weight: var(--fw-emphasis); }
+
+  /* 骨架屏波纹扫光 */
+  .skeleton-shimmer {
+    background: linear-gradient(
+      90deg,
+      var(--color-border)    25%,
+      var(--color-surface-2) 50%,
+      var(--color-border)    75%
+    );
+    background-size: 800px 100%;
+    animation: skeleton-wave 1.4s ease-in-out infinite;
+  }
+  .skeleton-shimmer-warm {
+    background: linear-gradient(
+      90deg,
+      var(--color-primary-tint)   25%,
+      var(--color-primary-tint-2) 50%,
+      var(--color-primary-tint)   75%
+    );
+    background-size: 800px 100%;
+    animation: skeleton-wave 1.4s ease-in-out infinite;
+  }
+}
+
+@keyframes skeleton-wave {
+  0%   { background-position: -400px 0; }
+  100% { background-position: 400px 0; }
 }
 

@@ -22,12 +22,12 @@ export default function AppLoading({
           {skeletonCols.map((_, idx) => (
             <div
               key={idx}
-              className={`h-3 rounded-full bg-border animate-pulse ${
+              className={`h-2.5 rounded-full skeleton-shimmer ${
                 idx === 0
-                  ? 'w-24'
+                  ? 'w-20'
                   : idx === columns - 1
-                    ? 'ml-auto w-16'
-                    : 'w-16'
+                    ? 'ml-auto w-14'
+                    : 'w-14'
               }`}
             />
           ))}
@@ -43,25 +43,25 @@ export default function AppLoading({
               {skeletonCols.map((_, colIdx) =>
                 colIdx === 0 ? (
                   <div key={colIdx} className="flex items-center gap-3">
-                    <div className="h-7.5 w-7.5 rounded-full bg-surface-2 animate-pulse shrink-0" />
-                    <div className="flex-1 space-y-2">
-                      <div className="h-3 w-28 rounded-full bg-surface-2 animate-pulse" />
-                      <div className="h-2.5 w-16 rounded-full bg-border animate-pulse" />
+                    <div className="h-7.5 w-7.5 rounded-full skeleton-shimmer-warm shrink-0" />
+                    <div className="flex-1 space-y-1.5">
+                      <div className="h-3 w-28 rounded-full skeleton-shimmer" />
+                      <div className="h-2 w-16 rounded-full skeleton-shimmer opacity-60" />
                     </div>
                   </div>
                 ) : colIdx === columns - 1 ? (
                   <div key={colIdx} className="flex items-center justify-end gap-1.5">
-                    <div className="h-7.5 w-7.5 rounded-sm bg-surface-2 animate-pulse" />
-                    <div className="h-7.5 w-7.5 rounded-sm bg-surface-2 animate-pulse" />
+                    <div className="h-7.5 w-7.5 rounded-sm skeleton-shimmer" />
+                    <div className="h-7.5 w-7.5 rounded-sm skeleton-shimmer" />
                   </div>
                 ) : colIdx === 1 ? (
                   <div key={colIdx} className="flex items-center">
-                    <div className="h-5 w-14 rounded-full bg-surface-2 animate-pulse" />
+                    <div className="h-5 w-14 rounded-full skeleton-shimmer" />
                   </div>
                 ) : (
                   <div key={colIdx} className="flex items-center">
                     <div
-                      className={`h-3 rounded-full bg-surface-2 animate-pulse ${
+                      className={`h-3 rounded-full skeleton-shimmer ${
                         colIdx % 2 === 0 ? 'w-24' : 'w-20'
                       }`}
                     />
