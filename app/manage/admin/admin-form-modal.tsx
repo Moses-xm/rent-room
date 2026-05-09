@@ -2,6 +2,7 @@
 
 import { type ChangeEvent, useEffect, useRef, useState } from 'react';
 import { X, Eye, EyeOff, Loader2, Upload, ImagePlus } from 'lucide-react';
+import { Modal } from '@/components/Modal';
 import {
   isManagedUploadPath,
   resolveUploadedFileUrl,
@@ -170,7 +171,7 @@ export default function AdminFormModal({ state, onClose, onSaved }: Props) {
   const busy = isSubmitting || isUploading || isCleaningAvatar;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-[3px] animate-in fade-in duration-200">
+    <Modal open={!!state}>
       <div className="relative flex w-full max-w-130 flex-col overflow-hidden bg-card rounded-lg shadow-lg animate-in zoom-in-95 duration-200">
 
         {/* ── 头部 ── */}
@@ -378,6 +379,6 @@ export default function AdminFormModal({ state, onClose, onSaved }: Props) {
           </div>
         </form>
       </div>
-    </div>
+    </Modal>
   );
 }

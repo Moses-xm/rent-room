@@ -169,6 +169,7 @@
 
 | 组件 | 职责 |
 |------|------|
+| `Modal` | 所有弹窗的基础容器，负责遮罩、滚动锁定、居中布局 |
 | `StatusPill` | 状态徽章，接受 `variant` prop（success/warning/danger/muted）|
 | `ConfirmDialog` | 危险操作的二次确认弹窗，统一 danger/loading 状态 |
 | `AppLoading` | 表格骨架屏，接受 rows/columns |
@@ -179,7 +180,75 @@
 
 **核心约定：组件内部一律用语义令牌，绝不写颜色/字号的具体值。**
 
-### 2.2 共享样式片段
+### 2.2 弹窗规范
+
+#### 核心原则
+
+> **所有弹窗必须通过 `<Modal>` 组件包裹，禁止直接写 `fixed inset-0` 遮罩层。**  
+> 滚动锁定、遮罩样式、动画等公共行为统一在 `Modal` 内维护，各弹窗只负责自己的面板内容。
+
+#### Modal 组件职责
+
+`components/Modal.tsx` 负责以下三件事，各弹窗不需要重复处理：
+
+| 职责 | 实现 |
+|------|------|
+| 背景滚动锁定 | `useBodyScrollLock(open)`，含 iOS Safari 兼容（`position: fixed`）|
+| 遮罩层渲染 | `fixed inset-0 z-50 bg-black/40 backdrop-blur-[3px]` |
+| 内容居中 | `flex items-center justify-center p-4` |
+
+#### 使用方式
+
+```tsx
+import { Modal } from '@/components/Modal';
+
+// 表单类弹窗（open 由外部 state 控制）
+export default function MyFormModal({ state, onClose }: Props) {
+  if (!state) return null;   // 类型收窄，业务逻辑提前返回
+
+  return (
+    <Modal open={!!state}>
+      <div className="relative w-full max-w-130 bg-card rounded-lg shadow-lg animate-in zoom-in-95 duration-200">
+        {/* 面板内容 */}
+      </div>
+    </Modal>
+  );
+}
+
+// 确认类弹窗（open 是 boolean）
+export default function MyDialog({ open, onClose }: Props) {
+  return (
+    <Modal open={open}>
+      <div className="relative w-full max-w-sm bg-card rounded-lg shadow-lg animate-in zoom-in-95 duration-200">
+        {/* 面板内容 */}
+      </div>
+    </Modal>
+  );
+}
+```
+
+#### 滚动锁定机制
+
+`utils/use-body-scroll-lock.ts` 使用引用计数，支持多个弹窗叠加时正确解锁：
+
+- 开启：保存 `scrollY`，将 `body` 设为 `position: fixed; top: -scrollY`（阻止 iOS 穿透滚动）
+- 关闭：还原所有样式并 `window.scrollTo(0, savedScrollY)`
+- 多弹窗：`lockCount` 计数，最后一个关闭时才真正解锁
+
+#### 面板动画约定
+
+- 遮罩淡入：由 `Modal` 负责（`animate-in fade-in duration-200`）
+- 面板弹出：各弹窗面板自带 `animate-in zoom-in-95 duration-200`
+- 禁止在面板外层再加 `fade-in`，避免双重动画
+
+#### Checklist
+
+- [ ] 新弹窗必须用 `<Modal open={...}>` 包裹，不手写遮罩层
+- [ ] 面板 div 加 `animate-in zoom-in-95 duration-200`
+- [ ] 表单类弹窗在 `open` 变化时重置表单状态（`useEffect([state])`）
+- [ ] 关闭时清理已上传但未保存的临时文件
+
+### 2.3 共享样式片段
 
 跨组件复用的样式字符串提取为常量，放在顶层模块而非内联重复：
 

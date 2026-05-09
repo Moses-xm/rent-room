@@ -60,6 +60,7 @@ rent-room/
 │   ├── ConfirmDialog.tsx
 │   ├── LoadingDimmer.tsx
 │   ├── ManageLayoutShell.tsx
+│   ├── Modal.tsx                     # 所有弹窗的基础容器（遮罩+滚动锁定）
 │   ├── Sidebar.tsx
 │   └── Topbar.tsx
 ├── lib/                              # 服务端工具
@@ -71,7 +72,8 @@ rent-room/
 ├── utils/                            # 客户端工具
 │   ├── manage-auth.ts                # token 本地存取
 │   ├── manage-city.ts                # 城市数据工具
-│   └── request.ts                    # fetch 封装，自动注入 token
+│   ├── request.ts                    # fetch 封装，自动注入 token
+│   └── use-body-scroll-lock.ts       # 弹窗背景滚动锁定 hook
 ├── styles/
 │   └── themes/
 │       ├── manage.css                # Manage 平台主题（换色只改此文件）

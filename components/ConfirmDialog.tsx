@@ -2,6 +2,7 @@
 
 import { cloneElement, type ReactNode } from 'react';
 import { AlertTriangle, Loader2 } from 'lucide-react';
+import { Modal } from '@/components/Modal';
 
 type ConfirmDialogProps = {
   open: boolean;
@@ -28,12 +29,8 @@ export default function ConfirmDialog({
   onConfirm,
   onClose,
 }: ConfirmDialogProps) {
-  if (!open) return null;
-
   const renderIcon = () => {
-    if (!icon) {
-      return <AlertTriangle size={18} strokeWidth={2.5} />;
-    }
+    if (!icon) return <AlertTriangle size={18} strokeWidth={2.5} />;
     if (typeof icon === 'object' && 'props' in icon) {
       return cloneElement(icon as React.ReactElement<{ size?: number }>, { size: 18 });
     }
@@ -41,8 +38,8 @@ export default function ConfirmDialog({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-[3px]">
-      <div className="relative w-full max-w-sm bg-card border border-border rounded-lg shadow-(--shadow-lg) p-6 animate-in fade-in zoom-in-95 duration-200">
+    <Modal open={open}>
+      <div className="relative w-full max-w-sm bg-card border border-border rounded-lg shadow-(--shadow-lg) p-6 animate-in zoom-in-95 duration-200">
 
         {/* 图标 + 标题 */}
         <div className="flex items-start gap-4 mb-3">
@@ -66,7 +63,6 @@ export default function ConfirmDialog({
 
         {/* 按钮 */}
         <div className="flex gap-2 justify-end">
-          {/* 取消：ghost */}
           <button
             onClick={onClose}
             disabled={loading}
@@ -78,7 +74,6 @@ export default function ConfirmDialog({
             {cancelText}
           </button>
 
-          {/* 确认：danger */}
           <button
             onClick={onConfirm}
             disabled={loading}
@@ -92,6 +87,6 @@ export default function ConfirmDialog({
           </button>
         </div>
       </div>
-    </div>
+    </Modal>
   );
 }
