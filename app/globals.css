@@ -1,39 +1,72 @@
 @import 'tailwindcss';
 
-@theme {
-  --font-sans: 'Noto Sans SC', ui-sans-serif, system-ui, sans-serif;
-  --color-manage: #7c3aed;
-  --color-manage-dark: #5b21b6;
-  --color-portal: #0ea5e9;
-  --color-portal-dark: #0284c7;
-
-  /* Primary color generation */
-  --color-primary: var(--theme-primary);
-  --color-primary-50: var(--theme-primary-50);
-  --color-primary-100: var(--theme-primary-100);
-  --color-primary-200: var(--theme-primary-200);
-  --color-primary-300: var(--theme-primary-300);
-  --color-primary-600: var(--theme-primary-600);
-}
+/* ─── Font System ─────────────────────────────────────────── */
 
 :root {
-  --theme-primary: #7c3aed; /* 雅阁紫作为全局基石色 */
+  --typeface-body: 'Inter', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei UI', 'Microsoft YaHei', system-ui, sans-serif;
+  --typeface-mono: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+
+  --theme-primary: #7c3aed;
   --theme-primary-50: color-mix(in srgb, var(--theme-primary) 10%, white);
   --theme-primary-100: color-mix(in srgb, var(--theme-primary) 20%, white);
   --theme-primary-200: color-mix(in srgb, var(--theme-primary) 40%, white);
   --theme-primary-300: color-mix(in srgb, var(--theme-primary) 60%, white);
   --theme-primary-600: color-mix(in srgb, var(--theme-primary) 85%, black);
+
+  --transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-html, body {
-  font-family: var(--font-sans);
+@theme inline {
+  --font-sans: var(--typeface-body);
+  --color-manage:       #7c3aed;
+  --color-manage-dark:  #5b21b6;
+  --color-portal:       #0ea5e9;
+  --color-portal-dark:  #0284c7;
+  --color-primary:      var(--theme-primary);
+  --color-primary-50:   var(--theme-primary-50);
+  --color-primary-100:  var(--theme-primary-100);
+  --color-primary-200:  var(--theme-primary-200);
+  --color-primary-300:  var(--theme-primary-300);
+  --color-primary-600:  var(--theme-primary-600);
+}
+
+/* ─── Base ────────────────────────────────────────────────── */
+
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+html {
+  height: 100%;
+  font-size: 16px;
+}
+
+body {
+  font-family: var(--typeface-body);
+  font-size: 14px;
+  line-height: 1.6;
+  min-height: 100%;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  font-feature-settings: 'kern' 1, 'liga' 1;
+  text-rendering: optimizeLegibility;
 }
 
-/* Base styles to fix background if needed, but keeping it clean */
+::selection {
+  background: color-mix(in srgb, var(--theme-primary) 15%, white);
+}
+
+/* ─── Scrollbar ───────────────────────────────────────────── */
+
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.12); border-radius: 99px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(0,0,0,0.22); }
+
+/* ─── Misc ────────────────────────────────────────────────── */
+
 .manage-content-bg {
-  background-color: #f8fafc; /* Slate 50 */
+  background-color: #f8fafc;
 }
 
 .manage-slider::-webkit-slider-runnable-track {
