@@ -60,35 +60,35 @@ export default function RoomPage() {
         ))}
       </div>
 
-      {/* ── 卡片：工具栏 + 表格 ── */}
-      <div className="bg-card border border-border rounded shadow-sm overflow-hidden">
-        {/* 工具栏 */}
-        <div className="flex items-center gap-2.5 px-4.5 py-3.5 border-b border-border-subtle flex-wrap">
-          <div className="relative w-72">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none" size={13} />
-            <input
-              type="text"
-              placeholder="搜索房源名称或编号…"
-              className="w-full h-8.5 pl-9 pr-3 border border-border rounded-sm
-                         bg-card text-text text-body outline-none
-                         transition-[border-color,box-shadow]
-                         hover:border-text-disabled
-                         focus:border-primary
-                         focus:shadow-[0_0_0_3px_color-mix(in_srgb,var(--color-primary)_15%,transparent)]
-                         placeholder:text-text-subtle"
-            />
-          </div>
-          <select className="h-8.5 px-3 border border-border rounded-sm bg-card text-text-2 text-body outline-none focus:border-primary transition-colors min-w-35">
-            <option>所有区域</option>
-            <option>朝阳区</option>
-            <option>海淀区</option>
-            <option>静安区</option>
-          </select>
-          <span className="ml-auto text-body-sm text-text-muted tabular-nums">
-            共 <span className="font-semibold text-text">{mockData.length}</span> 件房源
-          </span>
+      {/* ── 筛选区 ── */}
+      <div className="py-[14px] flex items-center gap-2.5 flex-wrap">
+        <div className="relative w-72">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none" size={13} />
+          <input
+            type="text"
+            placeholder="搜索房源名称或编号…"
+            className="w-full h-8.5 pl-9 pr-3 border border-border rounded-sm
+                       bg-card text-text text-body outline-none
+                       transition-[border-color,box-shadow]
+                       hover:border-text-disabled
+                       focus:border-primary
+                       focus:shadow-[0_0_0_3px_color-mix(in_srgb,var(--color-primary)_15%,transparent)]
+                       placeholder:text-text-muted"
+          />
         </div>
+        <select className="h-8.5 px-3 border border-border rounded-sm bg-card text-text-2 text-body outline-none focus:border-primary transition-colors min-w-35">
+          <option>所有区域</option>
+          <option>朝阳区</option>
+          <option>海淀区</option>
+          <option>静安区</option>
+        </select>
+        <span className="ml-auto text-body-sm text-text-muted tabular-nums">
+          共 <span className="font-semibold text-text">{mockData.length}</span> 件房源
+        </span>
+      </div>
 
+      {/* ── 卡片：表格 ── */}
+      <div className="bg-card border border-border rounded shadow-sm overflow-hidden">
         {/* 表格 */}
         <div className="overflow-x-auto">
           <table className="w-full text-left whitespace-nowrap">

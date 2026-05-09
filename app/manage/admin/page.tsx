@@ -210,39 +210,39 @@ export default function AdminPage() {
         </div>
       </div>
 
-      {/* ── 卡片：工具栏 + 表格 + 分页 ── */}
+      {/* ── 筛选区 ── */}
+      <div className="py-[14px] flex items-center gap-[10px] flex-wrap">
+        <div className="relative w-60">
+          <Search
+            className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none"
+            size={13}
+          />
+          <input
+            type="text"
+            placeholder="搜索用户名"
+            aria-label="搜索管理员"
+            value={query}
+            onChange={(e) => {
+              setQuery(e.target.value);
+              setPage(1);
+            }}
+            className="w-full h-[34px] pl-9 pr-3 border border-border rounded-sm
+                       bg-card text-text text-body outline-none
+                       transition-[border-color,box-shadow]
+                       hover:border-text-disabled
+                       focus:border-primary
+                       focus:shadow-[0_0_0_3px_color-mix(in_srgb,var(--color-primary)_15%,transparent)]
+                       placeholder:text-text-muted"
+          />
+        </div>
+      </div>
+
+      {/* ── 卡片：表格 + 分页 ── */}
       {!hasLoadedOnce ? (
         <AppLoading rows={5} columns={5} />
       ) : (
         <div className="bg-card border border-border rounded shadow-sm overflow-hidden">
           <LoadingDimmer loading={loading}>
-            {/* 工具栏 */}
-            <div className="flex items-center gap-[10px] px-[18px] py-[14px] border-b border-border-subtle flex-wrap">
-              <div className="relative w-60">
-                <Search
-                  className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none"
-                  size={13}
-                />
-                <input
-                  type="text"
-                  placeholder="搜索用户名"
-                  aria-label="搜索管理员"
-                  value={query}
-                  onChange={(e) => {
-                    setQuery(e.target.value);
-                    setPage(1);
-                  }}
-                  className="w-full h-[34px] pl-9 pr-3 border border-border rounded-sm
-                             bg-card text-text text-body outline-none
-                             transition-[border-color,box-shadow]
-                             hover:border-text-disabled
-                             focus:border-primary
-                             focus:shadow-[0_0_0_3px_color-mix(in_srgb,var(--color-primary)_15%,transparent)]
-                             placeholder:text-text-subtle"
-                />
-              </div>
-            </div>
-
             {/* 表格 */}
             <div className="overflow-x-auto">
               <table className="w-full text-left whitespace-nowrap">
