@@ -66,6 +66,16 @@
    ═══════════════════════════════════════════════════════════ */
 
 @theme inline {
+  /* 圆角（映射 :root 变量，让 rounded-sm / rounded / rounded-lg 跟随主题） */
+  --radius-sm: var(--radius-sm);
+  --radius:    var(--radius);
+  --radius-lg: var(--radius-lg);
+
+  /* 阴影 */
+  --shadow-sm: var(--shadow-sm);
+  --shadow:    var(--shadow);
+  --shadow-lg: var(--shadow-lg);
+
   /* 字体 */
   --font-sans:    var(--typeface-body);
   --font-display: var(--typeface-display);

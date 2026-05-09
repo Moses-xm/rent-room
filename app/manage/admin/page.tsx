@@ -20,6 +20,7 @@ import AdminFormModal, {
   type AdminFormData,
 } from './admin-form-modal';
 import ConfirmDialog from '@/components/ConfirmDialog';
+import { StatusPill } from '@/components/StatusPill';
 import AppLoading from '@/components/AppLoading';
 import LoadingDimmer from '@/components/LoadingDimmer';
 
@@ -46,13 +47,13 @@ function fmtDateTime(iso: string) {
 }
 
 function initials(name: string) {
-  if (!name) return '??';
+  if (!name) return '?';
   return name.trim().charAt(0).toUpperCase();
 }
 
 function getEmptyStateText(search: string) {
   if (search.trim()) return '未找到符合条件的管理员账号';
-  return '暂无管理员账号，请先创建账号';
+  return '暂无管理员账号，请先创建';
 }
 
 /* ─── API types ──────────────────────────────────────────────────────────── */
@@ -80,6 +81,20 @@ async function fetchAdmins(params: FetchParams): Promise<AdminsResponse> {
   if (params.search) qs.set('search', params.search);
   return request<AdminsResponse>(`/manage/admin?${qs.toString()}`);
 }
+
+/* ─── Shared className fragments ─────────────────────────────────────────── */
+const thCls =
+  'text-left text-[11.5px] font-medium text-text-muted uppercase tracking-[.04em] ' +
+  'px-4 py-[10px] bg-surface-2 border-t border-b border-border-subtle whitespace-nowrap';
+
+const tdCls =
+  'px-4 py-[14px] border-b border-border-subtle align-middle text-text-2 text-[13px]';
+
+const navBtnCls =
+  'min-w-[30px] h-[30px] rounded-sm grid place-items-center text-[12.5px] ' +
+  'text-text-2 hover:bg-surface-2 disabled:text-text-disabled disabled:cursor-not-allowed transition-colors';
+
+const pageSizeOptions = [5, 10, 20, 50];
 
 /* ─── Page ────────────────────────────────────────────────────────────────── */
 export default function AdminPage() {
@@ -110,9 +125,7 @@ export default function AdminPage() {
           setTotalPages(res.totalPages);
         }
       })
-      .catch((err) => {
-        console.error(err);
-      })
+      .catch(console.error)
       .finally(() => {
         setLoading(false);
         setHasLoadedOnce(true);
@@ -171,75 +184,88 @@ export default function AdminPage() {
     }
   };
 
-  const navBtn =
-    'flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 cursor-pointer hover:bg-slate-100 disabled:opacity-30 disabled:cursor-not-allowed transition-colors active:scale-95 border border-transparent';
-  const tableHeadCell =
-    'px-6 py-4 text-[15px] font-semibold text-slate-600 tracking-wide';
-  const pageSizeOptions = [5, 10, 20, 50];
-
   return (
-    <div className="max-w-6xl mx-auto space-y-6">
+    <div className="max-w-6xl mx-auto space-y-5">
       <Toaster position="top-right" richColors />
 
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      {/* ── 页面头部 ── */}
+      <div className="flex items-end justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900">管理员账号</h1>
-          <p className="text-sm text-slate-500 mt-1">
+          <h1 className="font-(family-name:--typeface-display) text-[32px] font-medium tracking-tight text-text leading-[1.1] m-0">
+            管理员账号
+          </h1>
+          <div className="text-[13px] text-text-muted mt-[6px]">
             统一维护管理员账号、启用状态与基础资料，相关操作将记录到审计日志。
-          </p>
+          </div>
         </div>
-        <button
-          onClick={() => setModalState({ mode: 'add' })}
-          className="flex items-center gap-2 px-5 py-2.5 bg-primary text-white text-sm font-bold rounded-xl shadow-lg shadow-primary-50 hover:bg-primary-600 transition-all active:scale-95"
-        >
-          <Plus size={18} /> 新建管理员
-        </button>
+        <div className="flex gap-2 shrink-0">
+          <button
+            onClick={() => setModalState({ mode: 'add' })}
+            className="h-[34px] px-[14px] text-[13px] rounded-sm font-medium
+                       bg-primary text-white hover:bg-primary-dark transition-colors
+                       flex items-center gap-2"
+          >
+            <Plus size={14} strokeWidth={2.5} />
+            新建管理员
+          </button>
+        </div>
       </div>
 
-      <div className="relative w-full sm:w-80">
-        <Search
-          className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"
-          size={18}
-        />
-        <input
-          type="text"
-          placeholder="搜索用户名"
-          aria-label="搜索管理员"
-          value={query}
-          onChange={(e) => {
-            setQuery(e.target.value);
-            setPage(1);
-          }}
-          className="w-full h-11 pl-11 pr-4 bg-white border border-slate-200 rounded-xl text-sm focus:border-primary focus:ring-2 focus:ring-primary-50 outline-none transition-all shadow-sm"
-        />
-      </div>
-
+      {/* ── 卡片：工具栏 + 表格 + 分页 ── */}
       {!hasLoadedOnce ? (
         <AppLoading rows={5} columns={5} />
       ) : (
-        <div className="relative bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
+        <div className="bg-card border border-border rounded shadow-sm overflow-hidden">
           <LoadingDimmer loading={loading}>
+            {/* 工具栏 */}
+            <div className="flex items-center gap-[10px] px-[18px] py-[14px] border-b border-border-subtle flex-wrap">
+              <div className="relative w-60">
+                <Search
+                  className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none"
+                  size={13}
+                />
+                <input
+                  type="text"
+                  placeholder="搜索用户名"
+                  aria-label="搜索管理员"
+                  value={query}
+                  onChange={(e) => {
+                    setQuery(e.target.value);
+                    setPage(1);
+                  }}
+                  className="w-full h-[34px] pl-9 pr-3 border border-border rounded-sm
+                             bg-card text-text text-[13px] outline-none
+                             transition-[border-color,box-shadow]
+                             hover:border-text-disabled
+                             focus:border-primary
+                             focus:shadow-[0_0_0_3px_color-mix(in_srgb,var(--color-primary)_15%,transparent)]
+                             placeholder:text-text-subtle"
+                />
+              </div>
+            </div>
+
+            {/* 表格 */}
             <div className="overflow-x-auto">
               <table className="w-full text-left whitespace-nowrap">
-                <thead className="bg-slate-100/80 border-b border-slate-200">
+                <thead>
                   <tr>
-                    <th className={tableHeadCell}>用户名</th>
-                    <th className={`${tableHeadCell} text-center`}>状态</th>
-                    <th className={tableHeadCell}>创建时间</th>
-                    <th className={tableHeadCell}>最后修改</th>
-                    <th className={`${tableHeadCell} text-right`}>管理操作</th>
+                    <th className={thCls}>用户名</th>
+                    <th className={`${thCls} text-center`}>状态</th>
+                    <th className={thCls}>创建时间</th>
+                    <th className={thCls}>最后修改</th>
+                    <th className={`${thCls} text-right`}>操作</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100">
+                <tbody>
                   {list.length === 0 ? (
                     <tr>
                       <td colSpan={5} className="py-24 text-center">
                         {loading ? (
-                          <div className="h-35" />
+                          <div className="h-32" />
                         ) : (
-                          <div className="flex flex-col items-center gap-3 opacity-30">
-                            <ShieldCheck size={48} className="text-slate-300" />
-                            <p className="text-sm font-bold text-slate-500">
+                          <div className="flex flex-col items-center gap-3 opacity-40">
+                            <ShieldCheck size={36} className="text-text-disabled" />
+                            <p className="text-[13px] text-text-muted">
                               {getEmptyStateText(debouncedQuery)}
                             </p>
                           </div>
@@ -248,13 +274,11 @@ export default function AdminPage() {
                     </tr>
                   ) : (
                     list.map((admin) => (
-                      <tr
-                        key={admin.id}
-                        className="group hover:bg-slate-50/50 transition-colors"
-                      >
-                        <td className="px-6 py-5">
-                          <div className="flex items-center gap-4">
-                            <div className="h-10 w-10 flex items-center justify-center rounded-full bg-primary-50 text-primary font-bold overflow-hidden border-2 border-white shadow-sm ring-1 ring-primary-100">
+                      <tr key={admin.id} className="hover:bg-surface transition-colors">
+                        {/* 用户名 */}
+                        <td className={tdCls}>
+                          <div className="flex items-center gap-3">
+                            <div className="w-[30px] h-[30px] rounded-full grid place-items-center overflow-hidden shrink-0 bg-primary-tint text-primary-dark text-[12px] font-semibold border border-border">
                               {admin.avatar ? (
                                 <img
                                   src={resolveUploadedFileUrl(admin.avatar)}
@@ -266,48 +290,49 @@ export default function AdminPage() {
                               )}
                             </div>
                             <div>
-                              <p className="text-[15px] font-bold text-slate-900">
+                              <p className="text-[13px] font-medium text-text leading-none">
                                 {admin.username}
                               </p>
-                              <p className="text-xs text-slate-400 font-mono tracking-tight opacity-80">
+                              <p className="text-[11px] text-text-muted font-mono mt-0.5">
                                 UID:{admin.id}
                               </p>
                             </div>
                           </div>
                         </td>
-                        <td className="px-6 py-5 text-center">
-                          <div
-                            className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-semibold ${admin.isActive ? 'bg-emerald-50 text-emerald-600' : 'bg-slate-100 text-slate-500'}`}
-                          >
-                            <div
-                              className={`h-1.5 w-1.5 rounded-full ${admin.isActive ? 'bg-emerald-500 animate-pulse' : 'bg-slate-300'}`}
-                            />
-                            {admin.isActive ? '正常工作' : '暂停服务'}
-                          </div>
+
+                        {/* 状态 */}
+                        <td className={`${tdCls} text-center`}>
+                          <StatusPill variant={admin.isActive ? 'success' : 'muted'}>
+                            {admin.isActive ? '正常' : '停用'}
+                          </StatusPill>
                         </td>
-                        <td className="px-6 py-5 text-sm text-slate-600 font-medium font-mono">
+
+                        {/* 时间 */}
+                        <td className={`${tdCls} font-mono`}>
                           {fmtDateTime(admin.created)}
                         </td>
-                        <td className="px-6 py-5 text-sm text-slate-600 font-medium font-mono">
+                        <td className={`${tdCls} font-mono`}>
                           {fmtDateTime(admin.modified)}
                         </td>
-                        <td className="px-6 py-5 text-right">
-                          <div className="flex justify-end items-center gap-1.5">
+
+                        {/* 操作 */}
+                        <td className={`${tdCls} text-right`}>
+                          <div className="flex justify-end items-center gap-0.5">
                             <button
-                              onClick={() =>
-                                setModalState({ mode: 'edit', admin })
-                              }
-                              className="p-2.5 text-slate-400 hover:text-primary hover:bg-primary-50 rounded-lg transition-all active:scale-95"
+                              onClick={() => setModalState({ mode: 'edit', admin })}
                               title="编辑管理员"
+                              className="w-[30px] h-[30px] rounded-sm grid place-items-center
+                                         text-text-muted hover:bg-surface-2 hover:text-text transition-colors"
                             >
-                              <Pencil size={17} />
+                              <Pencil size={14} />
                             </button>
                             <button
                               onClick={() => setDeleteTarget(admin)}
-                              className="p-2.5 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all active:scale-95"
                               title="删除管理员"
+                              className="w-[30px] h-[30px] rounded-sm grid place-items-center
+                                         text-text-muted hover:text-danger hover:bg-danger-bg transition-colors"
                             >
-                              <Trash2 size={17} />
+                              <Trash2 size={14} />
                             </button>
                           </div>
                         </td>
@@ -317,97 +342,95 @@ export default function AdminPage() {
                 </tbody>
               </table>
             </div>
-          </LoadingDimmer>
 
-          {total > 0 && (
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 px-6 py-5 bg-slate-50/30 border-t border-slate-100">
-              <div className="flex items-center gap-3 text-sm text-slate-500">
-                <span className="whitespace-nowrap">每页显示</span>
-                <select
-                  value={pageSize}
-                  onChange={(e) => {
-                    setPageSize(Number(e.target.value));
-                    setPage(1);
-                  }}
-                  aria-label="选择每页显示条数"
-                  className="h-9 rounded-lg border border-slate-200 bg-white px-3 text-sm font-medium text-slate-700 shadow-sm outline-none transition focus:border-primary focus:ring-2 focus:ring-primary-50"
-                >
-                  {pageSizeOptions.map((size) => (
-                    <option key={size} value={size}>
-                      {size}
-                    </option>
-                  ))}
-                </select>
-                <span className="whitespace-nowrap">
-                  条，共{' '}
-                  <span className="font-semibold text-slate-900">{total}</span>{' '}
-                  项
-                </span>
-              </div>
+            {/* 分页 */}
+            {total > 0 && (
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-4 px-[18px] py-[14px] border-t border-border-subtle">
+                {/* 每页条数 */}
+                <div className="flex items-center gap-2 text-[12.5px] text-text-muted">
+                  <span>每页</span>
+                  <select
+                    value={pageSize}
+                    onChange={(e) => {
+                      setPageSize(Number(e.target.value));
+                      setPage(1);
+                    }}
+                    aria-label="选择每页显示条数"
+                    className="h-[28px] px-2 border border-border rounded-sm bg-card
+                               text-text-2 text-[12.5px] outline-none
+                               focus:border-primary transition-colors"
+                  >
+                    {pageSizeOptions.map((size) => (
+                      <option key={size} value={size}>
+                        {size}
+                      </option>
+                    ))}
+                  </select>
+                  <span>
+                    条，共{' '}
+                    <span className="font-semibold text-text tabular-nums">{total}</span>{' '}
+                    项
+                  </span>
+                </div>
 
-              <div className="flex items-center gap-1.5">
-                <button
-                  onClick={() => setPage(1)}
-                  disabled={safePage === 1}
-                  className={navBtn}
-                >
-                  <ChevronsLeft size={16} />
-                </button>
-                <button
-                  onClick={() => setPage((p) => Math.max(1, p - 1))}
-                  disabled={safePage === 1}
-                  className={navBtn}
-                >
-                  <ChevronLeft size={16} />
-                </button>
-                <span className="px-2 text-sm text-slate-500 whitespace-nowrap">
-                  第{' '}
-                  <span className="font-semibold text-slate-900">
-                    {safePage}
-                  </span>{' '}
-                  / {totalPages} 页
-                </span>
-                <div className="flex items-center gap-1 mx-2">
+                {/* 页码 */}
+                <div className="flex items-center gap-0.5">
+                  <button
+                    onClick={() => setPage(1)}
+                    disabled={safePage === 1}
+                    className={navBtnCls}
+                  >
+                    <ChevronsLeft size={14} />
+                  </button>
+                  <button
+                    onClick={() => setPage((p) => Math.max(1, p - 1))}
+                    disabled={safePage === 1}
+                    className={navBtnCls}
+                  >
+                    <ChevronLeft size={14} />
+                  </button>
+
                   {pageNums.map((p, i) =>
                     p === '...' ? (
                       <span
                         key={`e${i}`}
-                        className="text-slate-300 px-1 font-bold"
+                        className="min-w-[30px] h-[30px] grid place-items-center text-[12.5px] text-text-disabled"
                       >
-                        ...
+                        …
                       </span>
                     ) : (
                       <button
                         key={p}
                         onClick={() => setPage(p as number)}
-                        className={`h-8 w-8 flex items-center justify-center rounded-lg text-xs font-bold transition-all border ${
+                        className={`min-w-[30px] h-[30px] rounded-sm text-[12.5px] transition-colors ${
                           p === safePage
-                            ? 'bg-primary text-white border-primary shadow-lg shadow-primary-50'
-                            : 'text-slate-500 bg-white border-slate-200 hover:border-primary hover:text-primary'
+                            ? 'font-semibold bg-primary text-white'
+                            : 'text-text-2 hover:bg-surface-2'
                         }`}
                       >
                         {p}
                       </button>
                     ),
                   )}
+
+                  <button
+                    onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                    disabled={safePage === totalPages}
+                    className={navBtnCls}
+                  >
+                    <ChevronRight size={14} />
+                  </button>
+                  <button
+                    onClick={() => setPage(totalPages)}
+                    disabled={safePage === totalPages}
+                    className={navBtnCls}
+                  >
+                    <ChevronsRight size={14} />
+                  </button>
                 </div>
-                <button
-                  onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                  disabled={safePage === totalPages}
-                  className={navBtn}
-                >
-                  <ChevronRight size={16} />
-                </button>
-                <button
-                  onClick={() => setPage(totalPages)}
-                  disabled={safePage === totalPages}
-                  className={navBtn}
-                >
-                  <ChevronsRight size={16} />
-                </button>
               </div>
-            </div>
-          )}
+            )}
+          </LoadingDimmer>
         </div>
       )}
 
@@ -424,9 +447,7 @@ export default function AdminPage() {
           deleteTarget ? (
             <>
               管理员账户{' '}
-              <span className="font-bold text-slate-900">
-                {deleteTarget.username}
-              </span>{' '}
+              <span className="font-semibold text-text">{deleteTarget.username}</span>{' '}
               将被删除，此操作不可撤销。
             </>
           ) : undefined

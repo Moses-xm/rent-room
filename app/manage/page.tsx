@@ -1,77 +1,131 @@
-export default function DashboardPage() {
-  const stats = [
-    { label: "本月总收入", curr: "¥ 124,500", prev: "+12% 相比上月", icon: "💰", color: "text-emerald-500", bg: "bg-emerald-50" },
-    { label: "在租房源", curr: "83 / 100", prev: "利用率 83%", icon: "🏠", color: "text-primary", bg: "bg-primary-50" },
-    { label: "本月新增租客", curr: "12 人", prev: "+4% 相比上月", icon: "👥", color: "text-blue-500", bg: "bg-blue-50" },
-    { label: "待处理报修", curr: "3 单", prev: "2单紧急", icon: "🔧", color: "text-amber-500", bg: "bg-amber-50" },
-  ];
+import { TrendingUp, Home, Users, Wrench, type LucideIcon } from 'lucide-react';
 
+/* ─── 统计卡数据 ──────────────────────────────────────────── */
+const stats: {
+  label: string;
+  value: string;
+  change: string;
+  changeLabel: string;
+  up: boolean | null;
+  Icon: LucideIcon;
+}[] = [
+  { label: '本月总收入',    value: '¥ 124,500', change: '↑ 12%', changeLabel: '较上月', up: true,  Icon: TrendingUp },
+  { label: '在租房源',      value: '83 / 100',  change: '83%',   changeLabel: '利用率', up: null,  Icon: Home       },
+  { label: '本月新增租客',  value: '12 人',     change: '↑ 4%',  changeLabel: '较上月', up: true,  Icon: Users      },
+  { label: '待处理报修',    value: '3 单',      change: '2 单',  changeLabel: '紧急',   up: false, Icon: Wrench     },
+];
+
+const recentEvents = [
+  { name: '王先生',  room: '阳光上城 3 栋 201', time: '1 小时前' },
+  { name: '李女士',  room: '碧桂园豪华独栋',     time: '3 小时前' },
+  { name: '陈杰',    room: 'CBD 中心一室',        time: '5 小时前' },
+  { name: '张明',    room: '朝阳精品两居室',      time: '昨天'     },
+  { name: '刘晓红',  room: '海淀温馨合租',        time: '昨天'     },
+];
+
+export default function DashboardPage() {
   return (
     <div className="max-w-6xl mx-auto space-y-6">
-      {/* Header */}
-      <div>
-        <h1 className="text-2xl font-bold text-slate-900 mb-1">Dashboard</h1>
-        <p className="text-slate-500 text-sm font-medium">欢迎回来，这里是您的房源租赁数据概览表</p>
+
+      {/* ── 页面头部 ── */}
+      <div className="flex items-end justify-between gap-4">
+        <div>
+          <h1 className="font-(family-name:--typeface-display) text-[32px] font-medium tracking-tight text-text leading-[1.1] m-0">
+            控制台
+          </h1>
+          <div className="text-[13px] text-text-muted mt-[6px]">
+            欢迎回来，这里是您的房源租赁数据概览。
+          </div>
+        </div>
       </div>
 
-      {/* Hero Stats */}
-      <div className="grid grid-cols-4 gap-6">
-        {stats.map((stat, i) => (
-          <div key={i} className="bg-white rounded-xl p-6 border border-slate-200 shadow-sm flex flex-col justify-between hover:shadow-md transition-shadow">
-            <div className="flex items-center justify-between mb-4">
-              <div className={`w-10 h-10 rounded-full flex items-center justify-center text-xl ${stat.bg}`}>
-                {stat.icon}
-              </div>
+      {/* ── 统计卡 ── */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        {stats.map(({ label, value, change, changeLabel, up, Icon }) => (
+          <div
+            key={label}
+            className="bg-card border border-border rounded p-[20px_22px]"
+          >
+            <div className="flex justify-between items-center text-[12px] text-text-muted font-medium tracking-[.02em]">
+              <span>{label}</span>
+              <span className="w-[30px] h-[30px] rounded-sm bg-primary-tint text-primary grid place-items-center shrink-0">
+                <Icon size={15} />
+              </span>
             </div>
-            <div>
-              <div className="text-sm font-semibold text-slate-500 mb-1">{stat.label}</div>
-              <div className="text-2xl font-extrabold text-slate-900">{stat.curr}</div>
+            <div className="font-(family-name:--typeface-display) text-[32px] font-medium text-text tracking-tight mt-3 leading-none tabular-nums">
+              {value}
             </div>
-            <div className={`text-xs font-semibold mt-4 ${stat.color}`}>
-              {stat.prev}
+            <div className="mt-[10px] text-[11.5px] text-text-muted flex items-center gap-[6px]">
+              <span
+                className={`font-semibold tabular-nums ${
+                  up === true
+                    ? 'text-success'
+                    : up === false
+                    ? 'text-danger'
+                    : 'text-text-2'
+                }`}
+              >
+                {change}
+              </span>
+              {changeLabel}
             </div>
           </div>
         ))}
       </div>
 
-      {/* Main Charts area */}
-      <div className="grid grid-cols-3 gap-6">
-        {/* Income Chart Placeholder */}
-        <div className="col-span-2 bg-white rounded-xl border border-slate-200 shadow-sm p-6 h-[400px] flex flex-col">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-lg font-bold text-slate-800">月度营收趋势</h2>
-            <select className="border border-slate-200 text-slate-600 text-xs px-2 py-1 rounded outline-none w-24">
+      {/* ── 图表 + 动态 ── */}
+      <div className="grid grid-cols-3 gap-4">
+        {/* 营收趋势占位 */}
+        <div className="col-span-2 bg-card border border-border rounded shadow-sm flex flex-col">
+          <div className="px-[22px] py-[18px] flex items-center justify-between border-b border-border-subtle">
+            <div>
+              <div className="text-[14.5px] font-semibold text-text tracking-tight">月度营收趋势</div>
+              <div className="text-[12px] text-text-muted mt-[3px]">近 7 个月收入汇总</div>
+            </div>
+            <select className="h-[28px] px-2 border border-border rounded-sm bg-card text-text-2 text-[12.5px] outline-none focus:border-primary">
               <option>今年</option>
               <option>去年</option>
             </select>
           </div>
-          <div className="flex-1 border-2 border-dashed border-slate-100 rounded-lg flex items-center justify-center text-slate-300 relative overflow-hidden bg-slate-50/50">
-            {/* simple mock visual bars */}
-            <div className="absolute bottom-0 w-full px-12 flex items-end justify-between h-48 opacity-50">
-               {[40, 60, 45, 80, 55, 90, 75].map((h, j) => (
-                 <div key={j} className="w-8 bg-primary-200 rounded-t-sm" style={{ height: `${h}%` }}></div>
-               ))}
+          <div className="flex-1 px-[22px] py-5 min-h-[280px] flex flex-col">
+            <div className="flex-1 border border-dashed border-border-subtle rounded-sm bg-surface flex flex-col items-center justify-end overflow-hidden relative">
+              {/* 模拟柱状图 */}
+              <div className="absolute bottom-0 w-full px-10 flex items-end justify-between h-[160px] opacity-60 pb-0">
+                {[40, 60, 45, 80, 55, 90, 75].map((h, j) => (
+                  <div
+                    key={j}
+                    className="w-7 bg-primary-tint rounded-t-sm border border-primary-tint-2"
+                    style={{ height: `${h}%`, backgroundColor: 'var(--color-primary-tint)', borderColor: 'var(--color-primary-200)' }}
+                  />
+                ))}
+              </div>
+              <span className="relative z-10 mb-8 text-[12.5px] text-text-muted">
+                营收图表占位区（可接入 ECharts / Recharts）
+              </span>
             </div>
-            <span className="z-10 font-medium">营收图表占位区 (可接入 ECharts/Recharts)</span>
           </div>
         </div>
 
-        {/* Action / Notifications */}
-        <div className="col-span-1 bg-white rounded-xl border border-slate-200 shadow-sm p-6 flex flex-col">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-lg font-bold text-slate-800">最新动态</h2>
-            <button className="text-primary text-xs font-semibold hover:underline">查看全部</button>
+        {/* 最新动态 */}
+        <div className="col-span-1 bg-card border border-border rounded shadow-sm flex flex-col">
+          <div className="px-[22px] py-[18px] flex items-center justify-between border-b border-border-subtle">
+            <div className="text-[14.5px] font-semibold text-text tracking-tight">最新动态</div>
+            <button className="text-[12px] text-primary hover:text-primary-dark transition-colors">
+              查看全部
+            </button>
           </div>
-          <div className="flex-1 space-y-4 overflow-y-auto">
-            {[1, 2, 3, 4, 5].map((x) => (
-              <div key={x} className="flex gap-4">
-                <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 shrink-0 text-xs">
-                  通知
+          <div className="flex-1 overflow-y-auto px-[22px] py-4 space-y-4">
+            {recentEvents.map((ev, i) => (
+              <div key={i} className="flex gap-3">
+                <div className="w-[28px] h-[28px] rounded-full shrink-0 grid place-items-center bg-primary-tint text-primary-dark text-[11px] font-semibold border border-border">
+                  {ev.name.charAt(0)}
                 </div>
-                <div>
-                  <div className="text-sm font-bold text-slate-800">新租客 {['王先生', '李女士', '陈杰'][x%3]} 已签约</div>
-                  <div className="text-xs text-slate-500 mb-1">通过线上平台完成了 {['阳光上城3栋201', '碧桂园豪华独栋', 'CBD中心一室'][x%3]} 的电子签约。</div>
-                  <div className="text-[10px] text-slate-400 font-medium">{x} 小时前</div>
+                <div className="min-w-0">
+                  <div className="text-[13px] font-medium text-text leading-snug">
+                    {ev.name} 已签约
+                  </div>
+                  <div className="text-[11.5px] text-text-muted mt-0.5 truncate">{ev.room}</div>
+                  <div className="text-[11px] text-text-disabled mt-0.5">{ev.time}</div>
                 </div>
               </div>
             ))}

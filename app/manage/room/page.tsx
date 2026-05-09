@@ -1,126 +1,154 @@
+import { Search } from 'lucide-react';
+import { StatusPill } from '@/components/StatusPill';
+
+/* ─── Mock data ───────────────────────────────────────────── */
 const tabs = [
-  { label: "全部房源 (All)", count: 128, active: true },
-  { label: "待出租 (Vacant)", count: 24 },
-  { label: "看房中 (Viewing)", count: 16 },
-  { label: "签约中 (Signing)", count: 5 },
-  { label: "已出租 (Occupied)", count: 83 },
+  { label: '全部',   count: 128, key: 'all',      active: true  },
+  { label: '待出租', count: 24,  key: 'vacant',   active: false },
+  { label: '看房中', count: 16,  key: 'viewing',  active: false },
+  { label: '签约中', count: 5,   key: 'signing',  active: false },
+  { label: '已出租', count: 83,  key: 'occupied', active: false },
 ];
 
 const mockData = [
-  { id: 1, name: "阳光精品两居室", code: "ROOM-001", client: "Michael Yang", source: "直租", date: "Mar 25, 2026", loc: "朝阳区", status: "Vacant" },
-  { id: 2, name: "温馨主卧合租", code: "ROOM-002", client: "Monkey Wong", source: "中介转租", date: "Mar 25, 2026", loc: "海淀区", status: "Vacant" },
-  { id: 3, name: "CBD豪华单间", code: "ROOM-003", client: "Pangyu Song", source: "直租", date: "Mar 25, 2026", loc: "静安区", status: "Vacant" },
+  { id: 1, name: '阳光精品两居室', code: 'ROOM-001', client: 'Michael Yang', source: '直租',    date: '2026-03-25', loc: '朝阳区' },
+  { id: 2, name: '温馨主卧合租',   code: 'ROOM-002', client: 'Monkey Wong',  source: '中介转租', date: '2026-03-25', loc: '海淀区' },
+  { id: 3, name: 'CBD 豪华单间',   code: 'ROOM-003', client: 'Pangyu Song',  source: '直租',    date: '2026-03-25', loc: '静安区' },
 ];
 
-export default function ManagePage() {
-  return (
-    <div className="max-w-6xl mx-auto">
-      {/* Header */}
-      <h1 className="text-2xl font-bold text-slate-900 mb-2">房源管理 (Properties)</h1>
-      <p className="text-slate-500 text-sm mb-8 font-medium">
-        管理所有已发布租赁房源的状态信息，跟踪签约进度
-      </p>
+function initials(name: string) {
+  return name.split(' ').map((n) => n[0]).join('').toUpperCase().slice(0, 2);
+}
 
-      {/* Tabs Row */}
-      <div className="flex flex-wrap gap-4 mb-8">
+/* ─── Page ────────────────────────────────────────────────── */
+export default function RoomPage() {
+  return (
+    <div className="max-w-6xl mx-auto space-y-5">
+
+      {/* ── 页面头部 ── */}
+      <div className="flex items-end justify-between gap-4">
+        <div>
+          <h1 className="font-(family-name:--typeface-display) text-[32px] font-medium tracking-tight text-text leading-[1.1] m-0">
+            房源管理
+          </h1>
+          <div className="text-[13px] text-text-muted mt-1.5">
+            管理所有已发布租赁房源的状态信息，跟踪签约进度。
+          </div>
+        </div>
+      </div>
+
+      {/* ── 状态分组标签 ── */}
+      <div className="flex flex-wrap gap-2">
         {tabs.map((tab) => (
           <div
-            key={tab.label}
-            className={`flex items-center justify-between px-4 py-2 flex-grow min-w-[180px] rounded-lg border cursor-pointer hover:shadow-sm transition-all ${
+            key={tab.key}
+            className={`flex items-center gap-2 px-4 py-2 rounded-sm border cursor-pointer transition-colors text-[13px] ${
               tab.active
-                ? "bg-slate-50 border-primary text-primary font-semibold"
-                : "bg-white border-slate-200 text-slate-600 hover:border-slate-300"
+                ? 'bg-primary-tint border-primary text-primary font-semibold'
+                : 'bg-card border-border text-text-2 hover:bg-surface-2'
             }`}
           >
-            <div className="flex items-center gap-2">
-              <span className="text-lg opacity-70">
-                {tab.active ? "👥" : tab.label.includes("Vacant") ? "✨" : tab.label.includes("Viewing") ? "📅" : tab.label.includes("Signing") ? "💰" : "🚫"}
-              </span>
-              <span className="text-sm">{tab.label}</span>
-            </div>
-            <span className="text-sm font-bold">{tab.count}</span>
+            <span>{tab.label}</span>
+            <span
+              className={`text-[11.5px] font-semibold tabular-nums ${
+                tab.active ? 'text-primary' : 'text-text-muted'
+              }`}
+            >
+              {tab.count}
+            </span>
           </div>
         ))}
       </div>
 
-      {/* Action Bar */}
-      <div className="flex gap-4 mb-4 items-center">
-        <div className="relative flex-1">
-          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">🔍</span>
-          <input 
-            type="text" 
-            placeholder="Search by room name or property code..." 
-            className="w-full pl-10 pr-4 py-2 rounded-lg border border-slate-200 text-sm outline-none focus:border-primary transition-colors focus:ring-1 focus:ring-primary"
-          />
-        </div>
-        <div className="relative w-64">
-          <select className="w-full px-4 py-2 rounded-lg border border-slate-200 text-sm outline-none appearance-none bg-white font-medium text-slate-700">
-            <option>所有区域 (All Locations)</option>
-          </select>
-          <span className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none text-xs">▼</span>
-        </div>
-        <div className="text-sm font-semibold text-slate-500 ml-auto whitespace-nowrap">
-          {mockData.length} 件房源
-        </div>
-      </div>
-
-      {/* Table Container */}
-      <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
-        <div className="grid grid-cols-6 gap-4 p-4 text-[11px] font-bold text-slate-400 tracking-wider uppercase border-b border-slate-100 bg-slate-50">
-          <div className="col-span-2">房东/业主 (Owner)</div>
-          <div className="col-span-1">房源名称 (Property Name)</div>
-          <div className="col-span-1">状态 (Status)</div>
-          <div className="col-span-1">发布时间 (Listed On)</div>
-          <div className="col-span-1">位置 (Location)</div>
-        </div>
-        
-        <div className="divide-y divide-slate-100">
-          {mockData.map((row) => (
-            <div key={row.id} className="grid grid-cols-6 gap-4 p-4 items-center hover:bg-slate-50/50 transition-colors">
-              <div className="col-span-2 flex items-center gap-4">
-                <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center font-bold text-slate-500 text-xs shrink-0">
-                  {row.client.split(' ').map(n=>n[0]).join('')}
-                </div>
-                <div>
-                  <div className="font-bold text-slate-900 text-sm mb-0.5">{row.client}</div>
-                  <div className="text-xs text-slate-400">{row.code} ({row.source})</div>
-                </div>
-              </div>
-              
-              <div className="col-span-1 text-sm text-slate-600 font-medium">
-                {row.name}
-              </div>
-              
-              <div className="col-span-1">
-                <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary-50 text-primary text-xs font-bold border border-primary-200/50 cursor-pointer">
-                  待出租 <span className="opacity-50">▼</span>
-                </span>
-              </div>
-              
-              <div className="col-span-1 text-sm text-slate-500">{row.date}</div>
-              
-              <div className="col-span-1 text-sm text-slate-500">
-                <span className="mr-1 text-slate-400">📍</span> {row.loc}
-              </div>
-            </div>
-          ))}
-        </div>
-
-        {/* Pagination */}
-        <div className="p-4 border-t border-slate-100 flex items-center justify-between bg-white text-sm">
-          <div className="flex items-center gap-3 text-slate-500">
-            Rows 
-            <select className="border border-slate-200 rounded px-2 py-1 outline-none text-slate-700 font-medium">
-              <option>10</option>
-            </select>
-            <span className="font-semibold text-slate-700">1–3</span> of 3
+      {/* ── 卡片：工具栏 + 表格 ── */}
+      <div className="bg-card border border-border rounded shadow-sm overflow-hidden">
+        {/* 工具栏 */}
+        <div className="flex items-center gap-2.5 px-4.5 py-3.5 border-b border-border-subtle flex-wrap">
+          <div className="relative w-72">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none" size={13} />
+            <input
+              type="text"
+              placeholder="搜索房源名称或编号…"
+              className="w-full h-8.5 pl-9 pr-3 border border-border rounded-sm
+                         bg-card text-text text-[13px] outline-none
+                         transition-[border-color,box-shadow]
+                         hover:border-text-disabled
+                         focus:border-primary
+                         focus:shadow-[0_0_0_3px_color-mix(in_srgb,var(--color-primary)_15%,transparent)]
+                         placeholder:text-text-subtle"
+            />
           </div>
-          <div className="flex items-center gap-1">
-            <button className="px-2 py-1 text-slate-300">«</button>
-            <button className="px-2 py-1 text-slate-300">‹</button>
-            <button className="w-8 h-8 rounded bg-primary text-white font-bold flex items-center justify-center shadow-sm">1</button>
-            <button className="px-2 py-1 text-slate-300">›</button>
-            <button className="px-2 py-1 text-slate-300">»</button>
+          <select className="h-8.5 px-3 border border-border rounded-sm bg-card text-text-2 text-[13px] outline-none focus:border-primary transition-colors min-w-35">
+            <option>所有区域</option>
+            <option>朝阳区</option>
+            <option>海淀区</option>
+            <option>静安区</option>
+          </select>
+          <span className="ml-auto text-[12.5px] text-text-muted tabular-nums">
+            共 <span className="font-semibold text-text">{mockData.length}</span> 件房源
+          </span>
+        </div>
+
+        {/* 表格 */}
+        <div className="overflow-x-auto">
+          <table className="w-full text-left whitespace-nowrap">
+            <thead>
+              <tr>
+                <th className="text-left text-[11.5px] font-medium text-text-muted uppercase tracking-[.04em] px-4 py-2.5 bg-surface-2 border-t border-b border-border-subtle">房东 / 业主</th>
+                <th className="text-left text-[11.5px] font-medium text-text-muted uppercase tracking-[.04em] px-4 py-2.5 bg-surface-2 border-t border-b border-border-subtle">房源名称</th>
+                <th className="text-left text-[11.5px] font-medium text-text-muted uppercase tracking-[.04em] px-4 py-2.5 bg-surface-2 border-t border-b border-border-subtle">状态</th>
+                <th className="text-left text-[11.5px] font-medium text-text-muted uppercase tracking-[.04em] px-4 py-2.5 bg-surface-2 border-t border-b border-border-subtle">发布时间</th>
+                <th className="text-left text-[11.5px] font-medium text-text-muted uppercase tracking-[.04em] px-4 py-2.5 bg-surface-2 border-t border-b border-border-subtle">位置</th>
+              </tr>
+            </thead>
+            <tbody>
+              {mockData.map((row) => (
+                <tr key={row.id} className="hover:bg-surface transition-colors">
+                  <td className="px-4 py-3.5 border-b border-border-subtle align-middle text-text-2 text-[13px]">
+                    <div className="flex items-center gap-3">
+                      <div className="w-7.5 h-7.5 rounded-full shrink-0 grid place-items-center bg-surface-2 text-text-muted text-[11px] font-semibold border border-border">
+                        {initials(row.client)}
+                      </div>
+                      <div>
+                        <p className="text-[13px] font-medium text-text leading-none">{row.client}</p>
+                        <p className="text-[11px] text-text-muted mt-0.5">{row.code} · {row.source}</p>
+                      </div>
+                    </div>
+                  </td>
+                  <td className="px-4 py-3.5 border-b border-border-subtle align-middle text-text-2 text-[13px]">
+                    {row.name}
+                  </td>
+                  <td className="px-4 py-3.5 border-b border-border-subtle align-middle">
+                    <StatusPill variant="accent">待出租</StatusPill>
+                  </td>
+                  <td className="px-4 py-3.5 border-b border-border-subtle align-middle text-text-2 text-[13px] font-mono">
+                    {row.date}
+                  </td>
+                  <td className="px-4 py-3.5 border-b border-border-subtle align-middle text-text-2 text-[13px]">
+                    {row.loc}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        {/* 分页占位 */}
+        <div className="flex items-center justify-between px-4.5 py-3.5 border-t border-border-subtle">
+          <span className="text-[12.5px] text-text-muted">第 1 / 1 页</span>
+          <div className="flex items-center gap-0.5">
+            {['«', '‹', '1', '›', '»'].map((p, i) => (
+              <button
+                key={i}
+                className={`min-w-7.5 h-7.5 rounded-sm text-[12.5px] transition-colors ${
+                  p === '1'
+                    ? 'font-semibold bg-primary text-white'
+                    : 'text-text-2 hover:bg-surface-2'
+                }`}
+              >
+                {p}
+              </button>
+            ))}
           </div>
         </div>
       </div>

@@ -1,6 +1,6 @@
 'use client';
 
-import { ChangeEvent, useEffect, useRef, useState } from 'react';
+import { type ChangeEvent, useEffect, useRef, useState } from 'react';
 import { X, Eye, EyeOff, Loader2, Upload, ImagePlus } from 'lucide-react';
 import {
   isManagedUploadPath,
@@ -24,7 +24,6 @@ export type EditableAdmin = {
   password?: string;
 };
 
-/** State-driven modal: null = closed, otherwise describes what to show */
 export type ModalState =
   | null
   | { mode: 'add' }
@@ -36,23 +35,24 @@ type Props = {
   onSaved: (data: AdminFormData, editingId?: number) => Promise<void>;
 };
 
+/* ─── Shared styles ───────────────────────────────────────────────────────── */
 const inputCls = (err?: string) =>
-  `w-full rounded-xl border bg-white px-4 py-3 text-sm leading-6 tracking-normal text-slate-900 outline-none transition-all placeholder:text-slate-400 ${
-    err
-      ? 'border-red-400 focus:border-red-500 focus:ring-1 focus:ring-red-100'
-      : 'border-slate-200 focus:border-primary focus:ring-2 focus:ring-primary-100'
-  }`;
+  `w-full h-[36px] px-3 border rounded-sm bg-card text-text text-[13px] outline-none
+   transition-[border-color,box-shadow]
+   hover:border-text-disabled
+   placeholder:text-text-subtle ${
+     err
+       ? 'border-danger focus:border-danger focus:shadow-[0_0_0_3px_color-mix(in_srgb,var(--color-danger)_15%,transparent)]'
+       : 'border-border focus:border-primary focus:shadow-[0_0_0_3px_color-mix(in_srgb,var(--color-primary)_15%,transparent)]'
+   }`;
 
-const fieldWrapCls = 'space-y-2';
-const labelCls = 'mb-2 block text-sm font-medium text-slate-700';
-const hintCls = 'text-xs leading-5 text-slate-500';
+const labelCls = 'block text-[12.5px] font-medium text-text-2 mb-1.5';
+const hintCls = 'text-[11.5px] text-text-muted leading-relaxed';
 
 type UploadResponse = {
   success: boolean;
   message?: string;
-  data?: {
-    path: string;
-  };
+  data?: { path: string };
 };
 
 function normalizeAvatarPath(value: string | null | undefined) {
@@ -68,9 +68,7 @@ export default function AdminFormModal({ state, onClose, onSaved }: Props) {
     isActive: true,
   });
   const [showPw, setShowPw] = useState(false);
-  const [errors, setErrors] = useState<
-    Partial<Record<keyof AdminFormData, string>>
-  >({});
+  const [errors, setErrors] = useState<Partial<Record<keyof AdminFormData, string>>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [isCleaningAvatar, setIsCleaningAvatar] = useState(false);
@@ -83,12 +81,7 @@ export default function AdminFormModal({ state, onClose, onSaved }: Props) {
     if (state.mode === 'edit') {
       const a = state.admin;
       initialAvatarRef.current = normalizeAvatarPath(a.avatar);
-      setForm({
-        username: a.username,
-        avatar: a.avatar ?? '',
-        isActive: a.isActive ?? true,
-        password: '',
-      });
+      setForm({ username: a.username, avatar: a.avatar ?? '', isActive: a.isActive ?? true, password: '' });
     } else {
       initialAvatarRef.current = '';
       setForm({ username: '', password: '', avatar: '', isActive: true });
@@ -113,141 +106,104 @@ export default function AdminFormModal({ state, onClose, onSaved }: Props) {
     return Object.keys(e).length === 0;
   };
 
-  const avatarPreview = form.avatar.trim();
-  const avatarPreviewUrl = resolveUploadedFileUrl(avatarPreview);
+  const avatarPreviewUrl = resolveUploadedFileUrl(form.avatar.trim());
 
   const deleteUploadedAvatar = async (avatarPath: string) => {
-    await request('/upload/avatar', {
-      method: 'DELETE',
-      json: { path: avatarPath },
-      silent: true,
-    });
+    await request('/upload/avatar', { method: 'DELETE', json: { path: avatarPath }, silent: true });
   };
 
-  const cleanupTransientAvatar = async (
-    avatarPath: string,
-    preservedAvatarPath?: string,
-  ) => {
-    const normalizedAvatarPath = normalizeAvatarPath(avatarPath);
-    const normalizedInitialAvatar = normalizeAvatarPath(
-      initialAvatarRef.current,
-    );
-    const normalizedPreservedAvatar = normalizeAvatarPath(preservedAvatarPath);
-
-    if (!normalizedAvatarPath) return;
-    if (!isManagedUploadPath(normalizedAvatarPath)) return;
-    if (normalizedAvatarPath === normalizedInitialAvatar) return;
-    if (
-      normalizedPreservedAvatar &&
-      normalizedAvatarPath === normalizedPreservedAvatar
-    )
-      return;
-
-    try {
-      await deleteUploadedAvatar(normalizedAvatarPath);
-    } catch (error) {
-      console.error('Failed to delete transient avatar:', error);
-    }
+  const cleanupTransientAvatar = async (avatarPath: string, preservedAvatarPath?: string) => {
+    const norm = normalizeAvatarPath(avatarPath);
+    const initial = normalizeAvatarPath(initialAvatarRef.current);
+    const preserved = normalizeAvatarPath(preservedAvatarPath);
+    if (!norm) return;
+    if (!isManagedUploadPath(norm)) return;
+    if (norm === initial) return;
+    if (preserved && norm === preserved) return;
+    try { await deleteUploadedAvatar(norm); } catch (err) { console.error(err); }
   };
 
   const handleAvatarUpload = async (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
-
     const previousAvatar = normalizeAvatarPath(form.avatar);
     setUploadError('');
     setIsUploading(true);
-
     try {
       const formData = new FormData();
       formData.append('file', file);
-
-      const result = await request<UploadResponse>('/upload/avatar', {
-        method: 'POST',
-        formData,
-        silent: true,
-      });
-
-      if (!result.success || !result.data?.path) {
-        throw new Error(result.message || '头像上传失败');
-      }
-
+      const result = await request<UploadResponse>('/upload/avatar', { method: 'POST', formData, silent: true });
+      if (!result.success || !result.data?.path) throw new Error(result.message || '头像上传失败');
       await cleanupTransientAvatar(previousAvatar, result.data.path);
       setForm((prev) => ({ ...prev, avatar: result.data!.path }));
     } catch (error) {
       setUploadError(error instanceof Error ? error.message : '头像上传失败');
     } finally {
       setIsUploading(false);
-      if (event.target) {
-        event.target.value = '';
-      }
+      if (event.target) event.target.value = '';
     }
   };
 
   const handleClearAvatar = async () => {
     const currentAvatar = normalizeAvatarPath(form.avatar);
     setIsCleaningAvatar(true);
-    try {
-      await cleanupTransientAvatar(currentAvatar);
-      setForm((prev) => ({ ...prev, avatar: '' }));
-    } finally {
-      setIsCleaningAvatar(false);
-    }
+    try { await cleanupTransientAvatar(currentAvatar); setForm((prev) => ({ ...prev, avatar: '' })); }
+    finally { setIsCleaningAvatar(false); }
   };
 
   const handleClose = async () => {
     const currentAvatar = normalizeAvatarPath(form.avatar);
     setIsCleaningAvatar(true);
-    try {
-      await cleanupTransientAvatar(currentAvatar);
-      onClose();
-    } finally {
-      setIsCleaningAvatar(false);
-    }
+    try { await cleanupTransientAvatar(currentAvatar); onClose(); }
+    finally { setIsCleaningAvatar(false); }
   };
 
-  const handleSubmit = async (ev: React.FormEvent) => {
+  const handleSubmit = async (ev: React.FormEvent<HTMLFormElement>) => {
     ev.preventDefault();
     if (!validate()) return;
     setIsSubmitting(true);
-    try {
-      await onSaved(form, editingId);
-      onClose();
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setIsSubmitting(false);
-    }
+    try { await onSaved(form, editingId); onClose(); }
+    catch (err) { console.error(err); }
+    finally { setIsSubmitting(false); }
   };
 
+  const busy = isSubmitting || isUploading || isCleaningAvatar;
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/35 p-4 backdrop-blur-sm animate-in fade-in duration-200">
-      <div className="relative flex w-full max-w-2xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl animate-in zoom-in-95 duration-200">
-        <div className="flex items-center justify-between border-b border-slate-200 px-6 py-5">
-          <div className="space-y-2 pr-6">
-            <h2 className="text-xl font-semibold text-slate-900">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-[3px] animate-in fade-in duration-200">
+      <div className="relative flex w-full max-w-130 flex-col overflow-hidden bg-card rounded-lg shadow-lg animate-in zoom-in-95 duration-200">
+
+        {/* ── 头部 ── */}
+        <div className="flex items-start justify-between border-b border-border-subtle px-6 py-5">
+          <div className="pr-4">
+            <h2 className="font-(family-name:--typeface-display) text-[22px] font-medium text-text leading-tight">
               {editingId ? '编辑管理员' : '新增管理员'}
             </h2>
-            <p className="max-w-xl text-sm leading-6 text-slate-500">
+            <p className="text-[12.5px] text-text-muted mt-1">
               {editingId
-                ? '更新管理员账号信息、头像地址和启用状态。'
+                ? '更新管理员账号信息、头像与启用状态。'
                 : '填写基础信息后即可创建新的管理员账号。'}
             </p>
           </div>
           <button
             onClick={handleClose}
-            disabled={isSubmitting || isUploading || isCleaningAvatar}
-            className="rounded-lg p-1.5 text-slate-400 transition-colors hover:bg-slate-50 hover:text-slate-600 disabled:cursor-not-allowed disabled:opacity-50"
+            disabled={busy}
+            className="w-7.5 h-7.5 rounded-sm grid place-items-center
+                       text-text-muted hover:bg-surface-2 hover:text-text
+                       transition-colors disabled:opacity-40 disabled:cursor-not-allowed shrink-0"
           >
-            <X size={22} strokeWidth={2} />
+            <X size={16} />
           </button>
         </div>
 
+        {/* ── 表单 ── */}
         <form onSubmit={handleSubmit} className="flex flex-col">
-          <div className="max-h-[70vh] space-y-6 overflow-y-auto px-6 py-7">
-            <div className={fieldWrapCls}>
+          <div className="max-h-[65vh] space-y-5 overflow-y-auto px-6 py-5">
+
+            {/* 用户名 */}
+            <div className="space-y-1.5">
               <label className={labelCls}>
-                用户名 <span className="text-red-500">*</span>
+                用户名 <span className="text-danger">*</span>
               </label>
               <input
                 type="text"
@@ -257,24 +213,29 @@ export default function AdminFormModal({ state, onClose, onSaved }: Props) {
                 placeholder="请输入用户名"
               />
               {errors.username && (
-                <p className="text-xs text-red-500">{errors.username}</p>
+                <p className="text-[11.5px] text-danger">{errors.username}</p>
               )}
             </div>
 
-            <div className={fieldWrapCls}>
+            {/* 账号状态 */}
+            <div className="space-y-1.5">
               <label className={labelCls}>账号状态</label>
-              <div className="flex items-center gap-3 pt-0.5">
+              <div className="flex items-center gap-3">
                 <button
                   type="button"
                   onClick={() => setForm({ ...form, isActive: !form.isActive })}
                   aria-pressed={form.isActive}
-                  className={`relative inline-flex h-7 w-12 shrink-0 items-center rounded-full transition-colors ${form.isActive ? 'bg-primary' : 'bg-slate-300'}`}
+                  className={`relative inline-flex h-5.5 w-9 shrink-0 items-center rounded-full transition-colors ${
+                    form.isActive ? 'bg-primary' : 'bg-text-disabled'
+                  }`}
                 >
                   <span
-                    className={`inline-block h-5 w-5 transform rounded-full bg-white shadow transition-transform ${form.isActive ? 'translate-x-6' : 'translate-x-1'}`}
+                    className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${
+                      form.isActive ? 'translate-x-4.5' : 'translate-x-0.75'
+                    }`}
                   />
                 </button>
-                <span className="text-sm text-slate-600">
+                <span className="text-[13px] text-text-2">
                   {form.isActive ? '启用' : '禁用'}
                 </span>
               </div>
@@ -285,94 +246,79 @@ export default function AdminFormModal({ state, onClose, onSaved }: Props) {
               </p>
             </div>
 
-            <div className={fieldWrapCls}>
-              <label className={labelCls}>头像地址</label>
-              <div className="space-y-4">
-                <div className="flex items-start gap-4 rounded-2xl border border-dashed border-slate-200 bg-slate-50/70 p-4">
-                  <div className="flex h-[72px] w-[72px] shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-white ring-1 ring-slate-200">
-                    {avatarPreviewUrl ? (
-                      <img
-                        src={avatarPreviewUrl}
-                        alt="头像预览"
-                        className="h-full w-full object-cover"
-                      />
-                    ) : (
-                      <ImagePlus className="h-6 w-6 text-slate-300" />
-                    )}
-                  </div>
+            {/* 头像 */}
+            <div className="space-y-1.5">
+              <label className={labelCls}>头像</label>
+              <div className="flex items-start gap-3 rounded-sm border border-dashed border-border bg-surface p-4">
+                {/* 预览 */}
+                <div className="w-13 h-13 rounded-full shrink-0 grid place-items-center overflow-hidden bg-primary-tint text-primary-dark border border-border">
+                  {avatarPreviewUrl ? (
+                    <img src={avatarPreviewUrl} alt="头像预览" className="h-full w-full object-cover" />
+                  ) : (
+                    <ImagePlus size={18} className="text-text-disabled" />
+                  )}
+                </div>
 
-                  <div className="min-w-0 flex-1 space-y-3">
-                    <div className="flex flex-wrap items-center gap-3">
+                {/* 上传控制 */}
+                <div className="flex-1 min-w-0 space-y-2">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <button
+                      type="button"
+                      disabled={isUploading}
+                      onClick={() => fileInputRef.current?.click()}
+                      className="h-7 px-3 text-[12.5px] rounded-sm font-medium
+                                 bg-card border border-border text-text-2
+                                 hover:bg-surface-2 transition-colors
+                                 disabled:opacity-50 disabled:cursor-not-allowed
+                                 flex items-center gap-1.5"
+                    >
+                      {isUploading ? (
+                        <Loader2 size={13} className="animate-spin" />
+                      ) : (
+                        <Upload size={13} />
+                      )}
+                      {isUploading ? '上传中…' : '上传图片'}
+                    </button>
+                    {form.avatar && (
                       <button
                         type="button"
-                        disabled={isUploading}
-                        onClick={() => fileInputRef.current?.click()}
-                        className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
+                        onClick={handleClearAvatar}
+                        disabled={isUploading || isCleaningAvatar}
+                        className="text-[12.5px] text-text-muted hover:text-text transition-colors disabled:opacity-40"
                       >
-                        {isUploading ? (
-                          <Loader2 size={16} className="animate-spin" />
-                        ) : (
-                          <Upload size={16} />
-                        )}
-                        {isUploading ? '上传中...' : '上传本地图片'}
+                        清空
                       </button>
-                      {form.avatar ? (
-                        <button
-                          type="button"
-                          onClick={handleClearAvatar}
-                          disabled={isUploading || isCleaningAvatar}
-                          className="text-sm text-slate-400 transition hover:text-slate-600"
-                        >
-                          清空头像
-                        </button>
-                      ) : null}
-                    </div>
-
-                    <input
-                      ref={fileInputRef}
-                      type="file"
-                      accept="image/png,image/jpeg,image/webp,image/gif"
-                      onChange={handleAvatarUpload}
-                      className="hidden"
-                    />
-
-                    <p className={hintCls}>
-                      支持
-                      JPG、PNG、WEBP、GIF等常见图片格式，建议尺寸不超过5MB。上传成功后会自动填入头像地址输入框。
-                    </p>
-                    {uploadError ? (
-                      <p className="text-xs text-red-500">{uploadError}</p>
-                    ) : null}
+                    )}
                   </div>
-                </div>
-
-                <div>
-                  <input
-                    type="text"
-                    value={form.avatar}
-                    onChange={(e) =>
-                      setForm({ ...form, avatar: e.target.value })
-                    }
-                    className={inputCls()}
-                    placeholder="http:// 或 https:// 开头的图片 URL，或上传后返回的路径"
-                  />
-                  <p className={`${hintCls} mt-2`}>
-                    仍然支持手动填写历史头像路径，最终都会写入数据库的
-                    <span className="mx-1 font-mono text-[11px] text-slate-600">
-                      avatar
-                    </span>
-                    字段。
-                  </p>
+                  <p className={hintCls}>支持 JPG、PNG、WEBP、GIF，建议不超过 5 MB。</p>
+                  {uploadError && <p className="text-[11.5px] text-danger">{uploadError}</p>}
                 </div>
               </div>
+
+              {/* 手动填写 URL */}
+              <input
+                type="text"
+                value={form.avatar}
+                onChange={(e) => setForm({ ...form, avatar: e.target.value })}
+                className={inputCls()}
+                placeholder="或粘贴图片 URL"
+              />
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/png,image/jpeg,image/webp,image/gif"
+                onChange={handleAvatarUpload}
+                className="hidden"
+              />
             </div>
 
-            <div className={fieldWrapCls}>
+            {/* 密码 */}
+            <div className="space-y-1.5">
               <label className={labelCls}>
                 登录密码
-                {!editingId && <span className="ml-1 text-red-500">*</span>}
+                {!editingId && <span className="ml-1 text-danger">*</span>}
                 {editingId && (
-                  <span className="ml-1 text-xs font-normal text-slate-400">
+                  <span className="ml-1 text-[11.5px] font-normal text-text-muted">
                     （留空则保持当前密码）
                   </span>
                 )}
@@ -381,54 +327,54 @@ export default function AdminFormModal({ state, onClose, onSaved }: Props) {
                 <input
                   type={showPw ? 'text' : 'password'}
                   value={form.password}
-                  onChange={(e) =>
-                    setForm({ ...form, password: e.target.value })
-                  }
-                  className={`${inputCls(errors.password)} pr-11 ${showPw ? 'tracking-normal' : 'tracking-[-0.18em]'}`}
-                  placeholder={
-                    editingId ? '如需修改密码，请输入新密码' : '请输入登录密码'
-                  }
+                  onChange={(e) => setForm({ ...form, password: e.target.value })}
+                  className={`${inputCls(errors.password)} pr-10 ${showPw ? '' : 'tracking-[-0.15em]'}`}
+                  placeholder={editingId ? '如需修改密码，请输入新密码' : '请输入登录密码'}
                 />
                 <button
                   type="button"
                   onClick={() => setShowPw((v) => !v)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 transition-colors hover:text-slate-600"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted hover:text-text transition-colors"
                 >
-                  {showPw ? <Eye size={18} /> : <EyeOff size={18} />}
+                  {showPw ? <Eye size={15} /> : <EyeOff size={15} />}
                 </button>
               </div>
-              {!errors.password && (
+              {errors.password ? (
+                <p className="text-[11.5px] text-danger">{errors.password}</p>
+              ) : (
                 <p className={hintCls}>
                   {editingId
                     ? '仅在需要重置密码时填写新密码。'
                     : '建议使用不少于 6 位的高强度密码。'}
                 </p>
               )}
-              {errors.password && (
-                <p className="text-xs text-red-500">{errors.password}</p>
-              )}
             </div>
           </div>
 
-          <div className="border-t border-slate-200 bg-slate-50 px-6 py-4">
-            <div className="flex justify-end gap-3">
-              <button
-                type="button"
-                onClick={handleClose}
-                disabled={isSubmitting || isUploading || isCleaningAvatar}
-                className="rounded-xl border border-slate-200 bg-white px-5 py-2.5 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
-              >
-                取消
-              </button>
-              <button
-                type="submit"
-                disabled={isSubmitting || isUploading || isCleaningAvatar}
-                className="flex items-center gap-2 rounded-xl bg-primary px-5 py-2.5 text-sm font-medium text-white shadow-sm transition-colors hover:bg-primary-600 disabled:cursor-not-allowed disabled:opacity-50"
-              >
-                {isSubmitting && <Loader2 size={16} className="animate-spin" />}
-                确认
-              </button>
-            </div>
+          {/* ── 底部按钮 ── */}
+          <div className="border-t border-border-subtle px-6 py-4 flex justify-end gap-2">
+            <button
+              type="button"
+              onClick={handleClose}
+              disabled={busy}
+              className="h-8.5 px-3.5 text-[13px] rounded-sm font-medium
+                         bg-card border border-border text-text-2
+                         hover:bg-surface-2 transition-colors
+                         disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              取消
+            </button>
+            <button
+              type="submit"
+              disabled={busy}
+              className="h-8.5 px-3.5 text-[13px] rounded-sm font-medium
+                         bg-primary text-white hover:bg-primary-dark transition-colors
+                         flex items-center gap-2
+                         disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isSubmitting && <Loader2 size={13} className="animate-spin" />}
+              {editingId ? '保存修改' : '创建账号'}
+            </button>
           </div>
         </form>
       </div>
