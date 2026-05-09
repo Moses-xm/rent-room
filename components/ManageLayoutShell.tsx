@@ -35,38 +35,36 @@ export function ManageLayoutShell({ children }: { children: React.ReactNode }) {
   }, []);
 
   useEffect(() => {
-    if (authStatus === "checking") {
-      return;
-    }
+    if (authStatus === "checking") return;
 
     const isLoginPage = pathname === MANAGE_LOGIN_PATH;
-
     if (isLoginPage) {
-      if (authStatus === "authenticated") {
-        router.replace(MANAGE_HOME_PATH);
-      }
+      if (authStatus === "authenticated") router.replace(MANAGE_HOME_PATH);
       return;
     }
-
-    if (authStatus === "unauthenticated") {
-      router.replace(MANAGE_LOGIN_PATH);
-    }
+    if (authStatus === "unauthenticated") router.replace(MANAGE_LOGIN_PATH);
   }, [authStatus, pathname, router]);
 
-  if (pathname === MANAGE_LOGIN_PATH) {
-    return children;
-  }
-
-  if (authStatus !== "authenticated") {
-    return null;
-  }
+  if (pathname === MANAGE_LOGIN_PATH) return children;
+  if (authStatus !== "authenticated") return null;
 
   return (
-    <div className="flex min-h-screen bg-[var(--color-surface)] font-sans">
-      <Sidebar isCollapsed={isCollapsed} toggleCollapse={() => setIsCollapsed(!isCollapsed)} />
-      <div className={`flex-1 flex flex-col transition-all duration-300 ${isCollapsed ? 'ml-[72px]' : 'ml-56'}`}>
+    // CSS grid + sticky sidebar：侧边栏宽度变化时平滑过渡
+    <div
+      className="min-h-screen bg-[var(--color-surface)]"
+      style={{
+        display: "grid",
+        gridTemplateColumns: `${isCollapsed ? 72 : 232}px 1fr`,
+        transition: "grid-template-columns 300ms ease",
+      }}
+    >
+      <Sidebar
+        isCollapsed={isCollapsed}
+        toggleCollapse={() => setIsCollapsed((v) => !v)}
+      />
+      <div className="flex flex-col min-w-0">
         <Topbar />
-        <main className="flex-1 p-8">
+        <main className="flex-1 px-8 py-7 pb-12">
           {children}
         </main>
       </div>
