@@ -1,0 +1,35 @@
+/* ═══════════════════════════════════════════════════════════
+   Portal 平台主题（占位）
+   待用户平台设计稿确定后，填充以下变量值。
+
+   ★ 换色操作：只需修改下方四行 --color-primary* 的值，
+     整个用户平台配色立即更新，组件代码无需任何改动。
+   ═══════════════════════════════════════════════════════════ */
+
+[data-platform="portal"] {
+  /* —— 主色（示例：天蓝，待定）—— */
+  --color-primary:        #0ea5e9;
+  --color-primary-dark:   #0284c7;
+  --color-primary-tint:   #e0f2fe;
+  --color-primary-tint-2: #f0f9ff;
+
+  /* —— 文字灰阶（与 manage 保持一致，可按需调整）—— */
+  --color-text:          #1A1A1A;
+  --color-text-2:        #3F3F3F;
+  --color-text-muted:    #8A8A8A;
+  --color-text-subtle:   #B5B5B5;
+  --color-text-disabled: #D8D8D8;
+
+  /* —— 背景 —— */
+  --color-surface:       #F8FAFC;
+  --color-surface-2:     #F1F5F9;
+  --color-card:          #FFFFFF;
+
+  /* —— 边框 —— */
+  --color-border:        #E2E8F0;
+  --color-border-subtle: #F1F5F9;
+
+  /* —— 字体栈（portal 独立配置，不依赖 manage 字体）—— */
+  --typeface-body:    system-ui, 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  --typeface-display: Georgia, 'Songti SC', serif;
+}

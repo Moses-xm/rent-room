@@ -1,79 +1,150 @@
 @import 'tailwindcss';
 
-/* ─── Font System ─────────────────────────────────────────── */
+/* ═══════════════════════════════════════════════════════════
+   全局原子令牌 + 语义变量默认值
+   组件只引用语义变量（--color-primary, --color-text …）
+   具体颜色值由各平台主题文件 (styles/themes/*.css) 覆盖
+   ═══════════════════════════════════════════════════════════ */
 
 :root {
-  --typeface-body: 'Inter', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei UI', 'Microsoft YaHei', system-ui, sans-serif;
-  --typeface-mono: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+  /* —— 结构令牌：平台无关 —— */
+  --radius-sm: 6px;
+  --radius:    8px;
+  --radius-lg: 12px;
 
-  --theme-primary: #7c3aed;
-  --theme-primary-50: color-mix(in srgb, var(--theme-primary) 10%, white);
-  --theme-primary-100: color-mix(in srgb, var(--theme-primary) 20%, white);
-  --theme-primary-200: color-mix(in srgb, var(--theme-primary) 40%, white);
-  --theme-primary-300: color-mix(in srgb, var(--theme-primary) 60%, white);
-  --theme-primary-600: color-mix(in srgb, var(--theme-primary) 85%, black);
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, .05);
+  --shadow:    0 4px 16px rgba(0, 0, 0, .07);
+  --shadow-lg: 0 12px 40px rgba(0, 0, 0, .13);
 
-  --transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  /* 字体栈兜底（各平台主题文件会覆盖） */
+  --typeface-body:    system-ui, 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  --typeface-display: Georgia, 'Songti SC', serif;
+
+  /* —— 语义变量默认值 —— */
+  /* 防止无平台主题时组件出现 var() 空值；
+     实际值由 [data-platform="*"] 作用域覆盖 */
+
+  /* 主色（当前以暖金为默认，平台主题可完整替换） */
+  --color-primary:        #8B7355;
+  --color-primary-dark:   #6F5A42;
+  --color-primary-tint:   #F5F1EA;
+  --color-primary-tint-2: #FAF6EE;
+
+  /* 文字灰阶 */
+  --color-text:          #1A1A1A;
+  --color-text-2:        #3F3F3F;
+  --color-text-muted:    #8A8A8A;
+  --color-text-subtle:   #B5B5B5;
+  --color-text-disabled: #D8D8D8;
+
+  /* 背景层次 */
+  --color-surface:       #FAFAFA;
+  --color-surface-2:     #F4F4F4;
+  --color-card:          #FFFFFF;
+
+  /* 边框 */
+  --color-border:        #ECECEC;
+  --color-border-subtle: #F2F2F2;
+
+  /* 状态色（语义清晰，各平台通用，可在主题中微调） */
+  --color-success:       #4F8A4F;
+  --color-success-bg:    #EEF6EE;
+  --color-warning:       #B5803E;
+  --color-warning-bg:    #FBF1E1;
+  --color-danger:        #C24A3A;
+  --color-danger-bg:     #FAEDEA;
+  --color-info:          #5A7A95;
+  --color-info-bg:       #EEF2F6;
 }
+
+/* ═══════════════════════════════════════════════════════════
+   Tailwind v4 令牌映射
+   将语义 CSS 变量暴露为 Tailwind 工具类：
+     bg-primary      → background-color: var(--color-primary)
+     text-text-muted → color: var(--color-text-muted)
+   类名随平台主题自动切换，组件代码无需改动
+   ═══════════════════════════════════════════════════════════ */
 
 @theme inline {
-  --font-sans: var(--typeface-body);
-  --color-manage:       #7c3aed;
-  --color-manage-dark:  #5b21b6;
-  --color-portal:       #0ea5e9;
-  --color-portal-dark:  #0284c7;
-  --color-primary:      var(--theme-primary);
-  --color-primary-50:   var(--theme-primary-50);
-  --color-primary-100:  var(--theme-primary-100);
-  --color-primary-200:  var(--theme-primary-200);
-  --color-primary-300:  var(--theme-primary-300);
-  --color-primary-600:  var(--theme-primary-600);
+  /* 字体 */
+  --font-sans:    var(--typeface-body);
+  --font-display: var(--typeface-display);
+
+  /* 主色 */
+  --color-primary:        var(--color-primary);
+  --color-primary-dark:   var(--color-primary-dark);
+  --color-primary-tint:   var(--color-primary-tint);
+  --color-primary-tint-2: var(--color-primary-tint-2);
+
+  /* 向后兼容的主色 shade（用 color-mix 从 --color-primary 动态派生）
+     这样 bg-primary-50 / bg-primary-100 等会随主题色自动变化 */
+  --color-primary-50:  color-mix(in srgb, var(--color-primary) 10%, white);
+  --color-primary-100: color-mix(in srgb, var(--color-primary) 20%, white);
+  --color-primary-200: color-mix(in srgb, var(--color-primary) 40%, white);
+  --color-primary-300: color-mix(in srgb, var(--color-primary) 60%, white);
+  --color-primary-600: color-mix(in srgb, var(--color-primary) 85%, black);
+
+  /* 文字 */
+  --color-text:          var(--color-text);
+  --color-text-2:        var(--color-text-2);
+  --color-text-muted:    var(--color-text-muted);
+  --color-text-subtle:   var(--color-text-subtle);
+  --color-text-disabled: var(--color-text-disabled);
+
+  /* 背景 */
+  --color-surface:   var(--color-surface);
+  --color-surface-2: var(--color-surface-2);
+  --color-card:      var(--color-card);
+
+  /* 边框 */
+  --color-border:        var(--color-border);
+  --color-border-subtle: var(--color-border-subtle);
+
+  /* 状态 */
+  --color-success:    var(--color-success);
+  --color-success-bg: var(--color-success-bg);
+  --color-warning:    var(--color-warning);
+  --color-warning-bg: var(--color-warning-bg);
+  --color-danger:     var(--color-danger);
+  --color-danger-bg:  var(--color-danger-bg);
+  --color-info:       var(--color-info);
+  --color-info-bg:    var(--color-info-bg);
 }
 
-/* ─── Base ────────────────────────────────────────────────── */
+/* ═══════════════════════════════════════════════════════════
+   Base
+   ═══════════════════════════════════════════════════════════ */
 
-*, *::before, *::after {
-  box-sizing: border-box;
-}
-
-html {
-  height: 100%;
-  font-size: 16px;
-}
+*, *::before, *::after { box-sizing: border-box; }
 
 body {
   font-family: var(--typeface-body);
   font-size: 14px;
   line-height: 1.6;
-  min-height: 100%;
+  color: var(--color-text);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  font-feature-settings: 'kern' 1, 'liga' 1;
-  text-rendering: optimizeLegibility;
 }
 
 ::selection {
-  background: color-mix(in srgb, var(--theme-primary) 15%, white);
+  /* 自动跟随平台主色，无需写死颜色值 */
+  background: color-mix(in srgb, var(--color-primary) 20%, white);
 }
 
-/* ─── Scrollbar ───────────────────────────────────────────── */
-
-::-webkit-scrollbar { width: 4px; height: 4px; }
+/* ─── 滚动条 ────────────────────────────────────────────── */
+::-webkit-scrollbar { width: 8px; height: 8px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.12); border-radius: 99px; }
-::-webkit-scrollbar-thumb:hover { background: rgba(0,0,0,0.22); }
-
-/* ─── Misc ────────────────────────────────────────────────── */
-
-.manage-content-bg {
-  background-color: #f8fafc;
+::-webkit-scrollbar-thumb {
+  background: var(--color-border);
+  border-radius: 4px;
 }
+::-webkit-scrollbar-thumb:hover { background: var(--color-text-disabled); }
 
+/* ─── 登录页拖拽滑块（manage/login 专用） ─────────────── */
 .manage-slider::-webkit-slider-runnable-track {
   height: 40px;
   background: transparent;
 }
-
 .manage-slider::-webkit-slider-thumb {
   -webkit-appearance: none;
   appearance: none;
@@ -84,17 +155,12 @@ body {
   border: 0;
   cursor: grab;
 }
-
-.manage-slider:active::-webkit-slider-thumb {
-  cursor: grabbing;
-}
-
+.manage-slider:active::-webkit-slider-thumb { cursor: grabbing; }
 .manage-slider::-moz-range-track {
   height: 40px;
   background: transparent;
   border: 0;
 }
-
 .manage-slider::-moz-range-thumb {
   height: 40px;
   width: 40px;

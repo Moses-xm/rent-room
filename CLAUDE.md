@@ -72,6 +72,10 @@ rent-room/
 │   ├── manage-auth.ts                # token 本地存取
 │   ├── manage-city.ts                # 城市数据工具
 │   └── request.ts                    # fetch 封装，自动注入 token
+├── styles/
+│   └── themes/
+│       ├── manage.css                # Manage 平台主题（换色只改此文件）
+│       └── portal.css                # Portal 平台主题（占位）
 ├── prisma/
 │   └── schema.prisma
 ├── localData/                        # 城市等静态数据
