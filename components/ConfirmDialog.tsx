@@ -30,73 +30,64 @@ export default function ConfirmDialog({
 }: ConfirmDialogProps) {
   if (!open) return null;
 
-  const iconBgColor = danger ? 'rgba(239,68,68,0.1)' : 'rgba(217,119,6,0.1)';
-  const iconColor = danger ? '#ef4444' : '#d97706';
-  const confirmBtnBgColor = danger ? '#ef4444' : '#1f2937';
-  const confirmBtnHoverBgColor = danger ? '#dc2626' : '#111827';
-
-  // Scale down custom icons to 18px
   const renderIcon = () => {
     if (!icon) {
-      return <AlertTriangle size={18} color={iconColor} strokeWidth={2.5} />;
+      return <AlertTriangle size={18} strokeWidth={2.5} />;
     }
     if (typeof icon === 'object' && 'props' in icon) {
-      return cloneElement(icon as React.ReactElement<any>, { size: 18 });
+      return cloneElement(icon as React.ReactElement<{ size?: number }>, { size: 18 });
     }
     return icon;
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm">
-      <div
-        className="relative w-full max-w-sm rounded-2xl p-6 shadow-2xl"
-        style={{ background: '#ffffff', border: '1px solid #e5e7eb' }}
-      >
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-[3px]">
+      <div className="relative w-full max-w-sm bg-card border border-border rounded-lg shadow-(--shadow-lg) p-6 animate-in fade-in zoom-in-95 duration-200">
+
+        {/* 图标 + 标题 */}
         <div className="flex items-start gap-4 mb-3">
           <div
-            className="flex items-center justify-center rounded-xl w-10 h-10 shrink-0"
-            style={{ background: iconBgColor }}
+            className={`w-11 h-11 rounded-full grid place-items-center shrink-0 ${
+              danger ? 'bg-danger-bg text-danger' : 'bg-warning-bg text-warning'
+            }`}
           >
             {renderIcon()}
           </div>
-          <h3 className="font-semibold text-base text-slate-900">{title}</h3>
+          <h3 className="font-(family-name:--typeface-display) text-[22px] font-medium text-text leading-tight mt-1">
+            {title}
+          </h3>
         </div>
 
-        {description ? (
-          <p className="text-sm text-slate-500 mb-5 ml-14">{description}</p>
-        ) : null}
+        {description && (
+          <p className="text-[13px] text-text-muted leading-relaxed mb-5 ml-15">
+            {description}
+          </p>
+        )}
 
+        {/* 按钮 */}
         <div className="flex gap-2 justify-end">
+          {/* 取消：ghost */}
           <button
             onClick={onClose}
             disabled={loading}
-            className="px-4 py-2.5 rounded-lg text-sm font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50"
-            style={{
-              background: '#f3f4f6',
-              color: '#6b7280',
-            }}
-            onMouseEnter={(e) => {
-              (e.currentTarget as HTMLElement).style.background = '#e5e7eb';
-            }}
-            onMouseLeave={(e) => {
-              (e.currentTarget as HTMLElement).style.background = '#f3f4f6';
-            }}
+            className="h-8.5 px-3.5 text-[13px] rounded-sm font-medium transition-colors
+                       bg-card border border-border text-text-2
+                       hover:bg-surface-2
+                       disabled:cursor-not-allowed disabled:opacity-50"
           >
             {cancelText}
           </button>
+
+          {/* 确认：danger */}
           <button
             onClick={onConfirm}
             disabled={loading}
-            className="px-4 py-2.5 rounded-lg text-sm font-medium text-white transition-all active:scale-95 disabled:cursor-not-allowed disabled:opacity-50 flex items-center justify-center gap-2"
-            style={{ background: confirmBtnBgColor }}
-            onMouseEnter={(e) => {
-              (e.currentTarget as HTMLElement).style.background = confirmBtnHoverBgColor;
-            }}
-            onMouseLeave={(e) => {
-              (e.currentTarget as HTMLElement).style.background = confirmBtnBgColor;
-            }}
+            className="h-8.5 px-3.5 text-[13px] rounded-sm font-medium transition-colors
+                       bg-danger text-white hover:opacity-90 active:scale-95
+                       disabled:cursor-not-allowed disabled:opacity-50
+                       flex items-center justify-center gap-2"
           >
-            {loading ? <Loader2 size={14} className="animate-spin" /> : null}
+            {loading && <Loader2 size={14} className="animate-spin" />}
             {confirmText}
           </button>
         </div>
