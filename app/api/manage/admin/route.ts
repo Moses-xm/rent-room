@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { Prisma } from '@prisma/client';
 import { normalizeUploadPathForStorage } from '@/lib/upload-path';
 import { serializeAdmin } from '@/lib/admin';
 import { requireManageAuth } from '@/lib/manage-auth';
@@ -60,16 +61,19 @@ export async function POST(req: Request) {
     }
 
     const admin = await prisma.admin.create({
-      data: { 
-        username, 
-        password, 
+      data: {
+        username,
+        password,
         avatar: normalizedAvatar || null,
         isActive: isActive !== undefined ? isActive : true
       },
     });
-    
+
     return NextResponse.json({ success: true, data: serializeAdmin(admin) });
   } catch (error: unknown) {
+    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
+      return NextResponse.json({ success: false, message: '用户名已存在' }, { status: 409 });
+    }
     const message = error instanceof Error ? error.message : '服务器内部错误';
     return NextResponse.json({ success: false, message }, { status: 500 });
   }
