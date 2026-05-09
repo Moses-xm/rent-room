@@ -1,131 +1,338 @@
-import { TrendingUp, Home, Users, Wrench, type LucideIcon } from 'lucide-react';
+import { Calendar, ChevronDown, ChevronRight, Plus } from 'lucide-react';
+import { StatusPill } from '@/components/StatusPill';
 
-/* ─── 统计卡数据 ──────────────────────────────────────────── */
-const stats: {
-  label: string;
-  value: string;
-  change: string;
-  changeLabel: string;
-  up: boolean | null;
-  Icon: LucideIcon;
-}[] = [
-  { label: '本月总收入',    value: '¥ 124,500', change: '↑ 12%', changeLabel: '较上月', up: true,  Icon: TrendingUp },
-  { label: '在租房源',      value: '83 / 100',  change: '83%',   changeLabel: '利用率', up: null,  Icon: Home       },
-  { label: '本月新增租客',  value: '12 人',     change: '↑ 4%',  changeLabel: '较上月', up: true,  Icon: Users      },
-  { label: '待处理报修',    value: '3 单',      change: '2 单',  changeLabel: '紧急',   up: false, Icon: Wrench     },
+/* ─── 静态数据（后续替换为 API） ──────────────────────────── */
+const stats = [
+  { label: '总房源数', value: '18,482', delta: '8.2%',  up: true,  icon: 'building' },
+  { label: '在租房源', value: '6,204',  delta: '12.4%', up: true,  icon: 'order'    },
+  { label: '本月营收', value: '¥2.84M', delta: '18.6%', up: true,  icon: 'wallet'   },
+  { label: '注册用户', value: '12,438', delta: '3.2%',  up: false, icon: 'users'    },
+] as const;
+
+const tops = [
+  { name: '朝阳门 SOHO 一居精装南向',  fav: 384, score: 92.4 },
+  { name: '万科翡翠书院 · 两居整租',   fav: 312, score: 88.6 },
+  { name: '中海玺园 · 一居精装',       fav: 268, score: 80.1 },
+  { name: '保利春天里 · 主卧合租',     fav: 124, score: 56.3 },
+  { name: '朗诗未来街区 · 两居',       fav: 108, score: 48.0 },
 ];
 
-const recentEvents = [
-  { name: '王先生',  room: '阳光上城 3 栋 201', time: '1 小时前' },
-  { name: '李女士',  room: '碧桂园豪华独栋',     time: '3 小时前' },
-  { name: '陈杰',    room: 'CBD 中心一室',        time: '5 小时前' },
-  { name: '张明',    room: '朝阳精品两居室',      time: '昨天'     },
-  { name: '刘晓红',  room: '海淀温馨合租',        time: '昨天'     },
-];
+const orders = [
+  { user: '王小明', room: '朝阳门 SOHO 一居',  amt: 8500,  t: '2 分钟前',  s: '已支付', sk: 'success' },
+  { user: '李娜',   room: '保利春天里 主卧',   amt: 3200,  t: '12 分钟前', s: '已支付', sk: 'success' },
+  { user: '陈浩',   room: '万科翡翠书院 两居', amt: 11200, t: '34 分钟前', s: '待支付', sk: 'warning' },
+  { user: '赵敏',   room: '中海玺园 一居',     amt: 9600,  t: '1 小时前',  s: '已支付', sk: 'success' },
+  { user: '孙琪',   room: '朗诗未来街区 两居', amt: 7800,  t: '3 小时前',  s: '已退款', sk: 'danger'  },
+] as const;
 
-export default function DashboardPage() {
+/* ─── 自定义图标（匹配设计稿 stroke 风格） ────────────────── */
+function IconBuilding({ size = 16 }: { size?: number }) {
   return (
-    <div className="max-w-6xl mx-auto space-y-6">
+    <svg viewBox="0 0 24 24" width={size} height={size} fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M4 21V6.5L12 3l8 3.5V21"/><path d="M4 21h16M9 10h.01M12 10h.01M15 10h.01M9 14h.01M12 14h.01M15 14h.01M10 21v-4h4v4"/>
+    </svg>
+  );
+}
+function IconOrder({ size = 16 }: { size?: number }) {
+  return (
+    <svg viewBox="0 0 24 24" width={size} height={size} fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="4" y="3.5" width="16" height="17" rx="1.5"/><path d="M8 8h8M8 12h8M8 16h5"/>
+    </svg>
+  );
+}
+function IconWallet({ size = 16 }: { size?: number }) {
+  return (
+    <svg viewBox="0 0 24 24" width={size} height={size} fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round">
+      <rect x="3" y="6" width="18" height="13" rx="2"/><path d="M3 10h18M16 14h2"/>
+    </svg>
+  );
+}
+function IconUsers({ size = 16 }: { size?: number }) {
+  return (
+    <svg viewBox="0 0 24 24" width={size} height={size} fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="9" cy="8.5" r="3.2"/><path d="M3 19c.8-3 3.2-4.6 6-4.6s5.2 1.6 6 4.6"/><circle cx="17" cy="9.5" r="2.6"/><path d="M16.5 14.4c2 .1 3.7 1.4 4.5 3.6"/>
+    </svg>
+  );
+}
+
+const statIcons = {
+  building: IconBuilding,
+  order:    IconOrder,
+  wallet:   IconWallet,
+  users:    IconUsers,
+} as const;
+
+/* ─── 营收折线图 ──────────────────────────────────────────── */
+function RevenueChart() {
+  const months = ['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月'];
+  const data   = [180, 220, 260, 310, 290, 360, 420, 510, 560, 620, 680, 720];
+  const W = 600, H = 220, PT = 30, PB = 30, PL = 36, PR = 16;
+  const max = 800;
+  const pts = data.map((v, i) => [
+    PL + (i * (W - PL - PR)) / (data.length - 1),
+    H - PB - (v / max) * (H - PT - PB),
+  ]);
+  const path = pts.map((p, i) => (i === 0 ? 'M' : 'L') + p[0].toFixed(1) + ',' + p[1].toFixed(1)).join(' ');
+  const area = path + ` L${pts[pts.length-1][0].toFixed(1)},${H-PB} L${pts[0][0].toFixed(1)},${H-PB} Z`;
+  const ticks = [0, 200, 400, 600, 800];
+
+  return (
+    <svg viewBox={`0 0 ${W} ${H}`} width="100%" height={H}>
+      <defs>
+        <linearGradient id="rev-fill" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%"   stopColor="#8B7355" stopOpacity=".18"/>
+          <stop offset="100%" stopColor="#8B7355" stopOpacity="0"/>
+        </linearGradient>
+      </defs>
+
+      {ticks.map(t => {
+        const y = H - PB - (t / max) * (H - PT - PB);
+        return (
+          <g key={t}>
+            <line x1={PL} x2={W - PR} y1={y} y2={y} stroke="#F2F2F2"/>
+            <text x={PL - 8} y={y + 3.5} fontSize="10" textAnchor="end" fill="#D8D8D8" fontFamily="DM Sans, system-ui">{t}</text>
+          </g>
+        );
+      })}
+
+      <path d={area} fill="url(#rev-fill)"/>
+      <path d={path} stroke="#8B7355" strokeWidth="1.8" fill="none" strokeLinecap="round" strokeLinejoin="round"/>
+
+      {pts.map(([x, y], i) => (
+        <circle key={i} cx={x} cy={y}
+          r={i === 8 ? 4 : 2.5}
+          fill={i === 8 ? '#8B7355' : '#fff'}
+          stroke="#8B7355"
+          strokeWidth={i === 8 ? 2 : 1.5}
+        />
+      ))}
+
+      {/* 9月 tooltip */}
+      <g transform={`translate(${(pts[8][0] - 44).toFixed(1)}, ${(pts[8][1] - 52).toFixed(1)})`}>
+        <rect x="0" y="0" width="88" height="36" rx="6" fill="#1A1814"/>
+        <text x="44" y="14" textAnchor="middle" fill="#B5B5B5" fontSize="9.5" fontFamily="DM Sans, system-ui">9 月营收</text>
+        <text x="44" y="28" textAnchor="middle" fill="#fff" fontSize="12.5" fontWeight="600" fontFamily="DM Sans, system-ui">¥560,000</text>
+      </g>
+
+      {months.map((m, i) => (
+        <text key={m} x={pts[i][0]} y={H - 10} textAnchor="middle" fontSize="10" fill="#B5B5B5" fontFamily="DM Sans, system-ui">{m}</text>
+      ))}
+    </svg>
+  );
+}
+
+/* ─── 房源类型环形图 ──────────────────────────────────────── */
+function TypeDonut() {
+  const segments = [
+    { label: '整租', pct: 62, color: '#8B7355' },
+    { label: '合租', pct: 26, color: '#C4A878' },
+    { label: '短租', pct: 12, color: '#E2D3B0' },
+  ];
+  const C = 2 * Math.PI * 70;
+  let acc = 0;
+
+  return (
+    <div className="flex items-center gap-6">
+      <div className="relative shrink-0" style={{ width: 180, height: 180 }}>
+        <svg viewBox="0 0 180 180" width="180" height="180">
+          {segments.map((d, i) => {
+            const el = (
+              <circle key={i} cx="90" cy="90" r="70" fill="none"
+                stroke={d.color} strokeWidth="22"
+                strokeDasharray={`${((d.pct / 100) * C).toFixed(2)} ${C}`}
+                strokeDashoffset={(-acc).toFixed(2)}
+                transform="rotate(-90 90 90)"
+              />
+            );
+            acc += (d.pct / 100) * C;
+            return el;
+          })}
+        </svg>
+        <div className="absolute inset-0 grid place-items-center text-center">
+          <div>
+            <div className="font-(family-name:--typeface-display) text-[26px] font-medium text-text leading-none tabular-nums">6,204</div>
+            <div className="text-[11px] text-text-muted mt-0.5">在租总数</div>
+          </div>
+        </div>
+      </div>
+
+      <div className="flex-1 flex flex-col gap-3">
+        {segments.map(d => (
+          <div key={d.label} className="flex items-center gap-2.5 text-[13px]">
+            <span className="w-2 h-2 rounded-xs shrink-0" style={{ background: d.color }}/>
+            <span className="flex-1 text-text-2">{d.label}</span>
+            <span className="font-medium text-text tabular-nums">{d.pct}%</span>
+          </div>
+        ))}
+        <div className="border-t border-border-subtle pt-3 space-y-2">
+          <div className="flex justify-between text-[12.5px]">
+            <span className="text-text-muted">环比上月</span>
+            <span className="font-medium text-success">+ 8.4%</span>
+          </div>
+          <div className="flex justify-between text-[12.5px]">
+            <span className="text-text-muted">空置率</span>
+            <span className="font-medium text-text-2">5.2%</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ─── Page ────────────────────────────────────────────────── */
+export default function DashboardPage() {
+  const today = new Date().toLocaleDateString('zh-CN', { year: 'numeric', month: 'long', day: 'numeric' });
+
+  return (
+    <div className="max-w-6xl mx-auto space-y-5">
 
       {/* ── 页面头部 ── */}
       <div className="flex items-end justify-between gap-4">
         <div>
           <h1 className="font-(family-name:--typeface-display) text-[32px] font-medium tracking-tight text-text leading-[1.1] m-0">
-            控制台
+            数据看板
           </h1>
-          <div className="text-[13px] text-text-muted mt-[6px]">
-            欢迎回来，这里是您的房源租赁数据概览。
+          <div className="text-[13px] text-text-muted mt-1.5">
+            实时业务指标 · 截至 {today}
           </div>
+        </div>
+        <div className="flex gap-2 shrink-0">
+          <button className="h-8.5 px-3.5 text-[13px] rounded-sm font-medium flex items-center gap-1.5 bg-card border border-border text-text-2 hover:bg-surface-2 transition-colors">
+            <Calendar size={13} /> 本月 <ChevronDown size={12} />
+          </button>
+          <button className="h-8.5 px-3.5 text-[13px] rounded-sm font-medium flex items-center gap-1.5 bg-primary text-white hover:bg-primary-dark transition-colors">
+            <Plus size={14} strokeWidth={2.5} /> 快速创建
+          </button>
         </div>
       </div>
 
       {/* ── 统计卡 ── */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        {stats.map(({ label, value, change, changeLabel, up, Icon }) => (
-          <div
-            key={label}
-            className="bg-card border border-border rounded p-[20px_22px]"
-          >
-            <div className="flex justify-between items-center text-[12px] text-text-muted font-medium tracking-[.02em]">
-              <span>{label}</span>
-              <span className="w-[30px] h-[30px] rounded-sm bg-primary-tint text-primary grid place-items-center shrink-0">
-                <Icon size={15} />
-              </span>
+        {stats.map(({ label, value, delta, up, icon }) => {
+          const StatIcon = statIcons[icon];
+          return (
+            <div key={label} className="bg-card border border-border rounded p-[20px_22px]">
+              <div className="flex justify-between items-center text-[12px] text-text-muted font-medium tracking-[.02em]">
+                <span>{label}</span>
+                <span className="w-7.5 h-7.5 rounded-sm bg-primary-tint text-primary grid place-items-center shrink-0">
+                  <StatIcon size={15} />
+                </span>
+              </div>
+              <div className="font-(family-name:--typeface-display) text-[32px] font-medium text-text tracking-tight mt-3 leading-none tabular-nums">
+                {value}
+              </div>
+              <div className="mt-2.5 text-[11.5px] text-text-muted flex items-center gap-1.5">
+                <span className={`font-semibold tabular-nums ${up ? 'text-success' : 'text-danger'}`}>
+                  {up ? '↑' : '↓'} {delta}
+                </span>
+                较上月
+              </div>
             </div>
-            <div className="font-(family-name:--typeface-display) text-[32px] font-medium text-text tracking-tight mt-3 leading-none tabular-nums">
-              {value}
-            </div>
-            <div className="mt-[10px] text-[11.5px] text-text-muted flex items-center gap-[6px]">
-              <span
-                className={`font-semibold tabular-nums ${
-                  up === true
-                    ? 'text-success'
-                    : up === false
-                    ? 'text-danger'
-                    : 'text-text-2'
-                }`}
-              >
-                {change}
-              </span>
-              {changeLabel}
-            </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
-      {/* ── 图表 + 动态 ── */}
+      {/* ── 图表区 ── */}
       <div className="grid grid-cols-3 gap-4">
-        {/* 营收趋势占位 */}
-        <div className="col-span-2 bg-card border border-border rounded shadow-sm flex flex-col">
-          <div className="px-[22px] py-[18px] flex items-center justify-between border-b border-border-subtle">
+        {/* 营收趋势 */}
+        <div className="col-span-2 bg-card border border-border rounded shadow-sm">
+          <div className="px-5.5 py-4.5 flex items-center justify-between border-b border-border-subtle">
             <div>
-              <div className="text-[14.5px] font-semibold text-text tracking-tight">月度营收趋势</div>
-              <div className="text-[12px] text-text-muted mt-[3px]">近 7 个月收入汇总</div>
+              <div className="text-[14.5px] font-semibold text-text tracking-tight">营收趋势</div>
+              <div className="text-[12px] text-text-muted mt-0.75">过去 12 个月 · 单位：千元</div>
             </div>
-            <select className="h-[28px] px-2 border border-border rounded-sm bg-card text-text-2 text-[12.5px] outline-none focus:border-primary">
-              <option>今年</option>
-              <option>去年</option>
-            </select>
+            <div className="flex gap-1">
+              {['本年', '近半年', '近一月'].map((l, i) => (
+                <button key={l} className={`h-7 px-2.5 text-[12px] rounded-sm transition-colors ${
+                  i === 0
+                    ? 'bg-primary-tint text-primary-dark font-semibold'
+                    : 'text-text-muted hover:text-text hover:bg-surface-2'
+                }`}>{l}</button>
+              ))}
+            </div>
           </div>
-          <div className="flex-1 px-[22px] py-5 min-h-[280px] flex flex-col">
-            <div className="flex-1 border border-dashed border-border-subtle rounded-sm bg-surface flex flex-col items-center justify-end overflow-hidden relative">
-              {/* 模拟柱状图 */}
-              <div className="absolute bottom-0 w-full px-10 flex items-end justify-between h-[160px] opacity-60 pb-0">
-                {[40, 60, 45, 80, 55, 90, 75].map((h, j) => (
-                  <div
-                    key={j}
-                    className="w-7 bg-primary-tint rounded-t-sm border border-primary-tint-2"
-                    style={{ height: `${h}%`, backgroundColor: 'var(--color-primary-tint)', borderColor: 'var(--color-primary-200)' }}
-                  />
-                ))}
-              </div>
-              <span className="relative z-10 mb-8 text-[12.5px] text-text-muted">
-                营收图表占位区（可接入 ECharts / Recharts）
-              </span>
-            </div>
+          <div className="px-5.5 py-4">
+            <RevenueChart />
           </div>
         </div>
 
-        {/* 最新动态 */}
-        <div className="col-span-1 bg-card border border-border rounded shadow-sm flex flex-col">
-          <div className="px-[22px] py-[18px] flex items-center justify-between border-b border-border-subtle">
-            <div className="text-[14.5px] font-semibold text-text tracking-tight">最新动态</div>
-            <button className="text-[12px] text-primary hover:text-primary-dark transition-colors">
-              查看全部
+        {/* 房源类型分布 */}
+        <div className="col-span-1 bg-card border border-border rounded shadow-sm">
+          <div className="px-5.5 py-4.5 border-b border-border-subtle">
+            <div className="text-[14.5px] font-semibold text-text tracking-tight">房源类型分布</div>
+            <div className="text-[12px] text-text-muted mt-0.75">当前在租结构</div>
+          </div>
+          <div className="px-5.5 py-5">
+            <TypeDonut />
+          </div>
+        </div>
+      </div>
+
+      {/* ── 列表区 ── */}
+      <div className="grid grid-cols-2 gap-4">
+        {/* 收藏量 Top 5 */}
+        <div className="bg-card border border-border rounded shadow-sm">
+          <div className="px-5.5 py-4.5 flex items-center justify-between border-b border-border-subtle">
+            <div>
+              <div className="text-[14.5px] font-semibold text-text tracking-tight">收藏量 Top 5</div>
+              <div className="text-[12px] text-text-muted mt-0.75">最受欢迎的房源</div>
+            </div>
+            <button className="text-[12px] text-primary hover:text-primary-dark transition-colors flex items-center gap-0.5">
+              查看全部 <ChevronRight size={12} />
             </button>
           </div>
-          <div className="flex-1 overflow-y-auto px-[22px] py-4 space-y-4">
-            {recentEvents.map((ev, i) => (
-              <div key={i} className="flex gap-3">
-                <div className="w-[28px] h-[28px] rounded-full shrink-0 grid place-items-center bg-primary-tint text-primary-dark text-[11px] font-semibold border border-border">
-                  {ev.name.charAt(0)}
+          <div className="px-5.5 py-2">
+            {tops.map((t, i) => (
+              <div key={t.name} className={`flex items-center gap-3 py-3 ${i < tops.length - 1 ? 'border-b border-dashed border-border-subtle' : ''}`}>
+                <span
+                  className="w-6 h-6 text-[11px] font-semibold grid place-items-center shrink-0 font-(family-name:--typeface-display)"
+                  style={{
+                    color: i < 3 ? 'var(--color-primary)' : 'var(--color-text-disabled)',
+                    borderBottom: `1px solid ${i < 3 ? 'var(--color-primary)' : 'var(--color-border)'}`,
+                  }}
+                >
+                  0{i + 1}
+                </span>
+                <div className="flex-1 min-w-0">
+                  <div className="text-[13px] font-medium text-text truncate">{t.name}</div>
+                  <div className="text-[11px] text-text-muted mt-0.5">评分 {t.score} · {t.fav} 收藏</div>
                 </div>
-                <div className="min-w-0">
-                  <div className="text-[13px] font-medium text-text leading-snug">
-                    {ev.name} 已签约
+                <div className="w-17.5 shrink-0">
+                  <div className="h-1 bg-surface-2 rounded overflow-hidden">
+                    <div className="h-full bg-primary" style={{ width: `${t.score}%` }} />
                   </div>
-                  <div className="text-[11.5px] text-text-muted mt-0.5 truncate">{ev.room}</div>
-                  <div className="text-[11px] text-text-disabled mt-0.5">{ev.time}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* 最新订单 */}
+        <div className="bg-card border border-border rounded shadow-sm">
+          <div className="px-5.5 py-4.5 flex items-center justify-between border-b border-border-subtle">
+            <div>
+              <div className="text-[14.5px] font-semibold text-text tracking-tight">最新订单</div>
+              <div className="text-[12px] text-text-muted mt-0.75">实时支付记录</div>
+            </div>
+            <button className="text-[12px] text-primary hover:text-primary-dark transition-colors flex items-center gap-0.5">
+              查看全部 <ChevronRight size={12} />
+            </button>
+          </div>
+          <div className="px-5.5 py-2">
+            {orders.map((o, i) => (
+              <div key={i} className={`flex items-center gap-3 py-3 ${i < orders.length - 1 ? 'border-b border-dashed border-border-subtle' : ''}`}>
+                <div className="w-7.5 h-7.5 rounded-full shrink-0 grid place-items-center bg-primary-tint text-primary-dark text-[12px] font-semibold border border-border">
+                  {o.user[0]}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="text-[13px] font-medium text-text truncate">{o.user} · {o.room}</div>
+                  <div className="text-[11px] text-text-muted mt-0.5">{o.t}</div>
+                </div>
+                <div className="text-right shrink-0">
+                  <div className="text-[13px] font-semibold text-text tabular-nums">¥{o.amt.toLocaleString()}</div>
+                  <div className="mt-1">
+                    <StatusPill variant={o.sk as 'success' | 'warning' | 'danger'}>{o.s}</StatusPill>
+                  </div>
                 </div>
               </div>
             ))}
