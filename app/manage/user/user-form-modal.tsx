@@ -244,8 +244,8 @@ export default function UserFormModal({ state, onClose, onSaved }: Props) {
         </div>
 
         {/* ── 表单 ── */}
-        <form onSubmit={handleSubmit} className="flex flex-col">
-          <div className="max-h-[70vh] space-y-5 overflow-y-auto px-6 py-5">
+        <form onSubmit={handleSubmit} className="flex flex-col flex-1 min-h-0">
+          <div className="flex-1 min-h-0 space-y-5 overflow-y-auto px-6 py-5">
 
             {/* 用户名 */}
             <div className="space-y-1.5">

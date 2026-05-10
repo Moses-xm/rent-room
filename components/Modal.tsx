@@ -19,7 +19,7 @@ export function Modal({ open, children }: ModalProps) {
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-[3px] animate-in fade-in duration-200">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-[3px] animate-in fade-in duration-200 *:max-h-[80dvh] md:*:max-h-[calc(100dvh-2rem)]">
       {children}
     </div>
   );
