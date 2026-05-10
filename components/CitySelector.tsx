@@ -222,7 +222,13 @@ export function CitySelector() {
         {/* 触发按钮：.topbar-user 风格 */}
         <button
           type="button"
-          onClick={() => setPopoverOpen((v) => !v)}
+          onClick={() => {
+            if (window.innerWidth < 1024) {
+              setModalOpen(true);
+            } else {
+              setPopoverOpen((v) => !v);
+            }
+          }}
           className="flex items-center gap-2 px-2 py-1 rounded-sm text-body-sm
                      hover:bg-surface-2 transition-colors"
         >
