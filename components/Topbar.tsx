@@ -29,11 +29,20 @@ function getAvatarFallback(username?: string | null) {
   return name.charAt(0).toUpperCase();
 }
 
-const CRUMB_MAP: Record<string, string> = {
-  "/manage/room":    "房源管理",
-  "/manage/admin":   "管理员管理",
-  "/manage/profile": "个人资料",
-};
+type CrumbItem = { label: string; href?: string };
+
+function resolveCrumbs(pathname: string): CrumbItem[] {
+  if (/^\/manage\/user\/.+/.test(pathname))
+    return [{ label: "用户管理", href: "/manage/user" }, { label: "用户详情" }];
+  const flat: Record<string, string> = {
+    "/manage/user":    "用户管理",
+    "/manage/room":    "房源管理",
+    "/manage/admin":   "管理员管理",
+    "/manage/profile": "个人资料",
+  };
+  const entry = Object.entries(flat).find(([p]) => pathname.startsWith(p));
+  return entry ? [{ label: entry[1] }] : [];
+}
 
 export function Topbar({ onMobileMenuToggle }: { onMobileMenuToggle?: () => void }) {
   const pathname = usePathname();
@@ -44,7 +53,7 @@ export function Topbar({ onMobileMenuToggle }: { onMobileMenuToggle?: () => void
   const [logoutOpen, setLogoutOpen]     = useState(false);
   const menuRef = useRef<HTMLDivElement | null>(null);
 
-  const subpage        = Object.entries(CRUMB_MAP).find(([p]) => pathname.startsWith(p))?.[1] ?? null;
+  const crumbs = resolveCrumbs(pathname);
   const avatarUrl      = resolveUploadedFileUrl(profile?.avatar);
   const avatarFallback = getAvatarFallback(profile?.username);
 
@@ -128,16 +137,19 @@ export function Topbar({ onMobileMenuToggle }: { onMobileMenuToggle?: () => void
         <nav className="hidden lg:flex items-center gap-2 text-body-sm">
           <Link
             href="/manage"
-            className={`transition-colors ${subpage ? "text-text-muted hover:text-text" : "text-text font-emphasis"}`}
+            className={`transition-colors ${crumbs.length ? "text-text-muted hover:text-text" : "text-text font-emphasis"}`}
           >
             Dashboard
           </Link>
-          {subpage && (
-            <>
+          {crumbs.map((crumb, i) => (
+            <span key={i} className="flex items-center gap-2">
               <span className="text-text-disabled">/</span>
-              <span className="text-text font-emphasis">{subpage}</span>
-            </>
-          )}
+              {crumb.href
+                ? <Link href={crumb.href} className="text-text-muted hover:text-text transition-colors">{crumb.label}</Link>
+                : <span className="text-text font-emphasis">{crumb.label}</span>
+              }
+            </span>
+          ))}
         </nav>
 
         <div className="flex-1" />

@@ -6,6 +6,26 @@ import { prisma } from '@/lib/prisma';
 import { serializeUser } from '@/lib/user';
 import { deleteUploadedAvatar } from '@/lib/uploaded-file';
 
+export async function GET(req: Request, props: { params: Promise<{ id: string }> }) {
+  try {
+    const auth = await requireManageAuth(req);
+    if (!auth.ok) return auth.response;
+
+    const { id } = await props.params;
+    const userId = parseInt(id);
+
+    const user = await prisma.user.findUnique({ where: { id: userId } });
+    if (!user) {
+      return NextResponse.json({ success: false, message: '用户不存在' }, { status: 404 });
+    }
+
+    return NextResponse.json({ success: true, data: serializeUser(user) });
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : '服务器内部错误';
+    return NextResponse.json({ success: false, message }, { status: 500 });
+  }
+}
+
 export async function PUT(req: Request, props: { params: Promise<{ id: string }> }) {
   try {
     const auth = await requireManageAuth(req);

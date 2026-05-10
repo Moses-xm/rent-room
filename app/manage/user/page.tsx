@@ -1,9 +1,10 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { resolveUploadedFileUrl } from '@/lib/upload-path';
 import { request } from '@/utils/request';
-import { Plus, Search, Pencil, Trash2, Users } from 'lucide-react';
+import { Plus, Search, Pencil, Trash2, Users, Eye } from 'lucide-react';
 import { toast } from 'sonner';
 import UserFormModal, { type ModalState, type UserFormData } from './user-form-modal';
 import ConfirmDialog from '@/components/ConfirmDialog';
@@ -61,6 +62,45 @@ function getEmptyStateText(search: string) {
   return '暂无用户数据';
 }
 
+/* ─── Action buttons ─────────────────────────────────────────────────────── */
+function ActionButtons({
+  size = 15,
+  onDetail,
+  onEdit,
+  onDelete,
+}: {
+  size?: number;
+  onDetail: () => void;
+  onEdit: () => void;
+  onDelete: () => void;
+}) {
+  return (
+    <div className="flex items-center gap-0.5">
+      <button
+        onClick={onDetail}
+        title="查看详情"
+        className="w-8 h-8 rounded-sm grid place-items-center text-text-muted hover:bg-surface-2 hover:text-text transition-colors active:scale-95 cursor-pointer"
+      >
+        <Eye size={size} />
+      </button>
+      <button
+        onClick={onEdit}
+        title="编辑用户"
+        className="w-8 h-8 rounded-sm grid place-items-center text-text-muted hover:bg-surface-2 hover:text-text transition-colors active:scale-95 cursor-pointer"
+      >
+        <Pencil size={size} />
+      </button>
+      <button
+        onClick={onDelete}
+        title="删除用户"
+        className="w-8 h-8 rounded-sm grid place-items-center text-text-muted hover:text-danger hover:bg-danger-bg transition-colors active:scale-95 cursor-pointer"
+      >
+        <Trash2 size={size} />
+      </button>
+    </div>
+  );
+}
+
 /* ─── API types ──────────────────────────────────────────────────────────── */
 type UsersResponse = {
   success: boolean;
@@ -81,6 +121,7 @@ async function fetchUsers(params: { page: number; limit: number; search?: string
 
 /* ─── Page ────────────────────────────────────────────────────────────────── */
 export default function UserPage() {
+  const router = useRouter();
   const [modalState, setModalState] = useState<ModalState>(null);
   const [list, setList] = useState<User[]>([]);
   const [total, setTotal] = useState(0);
@@ -232,35 +273,26 @@ export default function UserPage() {
       render: (user) => fmtDateTime(user.createdAt),
     },
     {
+      key: 'updatedAt',
+      label: '修改时间',
+      tdClassName: 'font-mono',
+      render: (user) => fmtDateTime(user.updatedAt),
+    },
+    {
       key: 'actions',
       label: '操作',
       align: 'right',
       render: (user) => (
-        <div className="flex justify-end items-center gap-0.5">
-          <button
-            onClick={() => setModalState({ mode: 'edit', user })}
-            title="编辑用户"
-            className="w-7.5 h-7.5 rounded-sm grid place-items-center
-                       text-text-muted hover:bg-surface-2 hover:text-text transition-colors"
-          >
-            <Pencil size={14} />
-          </button>
-          <button
-            onClick={() => setDeleteTarget(user)}
-            title="删除用户"
-            className="w-7.5 h-7.5 rounded-sm grid place-items-center
-                       text-text-muted hover:text-danger hover:bg-danger-bg transition-colors"
-          >
-            <Trash2 size={14} />
-          </button>
+        <div className="flex justify-end">
+          <ActionButtons
+            onDetail={() => router.push(`/manage/user/${user.id}`)}
+            onEdit={() => setModalState({ mode: 'edit', user })}
+            onDelete={() => setDeleteTarget(user)}
+          />
         </div>
       ),
     },
-  ], []);
-
-  /* ─── Mobile card action button ───────────────────────────────────────── */
-  const cardActionBtnCls =
-    'w-7.5 h-7.5 rounded-sm grid place-items-center text-text-muted transition-colors active:scale-95';
+  ], [router, setModalState, setDeleteTarget]);
 
   return (
     <div className="space-y-5">
@@ -368,22 +400,12 @@ export default function UserPage() {
                 </p>
               </div>
 
-              <div className="flex items-center gap-0.5 shrink-0">
-                <button
-                  onClick={() => setModalState({ mode: 'edit', user })}
-                  title="编辑用户"
-                  className={`${cardActionBtnCls} hover:bg-surface-2 hover:text-text`}
-                >
-                  <Pencil size={15} />
-                </button>
-                <button
-                  onClick={() => setDeleteTarget(user)}
-                  title="删除用户"
-                  className={`${cardActionBtnCls} hover:text-danger hover:bg-danger-bg`}
-                >
-                  <Trash2 size={15} />
-                </button>
-              </div>
+              <ActionButtons
+                size={15}
+                onDetail={() => router.push(`/manage/user/${user.id}`)}
+                onEdit={() => setModalState({ mode: 'edit', user })}
+                onDelete={() => setDeleteTarget(user)}
+              />
             </div>
           ))
         )}

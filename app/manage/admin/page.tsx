@@ -214,18 +214,18 @@ export default function AdminPage() {
           <button
             onClick={() => setModalState({ mode: 'edit', admin })}
             title="编辑管理员"
-            className="w-7.5 h-7.5 rounded-sm grid place-items-center
-                       text-text-muted hover:bg-surface-2 hover:text-text transition-colors"
+            className="w-8 h-8 rounded-sm grid place-items-center
+                       text-text-muted hover:bg-surface-2 hover:text-text transition-colors cursor-pointer"
           >
-            <Pencil size={14} />
+            <Pencil size={15} />
           </button>
           <button
             onClick={() => setDeleteTarget(admin)}
             title="删除管理员"
-            className="w-7.5 h-7.5 rounded-sm grid place-items-center
-                       text-text-muted hover:text-danger hover:bg-danger-bg transition-colors"
+            className="w-8 h-8 rounded-sm grid place-items-center
+                       text-text-muted hover:text-danger hover:bg-danger-bg transition-colors cursor-pointer"
           >
-            <Trash2 size={14} />
+            <Trash2 size={15} />
           </button>
         </div>
       ),
@@ -234,7 +234,7 @@ export default function AdminPage() {
 
   /* ─── Mobile card action button ───────────────────────────────────────── */
   const cardActionBtnCls =
-    'w-7.5 h-7.5 rounded-sm grid place-items-center text-text-muted transition-colors active:scale-95';
+    'w-8 h-8 rounded-sm grid place-items-center text-text-muted transition-colors active:scale-95 cursor-pointer';
 
   return (
     <div className="space-y-5">
@@ -343,14 +343,14 @@ export default function AdminPage() {
                   title="编辑管理员"
                   className={`${cardActionBtnCls} hover:bg-surface-2 hover:text-text`}
                 >
-                  <Pencil size={15} />
+                  <Pencil size={16} />
                 </button>
                 <button
                   onClick={() => setDeleteTarget(admin)}
                   title="删除管理员"
                   className={`${cardActionBtnCls} hover:text-danger hover:bg-danger-bg`}
                 >
-                  <Trash2 size={15} />
+                  <Trash2 size={16} />
                 </button>
               </div>
             </div>

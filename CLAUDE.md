@@ -36,8 +36,8 @@ rent-room/
 │   │   │   │   ├── route.ts          # GET(列表) / POST(创建)
 │   │   │   │   └── [id]/route.ts     # PUT(更新) / DELETE(删除)
 │   │   │   ├── user/
-│   │   │   │   ├── route.ts          # GET(列表)
-│   │   │   │   └── [id]/route.ts     # PUT(更新) / DELETE(删除)
+│   │   │   │   ├── route.ts          # GET(列表) / POST(创建)
+│   │   │   │   └── [id]/route.ts     # GET(详情) / PUT(更新) / DELETE(删除)
 │   │   │   ├── login/route.ts
 │   │   │   └── profile/route.ts
 │   │   └── upload/
@@ -48,7 +48,8 @@ rent-room/
 │   │   │   └── admin-form-modal.tsx
 │   │   ├── user/
 │   │   │   ├── page.tsx
-│   │   │   └── user-form-modal.tsx
+│   │   │   ├── user-form-modal.tsx
+│   │   │   └── [id]/page.tsx             # 用户详情页
 │   │   ├── login/page.tsx
 │   │   ├── profile/page.tsx
 │   │   ├── room/page.tsx
