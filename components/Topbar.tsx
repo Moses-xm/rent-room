@@ -125,7 +125,7 @@ export function Topbar({ onMobileMenuToggle }: { onMobileMenuToggle?: () => void
         </button>
 
         {/* 面包屑 */}
-        <nav className="flex items-center gap-2 text-body-sm">
+        <nav className="hidden lg:flex items-center gap-2 text-body-sm">
           <Link
             href="/manage"
             className={`transition-colors ${subpage ? "text-text-muted hover:text-text" : "text-text font-emphasis"}`}
