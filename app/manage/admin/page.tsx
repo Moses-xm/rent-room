@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { resolveUploadedFileUrl } from '@/lib/upload-path';
 import { request } from '@/utils/request';
 import {
@@ -17,9 +17,9 @@ import AdminFormModal, {
 } from './admin-form-modal';
 import ConfirmDialog from '@/components/ConfirmDialog';
 import { StatusPill } from '@/components/StatusPill';
-import AppLoading from '@/components/AppLoading';
 import LoadingDimmer from '@/components/LoadingDimmer';
 import Pagination from '@/components/Pagination';
+import DataTable, { type Column } from '@/components/DataTable';
 
 /* ─── Types ───────────────────────────────────────────────────────────────── */
 type Admin = {
@@ -75,14 +75,6 @@ async function fetchAdmins(params: {
   return request<AdminsResponse>(`/manage/admin?${qs.toString()}`);
 }
 
-/* ─── Shared className fragments ─────────────────────────────────────────── */
-const thCls =
-  'text-left text-caption font-emphasis text-text-muted uppercase tracking-[.04em] ' +
-  'px-4 py-[10px] bg-surface-2 border-t border-b border-border-subtle whitespace-nowrap';
-
-const tdCls =
-  'px-4 py-[14px] border-b border-border-subtle align-middle text-text-2 text-body';
-
 /* ─── Page ────────────────────────────────────────────────────────────────── */
 export default function AdminPage() {
   const [modalState, setModalState] = useState<ModalState>(null);
@@ -103,7 +95,6 @@ export default function AdminPage() {
     return () => clearTimeout(t);
   }, [query]);
 
-  // 单一数据拉取 effect，所有触发条件统一在此
   useEffect(() => {
     let cancelled = false;
     setLoading(true);
@@ -115,7 +106,6 @@ export default function AdminPage() {
           setList(res.data);
           setTotal(res.total);
           setTotalPages(res.totalPages);
-          // 当前页超出范围时（如筛选后总页数缩减）自动跳回末页
           if (res.totalPages > 0 && page > res.totalPages) {
             setPage(res.totalPages);
           }
@@ -158,7 +148,6 @@ export default function AdminPage() {
       await request(`/manage/admin/${deleteTarget.id}`, { method: 'DELETE' });
       setDeleteTarget(null);
       toast.success('管理员删除成功');
-      // 若当前页只剩一条且不在第一页，删后回退一页；否则原地刷新
       if (list.length === 1 && page > 1) {
         setPage((p) => p - 1);
       } else {
@@ -169,8 +158,83 @@ export default function AdminPage() {
     }
   };
 
+  /* ─── Column definitions ──────────────────────────────────────────────── */
+  const columns = useMemo<Column<Admin>[]>(() => [
+    {
+      key: 'username',
+      label: '用户名',
+      render: (admin) => (
+        <div className="flex items-center gap-3">
+          <div className="w-7.5 h-7.5 rounded-full grid place-items-center overflow-hidden shrink-0 bg-primary-tint text-primary-dark text-xs font-semibold border border-border">
+            {admin.avatar ? (
+              <img
+                src={resolveUploadedFileUrl(admin.avatar)}
+                alt={admin.username}
+                className="h-full w-full object-cover"
+              />
+            ) : (
+              initials(admin.username)
+            )}
+          </div>
+          <div>
+            <p className="text-body font-emphasis text-text leading-none">{admin.username}</p>
+            <p className="text-tiny text-text-muted font-mono mt-0.5">UID:{admin.id}</p>
+          </div>
+        </div>
+      ),
+    },
+    {
+      key: 'isActive',
+      label: '状态',
+      align: 'center',
+      render: (admin) => (
+        <StatusPill variant={admin.isActive ? 'success' : 'muted'}>
+          {admin.isActive ? '正常' : '停用'}
+        </StatusPill>
+      ),
+    },
+    {
+      key: 'created',
+      label: '创建时间',
+      tdClassName: 'font-mono',
+      render: (admin) => fmtDateTime(admin.created),
+    },
+    {
+      key: 'modified',
+      label: '最后修改',
+      tdClassName: 'font-mono',
+      render: (admin) => fmtDateTime(admin.modified),
+    },
+    {
+      key: 'actions',
+      label: '操作',
+      align: 'right',
+      render: (admin) => (
+        <div className="flex justify-end items-center gap-0.5">
+          <button
+            onClick={() => setModalState({ mode: 'edit', admin })}
+            title="编辑管理员"
+            className="w-7.5 h-7.5 rounded-sm grid place-items-center
+                       text-text-muted hover:bg-surface-2 hover:text-text transition-colors"
+          >
+            <Pencil size={14} />
+          </button>
+          <button
+            onClick={() => setDeleteTarget(admin)}
+            title="删除管理员"
+            className="w-7.5 h-7.5 rounded-sm grid place-items-center
+                       text-text-muted hover:text-danger hover:bg-danger-bg transition-colors"
+          >
+            <Trash2 size={14} />
+          </button>
+        </div>
+      ),
+    },
+  ], []);
+
+  /* ─── Mobile card action button ───────────────────────────────────────── */
   const cardActionBtnCls =
-    'w-[30px] h-[30px] rounded-sm grid place-items-center text-text-muted transition-colors active:scale-95';
+    'w-7.5 h-7.5 rounded-sm grid place-items-center text-text-muted transition-colors active:scale-95';
 
   return (
     <div className="space-y-5">
@@ -199,7 +263,7 @@ export default function AdminPage() {
       </div>
 
       {/* ── 筛选区 ── */}
-      <div className="py-[14px] flex items-center gap-[10px] flex-wrap">
+      <div className="py-3.5 flex items-center gap-2.5 flex-wrap">
         <div className="relative w-full sm:w-60">
           <Search
             className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none"
@@ -214,7 +278,7 @@ export default function AdminPage() {
               setQuery(e.target.value);
               setPage(1);
             }}
-            className="w-full h-[34px] pl-9 pr-3 border border-border rounded-sm
+            className="w-full h-8.5 pl-9 pr-3 border border-border rounded-sm
                        bg-card text-text text-body outline-none
                        transition-[border-color,box-shadow]
                        hover:border-text-disabled
@@ -228,7 +292,13 @@ export default function AdminPage() {
       {/* ── 移动端卡片列表（< md）── */}
       <div className="md:hidden space-y-3">
         {!hasLoadedOnce ? (
-          <AppLoading rows={4} columns={1} />
+          <DataTable
+            columns={columns}
+            data={[]}
+            rowKey={(r) => r.id}
+            hasLoaded={false}
+            skeletonRows={4}
+          />
         ) : list.length === 0 ? (
           <div className="bg-card border border-border rounded shadow-sm py-20 flex flex-col items-center gap-3 opacity-40">
             <ShieldCheck size={36} className="text-text-disabled" />
@@ -240,8 +310,7 @@ export default function AdminPage() {
               key={admin.id}
               className="bg-card border border-border rounded shadow-sm p-4 flex items-center gap-3"
             >
-              {/* 头像 */}
-              <div className="w-[38px] h-[38px] rounded-full grid place-items-center overflow-hidden shrink-0 bg-primary-tint text-primary-dark text-xs font-semibold border border-border">
+              <div className="w-9.5 h-9.5 rounded-full grid place-items-center overflow-hidden shrink-0 bg-primary-tint text-primary-dark text-xs font-semibold border border-border">
                 {admin.avatar ? (
                   <img
                     src={resolveUploadedFileUrl(admin.avatar)}
@@ -253,7 +322,6 @@ export default function AdminPage() {
                 )}
               </div>
 
-              {/* 信息 */}
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 flex-wrap">
                   <p className="text-body font-emphasis text-text">{admin.username}</p>
@@ -269,7 +337,6 @@ export default function AdminPage() {
                 </p>
               </div>
 
-              {/* 操作 */}
               <div className="flex items-center gap-0.5 shrink-0">
                 <button
                   onClick={() => setModalState({ mode: 'edit', admin })}
@@ -305,116 +372,26 @@ export default function AdminPage() {
       </div>
 
       {/* ── 桌面端表格（≥ md）── */}
-      {!hasLoadedOnce ? (
-        <div className="hidden md:block">
-          <AppLoading rows={5} columns={5} />
-        </div>
-      ) : (
-        <div className="hidden md:block bg-card border border-border rounded shadow-sm overflow-hidden">
-          <LoadingDimmer loading={loading}>
-            <div className="overflow-x-auto">
-              <table className="w-full text-left whitespace-nowrap">
-                <thead>
-                  <tr>
-                    <th className={thCls}>用户名</th>
-                    <th className={`${thCls} text-center`}>状态</th>
-                    <th className={thCls}>创建时间</th>
-                    <th className={thCls}>最后修改</th>
-                    <th className={`${thCls} text-right`}>操作</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {list.length === 0 ? (
-                    <tr>
-                      <td colSpan={5} className="py-24 text-center">
-                        {loading ? (
-                          <div className="h-32" />
-                        ) : (
-                          <div className="flex flex-col items-center gap-3 opacity-40">
-                            <ShieldCheck size={36} className="text-text-disabled" />
-                            <p className="text-body text-text-muted">
-                              {getEmptyStateText(debouncedQuery)}
-                            </p>
-                          </div>
-                        )}
-                      </td>
-                    </tr>
-                  ) : (
-                    list.map((admin) => (
-                      <tr key={admin.id} className="hover:bg-surface transition-colors">
-                        <td className={tdCls}>
-                          <div className="flex items-center gap-3">
-                            <div className="w-[30px] h-[30px] rounded-full grid place-items-center overflow-hidden shrink-0 bg-primary-tint text-primary-dark text-xs font-semibold border border-border">
-                              {admin.avatar ? (
-                                <img
-                                  src={resolveUploadedFileUrl(admin.avatar)}
-                                  alt={admin.username}
-                                  className="h-full w-full object-cover"
-                                />
-                              ) : (
-                                initials(admin.username)
-                              )}
-                            </div>
-                            <div>
-                              <p className="text-body font-emphasis text-text leading-none">
-                                {admin.username}
-                              </p>
-                              <p className="text-tiny text-text-muted font-mono mt-0.5">
-                                UID:{admin.id}
-                              </p>
-                            </div>
-                          </div>
-                        </td>
-
-                        <td className={`${tdCls} text-center`}>
-                          <StatusPill variant={admin.isActive ? 'success' : 'muted'}>
-                            {admin.isActive ? '正常' : '停用'}
-                          </StatusPill>
-                        </td>
-
-                        <td className={`${tdCls} font-mono`}>{fmtDateTime(admin.created)}</td>
-                        <td className={`${tdCls} font-mono`}>{fmtDateTime(admin.modified)}</td>
-
-                        <td className={`${tdCls} text-right`}>
-                          <div className="flex justify-end items-center gap-0.5">
-                            <button
-                              onClick={() => setModalState({ mode: 'edit', admin })}
-                              title="编辑管理员"
-                              className="w-[30px] h-[30px] rounded-sm grid place-items-center
-                                         text-text-muted hover:bg-surface-2 hover:text-text transition-colors"
-                            >
-                              <Pencil size={14} />
-                            </button>
-                            <button
-                              onClick={() => setDeleteTarget(admin)}
-                              title="删除管理员"
-                              className="w-[30px] h-[30px] rounded-sm grid place-items-center
-                                         text-text-muted hover:text-danger hover:bg-danger-bg transition-colors"
-                            >
-                              <Trash2 size={14} />
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
-            </div>
-
-            {total > 0 && (
-              <Pagination
-                page={page}
-                pageSize={pageSize}
-                total={total}
-                totalPages={totalPages}
-                onPageChange={handlePageChange}
-                onPageSizeChange={handlePageSizeChange}
-              />
-            )}
-          </LoadingDimmer>
-        </div>
-      )}
+      <div className="hidden md:block">
+        <DataTable
+          columns={columns}
+          data={list}
+          rowKey={(r) => r.id}
+          loading={loading}
+          hasLoaded={hasLoadedOnce}
+          skeletonRows={5}
+          emptyIcon={<ShieldCheck size={36} className="text-text-disabled" />}
+          emptyText={getEmptyStateText(debouncedQuery)}
+          pagination={{
+            page,
+            pageSize,
+            total,
+            totalPages,
+            onPageChange: handlePageChange,
+            onPageSizeChange: handlePageSizeChange,
+          }}
+        />
+      </div>
 
       <AdminFormModal
         state={modalState}

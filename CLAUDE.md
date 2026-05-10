@@ -58,6 +58,7 @@ rent-room/
 │   ├── AppLoading.tsx
 │   ├── CitySelector.tsx
 │   ├── ConfirmDialog.tsx
+│   ├── DataTable.tsx                 # 通用泛型表格（列定义+数据+分页+空态+骨架屏）
 │   ├── LoadingDimmer.tsx
 │   ├── ManageLayoutShell.tsx
 │   ├── Modal.tsx                     # 所有弹窗的基础容器（遮罩+滚动锁定）

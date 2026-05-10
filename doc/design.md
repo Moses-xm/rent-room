@@ -509,10 +509,63 @@ useEffect(() => {
 }, [query]);
 ```
 
+### 通用表格：DataTable
+
+所有桌面端列表表格使用 `components/DataTable.tsx`，通过列定义驱动渲染，内部统一处理骨架屏、加载遮罩、空态、分页。
+
+```tsx
+import DataTable, { type Column } from '@/components/DataTable';
+
+// 列定义（useMemo 包裹，render 内可直接引用 state setters）
+const columns = useMemo<Column<MyItem>[]>(() => [
+  {
+    key: 'name',
+    label: '名称',
+    render: (item) => item.name,
+  },
+  {
+    key: 'status',
+    label: '状态',
+    align: 'center',              // 'left' | 'center' | 'right'
+    render: (item) => <StatusPill />,
+  },
+  {
+    key: 'actions',
+    label: '操作',
+    align: 'right',
+    tdClassName: 'font-mono',     // 额外 td 类名
+    render: (item) => <ActionButtons />,
+  },
+], []);
+
+// 使用
+<DataTable
+  columns={columns}
+  data={list}
+  rowKey={(r) => r.id}
+  loading={loading}
+  hasLoaded={hasLoadedOnce}
+  skeletonRows={5}
+  emptyIcon={<SomeIcon size={36} />}
+  emptyText="暂无数据"
+  pagination={{ page, pageSize, total, totalPages, onPageChange, onPageSizeChange }}
+/>
+```
+
+**关键 Props：**
+
+| Prop | 说明 |
+|------|------|
+| `hasLoaded` | `false` 时渲染骨架屏（替代整个表格区域） |
+| `loading` | `true` 时在表格上叠加半透明加载遮罩 |
+| `skeletonRows` | 骨架屏行数，默认 5 |
+| `emptyIcon` / `emptyText` | 无数据时的空态图标和文字 |
+| `pagination` | 传入则在表格底部渲染分页；`total === 0` 时自动隐藏 |
+
 ### 加载状态
 
-- 首次加载：`hasLoadedOnce === false` 时显示 `<AppLoading />` 骨架屏
-- 翻页/搜索：`hasLoadedOnce === true` 且 `loading === true` 时显示 `<LoadingDimmer>`（半透明遮罩）
+- 首次加载：`hasLoadedOnce === false` → `DataTable` 内部自动渲染 `<AppLoading />` 骨架屏
+- 翻页/搜索：`hasLoadedOnce === true` 且 `loading === true` → `DataTable` 内部自动显示 `<LoadingDimmer>` 半透明遮罩
 
 ### 表单 Modal
 
