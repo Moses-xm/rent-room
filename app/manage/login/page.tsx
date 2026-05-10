@@ -1,6 +1,6 @@
 "use client";
 
-import Image from "next/image";
+import AppLogo from "@/components/AppLogo";
 import { useRouter } from "next/navigation";
 import { FormEvent, useEffect, useRef, useState } from "react";
 import { ShieldCheck } from "lucide-react";
@@ -124,14 +124,7 @@ export default function ManageLoginPage() {
         {/* ── 头部：居中竖排 ── */}
         <div className="mb-8 flex flex-col items-center gap-3 text-center">
           <div className="h-16 w-16 overflow-hidden rounded-xl border border-border">
-            <Image
-              src="/images/logo2.png"
-              alt="雅阁租房平台 Logo"
-              width={716}
-              height={716}
-              className="h-full w-full object-contain"
-              priority
-            />
+            <AppLogo className="h-full w-full" />
           </div>
           <div>
             <h1 className="font-(family-name:--typeface-display) text-h2 font-heading tracking-tight text-text leading-tight">

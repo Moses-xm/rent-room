@@ -1,7 +1,7 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
+import AppLogo from "@/components/AppLogo";
 import { usePathname } from "next/navigation";
 import { LayoutDashboard, Building2, Users, ChevronsLeft, ChevronsRight, X } from "lucide-react";
 
@@ -51,14 +51,7 @@ export function Sidebar({
           className={`shrink-0 hover:opacity-80 transition-opacity
             ${isCollapsed && !isMobile ? "w-10 h-10" : "w-9 h-9"}`}
         >
-          <Image
-            src="/images/logo2.png"
-            alt="雅阁租房系统"
-            width={716}
-            height={716}
-            className="h-full w-full object-contain"
-            priority
-          />
+          <AppLogo className="h-full w-full" />
         </Link>
         {(!isCollapsed || isMobile) && (
           <span className="flex-1 font-semibold text-sm text-text whitespace-nowrap">

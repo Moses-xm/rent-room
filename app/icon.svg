@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+  <circle cx="100" cy="100" r="95" fill="#8B7355" />
+  <path d="M 15 110 C 15 30, 95 10, 105 40 C 130 90, 160 50, 195 85" fill="none" stroke="#FFFFFF" stroke-width="16" stroke-linecap="round" />
+  <path d="M 30 145 C 50 195, 80 195, 110 190" fill="none" stroke="#FFFFFF" stroke-width="10" stroke-linecap="round" />
+  <path fill-rule="evenodd" clip-rule="evenodd" fill="#FFFFFF" d="M 65 135 L 65 95 L 75 95 L 75 75 L 85 75 L 85 85 L 100 70 L 145 105 L 145 135 Z M 100 100 C 104.5 100 108 103.5 108 108 C 108 111 106 113.5 104 114.5 L 107 125 L 93 125 L 96 114.5 C 94 113.5 92 111 92 108 C 92 103.5 95.5 100 100 100 Z" />
+</svg>
