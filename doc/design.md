@@ -564,8 +564,37 @@ const columns = useMemo<Column<MyItem>[]>(() => [
 
 ### 加载状态
 
-- 首次加载：`hasLoadedOnce === false` → `DataTable` 内部自动渲染 `<AppLoading />` 骨架屏
-- 翻页/搜索：`hasLoadedOnce === true` 且 `loading === true` → `DataTable` 内部自动显示 `<LoadingDimmer>` 半透明遮罩
+**骨架屏组件：`components/AppLoading.tsx`**
+
+所有骨架屏统一使用 `<AppLoading>`，通过 `variant` 控制渲染形式：
+
+| variant | 说明 | 典型使用场景 |
+|---------|------|-------------|
+| `'auto'`（默认）| 桌面渲染表格骨架，移动端渲染卡片骨架（CSS 切换，SSR 安全）| 列表页整体骨架 |
+| `'table'` | 始终渲染表格骨架 | `DataTable` 内部（桌面端 `hidden md:block` 容器内）|
+| `'card'` | 始终渲染卡片骨架 | 移动端卡片区域、详情页、表单页 |
+
+```tsx
+import AppLoading from '@/components/AppLoading';
+
+// 列表页移动端区域
+<AppLoading variant="card" rows={4} actionCount={2} />
+
+// 详情/表单页（inline skeleton，根据实际布局手写结构）
+// 不使用 AppLoading，而是直接用 skeleton-shimmer 类组合
+```
+
+**Shimmer CSS 类：**
+- `skeleton-shimmer`：通用灰色波光（文字、输入框、图标）
+- `skeleton-shimmer-warm`：暖色波光（头像圆形）
+
+**各页面骨架屏规则：**
+
+- **列表页**：`DataTable` 内部自动处理桌面端骨架（`hasLoaded={hasLoadedOnce}`）；移动端 `md:hidden` 容器内用 `<AppLoading variant="card" />`
+- **详情页 / 表单页**：`if (loading)` 提前返回，用 `skeleton-shimmer` 类搭建与真实页面**布局结构完全对应**的骨架（卡片轮廓、字段行、按钮区都要对齐），不能用简单灰块替代
+- **翻页/搜索刷新**（列表页）：`loading === true` 时 `DataTable` 自动叠加 `<LoadingDimmer>` 半透明遮罩，无需额外处理
+
+> **约定**：新开发的所有页面都必须包含骨架屏，不允许白屏等待。
 
 ### 表单 Modal
 

@@ -65,7 +65,7 @@ export default function DataTable<T>({
   className,
 }: DataTableProps<T>) {
   if (!hasLoaded) {
-    return <AppLoading rows={skeletonRows} columns={columns.length} />;
+    return <AppLoading variant="table" rows={skeletonRows} columns={columns.length} />;
   }
 
   return (

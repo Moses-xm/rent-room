@@ -115,16 +115,72 @@ export default function UserDetailPage() {
   if (loading) {
     return (
       <div className="space-y-4">
-        <div className="h-5 w-56 bg-surface-2 rounded animate-pulse" />
-        <div className="h-32 bg-surface-2 rounded-md animate-pulse" />
+        {/* breadcrumb + action */}
+        <div className="flex items-center justify-between gap-4">
+          <div className="flex items-center gap-2">
+            <div className="h-7 w-7 rounded-sm skeleton-shimmer opacity-50 shrink-0" />
+            <div className="h-4 w-44 rounded skeleton-shimmer opacity-50" />
+          </div>
+          <div className="h-8 w-20 rounded-sm skeleton-shimmer shrink-0" />
+        </div>
+        {/* profile card */}
+        <div className="bg-card border border-border rounded-md shadow-sm p-5">
+          <div className="flex items-center gap-4">
+            <div className="w-14 h-14 rounded-full skeleton-shimmer-warm shrink-0" />
+            <div className="space-y-2 flex-1">
+              <div className="flex items-center gap-2 flex-wrap">
+                <div className="h-5 w-28 rounded skeleton-shimmer" />
+                <div className="h-5 w-14 rounded-full skeleton-shimmer opacity-70" />
+                <div className="h-5 w-12 rounded-full skeleton-shimmer opacity-70" />
+              </div>
+              <div className="h-3.5 w-40 rounded skeleton-shimmer opacity-50" />
+            </div>
+          </div>
+          <div className="mt-4 pt-4 border-t border-border-subtle grid grid-cols-2 sm:grid-cols-4 gap-4">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <div key={i} className="space-y-1.5">
+                <div className="h-3 w-12 rounded skeleton-shimmer opacity-50" />
+                <div className="h-4 w-16 rounded skeleton-shimmer" />
+              </div>
+            ))}
+          </div>
+        </div>
+        {/* two-column */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
           <div className="lg:col-span-2 space-y-4">
-            <div className="h-44 bg-surface-2 rounded-md animate-pulse" />
-            <div className="h-36 bg-surface-2 rounded-md animate-pulse" />
+            {[6, 3].map((fieldCount, i) => (
+              <div key={i} className="bg-card border border-border rounded-md shadow-sm overflow-hidden">
+                <div className="flex items-center gap-2 px-5 py-3 border-b border-border-subtle bg-surface">
+                  <div className="h-4 w-20 rounded skeleton-shimmer" />
+                </div>
+                <div className="px-5 divide-y divide-border-subtle">
+                  {Array.from({ length: fieldCount }).map((_, j) => (
+                    <div key={j} className="grid grid-cols-[7rem_1fr] gap-3 py-3">
+                      <div className="h-3.5 w-14 rounded skeleton-shimmer opacity-50" />
+                      <div className={`h-3.5 rounded skeleton-shimmer ${j % 2 === 0 ? 'w-24' : 'w-32'}`} />
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
           </div>
           <div className="space-y-4">
-            <div className="h-28 bg-surface-2 rounded-md animate-pulse" />
-            <div className="h-28 bg-surface-2 rounded-md animate-pulse" />
+            {[2, 2].map((fieldCount, i) => (
+              <div key={i} className="bg-card border border-border rounded-md shadow-sm overflow-hidden">
+                <div className="flex items-center gap-2 px-5 py-3 border-b border-border-subtle bg-surface">
+                  <div className="h-4 w-20 rounded skeleton-shimmer" />
+                </div>
+                <div className="px-5 divide-y divide-border-subtle">
+                  {Array.from({ length: fieldCount }).map((_, j) => (
+                    <div key={j} className="grid grid-cols-[7rem_1fr] gap-3 py-3">
+                      <div className="h-3.5 w-14 rounded skeleton-shimmer opacity-50" />
+                      <div className="h-3.5 w-20 rounded skeleton-shimmer" />
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
+            <div className="h-16 rounded-md skeleton-shimmer opacity-30" />
           </div>
         </div>
       </div>

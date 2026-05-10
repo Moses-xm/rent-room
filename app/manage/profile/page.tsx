@@ -177,13 +177,64 @@ export default function ManageProfilePage() {
   if (loading) {
     return (
       <div className="space-y-5">
-        <div className="space-y-2">
-          <div className="h-8 w-44 animate-pulse rounded bg-surface-2" />
-          <div className="h-4 w-72 animate-pulse rounded bg-surface-2 opacity-60" />
+        {/* header */}
+        <div className="flex items-end justify-between gap-4">
+          <div className="space-y-2">
+            <div className="h-8 w-32 rounded skeleton-shimmer" />
+            <div className="h-4 w-64 rounded skeleton-shimmer opacity-60" />
+          </div>
+          <div className="h-7 w-20 rounded skeleton-shimmer opacity-50 shrink-0" />
         </div>
-        <div className="grid gap-4 lg:grid-cols-2">
-          <div className="h-80 animate-pulse rounded bg-surface-2" />
-          <div className="h-80 animate-pulse rounded bg-surface-2" />
+        {/* cards */}
+        <div className="grid gap-4 lg:grid-cols-[1.15fr_0.85fr]">
+          {/* avatar card */}
+          <div className="bg-card border border-border rounded shadow-sm">
+            <div className="px-5.5 py-4.5 border-b border-border-subtle space-y-1.5">
+              <div className="h-5 w-24 rounded skeleton-shimmer" />
+              <div className="h-3 w-56 rounded skeleton-shimmer opacity-50" />
+            </div>
+            <div className="px-5.5 py-5 space-y-4">
+              <div className="rounded-sm border border-dashed border-border bg-surface p-4 flex items-start gap-4">
+                <div className="w-15 h-15 rounded-full skeleton-shimmer-warm shrink-0" />
+                <div className="flex-1 space-y-2.5 pt-1">
+                  <div className="h-7 w-24 rounded-sm skeleton-shimmer" />
+                  <div className="h-3 w-48 rounded skeleton-shimmer opacity-50" />
+                </div>
+              </div>
+              <div className="space-y-1.5">
+                <div className="h-3.5 w-14 rounded skeleton-shimmer opacity-70" />
+                <div className="h-9 w-full rounded-sm skeleton-shimmer opacity-40" />
+                <div className="h-3 w-52 rounded skeleton-shimmer opacity-30" />
+              </div>
+              <div className="space-y-1.5">
+                <div className="h-3.5 w-14 rounded skeleton-shimmer opacity-70" />
+                <div className="h-9 w-full rounded-sm skeleton-shimmer opacity-40" />
+              </div>
+            </div>
+          </div>
+          {/* security card */}
+          <div className="bg-card border border-border rounded shadow-sm">
+            <div className="px-5.5 py-4.5 border-b border-border-subtle space-y-1.5">
+              <div className="h-5 w-24 rounded skeleton-shimmer" />
+              <div className="h-3 w-48 rounded skeleton-shimmer opacity-50" />
+            </div>
+            <div className="px-5.5 py-5 space-y-4">
+              <div className="space-y-1.5">
+                <div className="h-3.5 w-14 rounded skeleton-shimmer opacity-70" />
+                <div className="h-9 w-full rounded-sm skeleton-shimmer opacity-40" />
+              </div>
+              <div className="space-y-1.5">
+                <div className="h-3.5 w-20 rounded skeleton-shimmer opacity-70" />
+                <div className="h-9 w-full rounded-sm skeleton-shimmer opacity-40" />
+              </div>
+              <div className="h-20 w-full rounded-sm skeleton-shimmer opacity-30" />
+            </div>
+          </div>
+        </div>
+        {/* buttons */}
+        <div className="flex justify-end gap-2">
+          <div className="h-8.5 w-16 rounded-sm skeleton-shimmer opacity-50" />
+          <div className="h-8.5 w-24 rounded-sm skeleton-shimmer" />
         </div>
       </div>
     );

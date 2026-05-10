@@ -11,6 +11,7 @@ import ConfirmDialog from '@/components/ConfirmDialog';
 import { StatusPill } from '@/components/StatusPill';
 import Pagination from '@/components/Pagination';
 import DataTable, { type Column } from '@/components/DataTable';
+import AppLoading from '@/components/AppLoading';
 
 /* ─── Types ───────────────────────────────────────────────────────────────── */
 type User = {
@@ -350,13 +351,7 @@ export default function UserPage() {
       {/* ── 移动端卡片列表（< md）── */}
       <div className="md:hidden space-y-3">
         {!hasLoadedOnce ? (
-          <DataTable
-            columns={columns}
-            data={[]}
-            rowKey={(r) => r.id}
-            hasLoaded={false}
-            skeletonRows={4}
-          />
+          <AppLoading variant="card" rows={4} actionCount={3} />
         ) : list.length === 0 ? (
           <div className="bg-card border border-border rounded shadow-sm py-20 flex flex-col items-center gap-3 opacity-40">
             <Users size={36} className="text-text-disabled" />
