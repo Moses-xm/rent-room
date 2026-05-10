@@ -35,6 +35,9 @@ rent-room/
 │   │   │   ├── admin/
 │   │   │   │   ├── route.ts          # GET(列表) / POST(创建)
 │   │   │   │   └── [id]/route.ts     # PUT(更新) / DELETE(删除)
+│   │   │   ├── user/
+│   │   │   │   ├── route.ts          # GET(列表)
+│   │   │   │   └── [id]/route.ts     # PUT(更新) / DELETE(删除)
 │   │   │   ├── login/route.ts
 │   │   │   └── profile/route.ts
 │   │   └── upload/
@@ -43,6 +46,9 @@ rent-room/
 │   │   ├── admin/
 │   │   │   ├── page.tsx
 │   │   │   └── admin-form-modal.tsx
+│   │   ├── user/
+│   │   │   ├── page.tsx
+│   │   │   └── user-form-modal.tsx
 │   │   ├── login/page.tsx
 │   │   ├── profile/page.tsx
 │   │   ├── room/page.tsx
@@ -66,6 +72,7 @@ rent-room/
 │   └── Topbar.tsx
 ├── lib/                              # 服务端工具
 │   ├── admin.ts                      # admin 序列化
+│   ├── user.ts                       # user 序列化
 │   ├── manage-auth.ts                # JWT 签发 / 验证 / 鉴权
 │   ├── prisma.ts                     # Prisma 客户端单例
 │   ├── upload-path.ts                # 上传路径工具
@@ -91,7 +98,7 @@ rent-room/
 ```
 
 ## 实现状态
-管理平台：登录 ✅、个人资料 ✅、管理员管理 ✅、其余模块 ⬜。用户平台：全部 ⬜。数据库：`admin` 表 ✅，其余 ⬜。
+管理平台：登录 ✅、个人资料 ✅、管理员管理 ✅、用户管理 ✅、其余模块 ⬜。用户平台：全部 ⬜。数据库：`admin` 表 ✅、`user` 表 ✅，其余 ⬜。
 
 ## 协作约定
 - 回复用中文，以 **My lord** 开头

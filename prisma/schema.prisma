@@ -16,3 +16,25 @@ model admin {
   modified DateTime? @default(now()) @db.Timestamp(6)
   created  DateTime? @default(now()) @db.Timestamp(6)
 }
+
+model user {
+  id        Int      @id @default(autoincrement())
+  username  String   @unique @db.VarChar(50)
+  password  String   @db.VarChar(255)
+  phone     String?  @db.VarChar(20)
+  nickname  String?  @db.VarChar(50)
+  realname  String?  @db.VarChar(50)
+  gender    Int      @default(3)
+  identity  Int      @default(1)
+  isActive  Boolean  @default(true)
+  avatar    String?  @db.VarChar(500)
+  email     String?  @db.VarChar(100)
+  province  String?  @db.VarChar(30)
+  city      String?  @db.VarChar(30)
+  district  String?  @db.VarChar(30)
+  address   String?  @db.VarChar(200)
+  wallet    Float    @default(0)
+  payCode   String   @default("000000") @db.VarChar(10)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}

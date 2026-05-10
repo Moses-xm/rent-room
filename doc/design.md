@@ -664,9 +664,10 @@ const columns = useMemo<Column<MyItem>[]>(() => [
 
 #### 用户管理 (`/manage/user`)
 
-- 页面功能：用户列表（分页、搜索用户名/手机号/昵称）、查看详情、编辑用户信息、删除用户
-- API：`GET /api/manage/user`，`PUT /api/manage/user/[id]`，`DELETE /api/manage/user/[id]`
+- 页面功能：用户列表（分页、搜索用户名/手机号/昵称）、新建用户、编辑用户信息、删除用户
+- API：`GET/POST /api/manage/user`，`PUT /api/manage/user/[id]`，`DELETE /api/manage/user/[id]`
 - 特殊字段：`identity`（用户/房东），`gender`，`wallet`，`isActive`（等效于管理员的 isActive）
+- 新建时 `username`/`password` 必填；编辑时密码留空则保持不变；用户名唯一冲突返回 409
 
 #### 小区管理 (`/manage/community`)
 
@@ -907,7 +908,7 @@ API Key 存放在环境变量 `NEXT_PUBLIC_BAIDU_MAP_AK`（客户端可访问）
 | Dashboard | 🔶 占位 | `/manage` | 静态数据，待接入真实统计 |
 | 个人资料 | ✅ 已实现 | `/manage/profile` | |
 | 管理员管理 | ✅ 已实现 | `/manage/admin` | 作为标准参考模块 |
-| 用户管理 | ⬜ 待实现 | `/manage/user` | |
+| 用户管理 | ✅ 已实现 | `/manage/user` | |
 | 小区管理 | ⬜ 待实现 | `/manage/community` | 含百度地图 |
 | 房源管理 | ⬜ 待实现 | `/manage/room` | 含富文本编辑 |
 | 房屋设施管理 | ⬜ 待实现 | `/manage/facility` | |
@@ -936,7 +937,7 @@ API Key 存放在环境变量 `NEXT_PUBLIC_BAIDU_MAP_AK`（客户端可访问）
 | 表 | 状态 | 说明 |
 |----|------|------|
 | `admin` | ✅ 已建 | |
-| `user` | ⬜ 待建 | |
+| `user` | ✅ 已建 | 含 isActive 字段 |
 | `community` | ⬜ 待建 | |
 | `facility` | ⬜ 待建 | |
 | `room` | ⬜ 待建 | |

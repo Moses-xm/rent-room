@@ -3,7 +3,7 @@
 import Link from "next/link";
 import AppLogo from "@/components/AppLogo";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, Building2, Users, ChevronsLeft, ChevronsRight, X } from "lucide-react";
+import { LayoutDashboard, Building2, Users, UserRound, ChevronsLeft, ChevronsRight, X } from "lucide-react";
 
 const NAV_GROUPS = [
   {
@@ -15,8 +15,9 @@ const NAV_GROUPS = [
   {
     group: "业务管理",
     items: [
-      { key: "room",  label: "房源管理",   icon: Building2, path: "/manage/room" },
       { key: "admin", label: "管理员管理", icon: Users,     path: "/manage/admin" },
+      { key: "user",  label: "用户管理",   icon: UserRound, path: "/manage/user" },
+      { key: "room",  label: "房源管理",   icon: Building2, path: "/manage/room" },
     ],
   },
 ];
