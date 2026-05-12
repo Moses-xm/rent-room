@@ -132,9 +132,9 @@ function TypeDonut() {
   let acc = 0;
 
   return (
-    <div className="flex items-center gap-6">
-      <div className="relative shrink-0" style={{ width: 180, height: 180 }}>
-        <svg viewBox="0 0 180 180" width="180" height="180">
+    <div className="flex flex-col items-center gap-4">
+      <div className="relative shrink-0" style={{ width: 160, height: 160 }}>
+        <svg viewBox="0 0 180 180" width="160" height="160">
           {segments.map((d, i) => {
             const el = (
               <circle key={i} cx="90" cy="90" r="70" fill="none"
@@ -156,7 +156,7 @@ function TypeDonut() {
         </div>
       </div>
 
-      <div className="flex-1 flex flex-col gap-3">
+      <div className="w-full flex flex-col gap-2.5">
         {segments.map(d => (
           <div key={d.label} className="flex items-center gap-2.5 text-body">
             <span className="w-2 h-2 rounded-xs shrink-0" style={{ background: d.color }}/>
@@ -164,7 +164,7 @@ function TypeDonut() {
             <span className="font-medium text-text tabular-nums">{d.pct}%</span>
           </div>
         ))}
-        <div className="border-t border-border-subtle pt-3 space-y-2">
+        <div className="border-t border-border-subtle pt-2.5 space-y-2">
           <div className="flex justify-between text-body-sm">
             <span className="text-text-muted">环比上月</span>
             <span className="font-medium text-success">+ 8.4%</span>
@@ -187,7 +187,7 @@ export default function DashboardPage() {
     <div className="space-y-5">
 
       {/* ── 页面头部 ── */}
-      <div className="flex items-end justify-between gap-4">
+      <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <h1 className="font-(family-name:--typeface-display) text-h1 font-heading tracking-tight text-text leading-[1.1] m-0">
             数据看板
@@ -233,9 +233,9 @@ export default function DashboardPage() {
       </div>
 
       {/* ── 图表区 ── */}
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {/* 营收趋势 */}
-        <div className="col-span-2 bg-card border border-border rounded shadow-sm">
+        <div className="md:col-span-2 bg-card border border-border rounded shadow-sm">
           <div className="px-5.5 py-4.5 flex items-center justify-between border-b border-border-subtle">
             <div>
               <div className="text-h4 font-heading text-text tracking-tight">营收趋势</div>
@@ -257,7 +257,7 @@ export default function DashboardPage() {
         </div>
 
         {/* 房源类型分布 */}
-        <div className="col-span-1 bg-card border border-border rounded shadow-sm">
+        <div className="md:col-span-1 bg-card border border-border rounded shadow-sm">
           <div className="px-5.5 py-4.5 border-b border-border-subtle">
             <div className="text-h4 font-heading text-text tracking-tight">房源类型分布</div>
             <div className="text-xs text-text-muted mt-0.75">当前在租结构</div>
@@ -269,7 +269,7 @@ export default function DashboardPage() {
       </div>
 
       {/* ── 列表区 ── */}
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {/* 收藏量 Top 5 */}
         <div className="bg-card border border-border rounded shadow-sm">
           <div className="px-5.5 py-4.5 flex items-center justify-between border-b border-border-subtle">
@@ -325,7 +325,11 @@ export default function DashboardPage() {
                   {o.user[0]}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <div className="text-body font-emphasis text-text truncate">{o.user} · {o.room}</div>
+                  <div className="text-body font-emphasis text-text">
+                    <span className="truncate block sm:hidden">{o.user}</span>
+                    <span className="truncate hidden sm:block">{o.user} · {o.room}</span>
+                  </div>
+                  <div className="text-tiny text-text-muted mt-0.5 truncate sm:hidden">{o.room}</div>
                   <div className="text-tiny text-text-muted mt-0.5">{o.t}</div>
                 </div>
                 <div className="text-right shrink-0">
