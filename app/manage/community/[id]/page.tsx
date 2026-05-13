@@ -30,22 +30,23 @@ type CommunityDetail = {
 /* ─── Dynamic map (read-only, SSR disabled) ───────────────────────────────── */
 const BaiduMapReadonly = dynamic(
   () =>
-    import('@uiw/react-baidu-map').then(({ APILoader, Map, Marker }) => {
-      function ReadonlyMap({ lng, lat }: { lng: number; lat: number }) {
+    import('react-bmapgl').then(({ Map, Marker, MapApiLoaderHOC }) => {
+      const AK = process.env.NEXT_PUBLIC_BAIDU_MAP_AK ?? 'YOUR_BAIDU_MAP_AK';
+      const B = () => (window as Window & { BMapGL: typeof BMapGL }).BMapGL;
+      const SafeMarker = Marker as unknown as React.ComponentType<{ position: BMapGL.Point }>;
+
+      function ReadonlyMapInner({ lng, lat }: { lng: number; lat: number }) {
+        const center = new (B()).Point(lng, lat);
         return (
-          <APILoader akay="">
-            <Map
-              center={{ lng, lat }}
-              zoom={15}
-              style={{ width: '100%', height: '100%' }}
-              enableScrollWheelZoom
-            >
-              <Marker position={{ lng, lat }} />
-            </Map>
-          </APILoader>
+          <Map center={center} zoom={15} style={{ width: '100%', height: '100%' }} enableScrollWheelZoom>
+            <SafeMarker position={center} />
+          </Map>
         );
       }
-      return ReadonlyMap;
+
+      return (MapApiLoaderHOC({ ak: AK })(
+        ReadonlyMapInner as unknown as React.ComponentType
+      ) as unknown) as React.ComponentType<{ lng: number; lat: number }>;
     }),
   {
     ssr: false,
