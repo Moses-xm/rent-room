@@ -938,7 +938,7 @@ API Key 存放在环境变量 `NEXT_PUBLIC_BAIDU_MAP_AK`（客户端可访问）
 | 个人资料 | ✅ 已实现 | `/manage/profile` | |
 | 管理员管理 | ✅ 已实现 | `/manage/admin` | 作为标准参考模块 |
 | 用户管理 | ✅ 已实现 | `/manage/user` | |
-| 小区管理 | ⬜ 待实现 | `/manage/community` | 含百度地图 |
+| 小区管理 | ✅ 已实现 | `/manage/community` | 含百度地图，独立页面 |
 | 房源管理 | ⬜ 待实现 | `/manage/room` | 含富文本编辑 |
 | 房屋设施管理 | ⬜ 待实现 | `/manage/facility` | |
 | 轮播图管理 | ⬜ 待实现 | `/manage/carousel` | |
@@ -967,7 +967,7 @@ API Key 存放在环境变量 `NEXT_PUBLIC_BAIDU_MAP_AK`（客户端可访问）
 |----|------|------|
 | `admin` | ✅ 已建 | |
 | `user` | ✅ 已建 | 含 isActive 字段 |
-| `community` | ⬜ 待建 | |
+| `community` | ✅ 已建 | |
 | `facility` | ⬜ 待建 | |
 | `room` | ⬜ 待建 | |
 | `carousel` | ⬜ 待建 | |

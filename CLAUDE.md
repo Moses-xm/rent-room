@@ -51,6 +51,13 @@ rent-room/
 │   │   │   ├── page.tsx
 │   │   │   ├── user-form-modal.tsx
 │   │   │   └── [id]/page.tsx             # 用户详情页
+│   │   ├── community/
+│   │   │   ├── page.tsx                  # 小区列表
+│   │   │   ├── community-form.tsx        # 新建/编辑共享表单（含地图）
+│   │   │   ├── new/page.tsx              # 新建小区页
+│   │   │   └── [id]/
+│   │   │       ├── page.tsx              # 小区详情页
+│   │   │       └── edit/page.tsx         # 编辑小区页
 │   │   ├── login/page.tsx
 │   │   ├── profile/page.tsx
 │   │   ├── room/page.tsx
@@ -64,6 +71,7 @@ rent-room/
 │   └── page.tsx
 ├── components/                       # 共享 UI 组件
 │   ├── AppLoading.tsx
+│   ├── BaiduMapPicker.tsx            # 百度地图选点组件（双向联动）
 │   ├── CitySelector.tsx
 │   ├── ConfirmDialog.tsx
 │   ├── DataTable.tsx                 # 通用泛型表格（列定义+数据+分页+空态+骨架屏）
@@ -74,6 +82,7 @@ rent-room/
 │   └── Topbar.tsx
 ├── lib/                              # 服务端工具
 │   ├── admin.ts                      # admin 序列化
+│   ├── community.ts                  # community 序列化
 │   ├── user.ts                       # user 序列化
 │   ├── manage-auth.ts                # JWT 签发 / 验证 / 鉴权
 │   ├── prisma.ts                     # Prisma 客户端单例
@@ -100,7 +109,7 @@ rent-room/
 ```
 
 ## 实现状态
-管理平台：登录 ✅、个人资料 ✅、管理员管理 ✅、用户管理 ✅、其余模块 ⬜。用户平台：全部 ⬜。数据库：`admin` 表 ✅、`user` 表 ✅，其余 ⬜。
+管理平台：登录 ✅、个人资料 ✅、管理员管理 ✅、用户管理 ✅、小区管理 ✅、其余模块 ⬜。用户平台：全部 ⬜。数据库：`admin` 表 ✅、`user` 表 ✅、`community` 表 ✅，其余 ⬜。
 
 ## 协作约定
 - 回复用中文，以 **My lord** 开头
