@@ -9,7 +9,7 @@ import { toast } from 'sonner';
 import ConfirmDialog from '@/components/ConfirmDialog';
 import DataTable, { type Column } from '@/components/DataTable';
 import AppLoading from '@/components/AppLoading';
-import { fmtDate, fmtDateTime } from '@/utils/format';
+import { fmtDate } from '@/utils/format';
 import { RENT_TYPE_OPTIONS } from '@/utils/constants';
 
 /* ─── Types ───────────────────────────────────────────────────────────────── */
