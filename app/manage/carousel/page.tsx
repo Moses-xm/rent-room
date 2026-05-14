@@ -3,9 +3,8 @@
 import { useEffect, useState } from 'react';
 import { resolveUploadedFileUrl } from '@/lib/upload-path';
 import { request } from '@/utils/request';
-import { Plus, Pencil, Trash2, Images, ExternalLink, Eye, X } from 'lucide-react';
+import { Plus, Pencil, Trash2, Images, ExternalLink, Eye, X, ArrowUpDown, Hash } from 'lucide-react';
 import { toast } from 'sonner';
-import { Toaster } from 'sonner';
 import CarouselFormModal, {
   type ModalState,
   type CarouselFormData,
@@ -17,9 +16,13 @@ type CarouselItem = {
   id: number;
   image: string;
   path: string;
+  published: boolean;
+  sortOrder: number;
   createdAt: string;
   updatedAt: string;
 };
+
+type SortMode = 'createdAt' | 'order';
 
 /* ─── Helpers ─────────────────────────────────────────────────────────────── */
 function fmtDate(iso: string) {
@@ -37,10 +40,12 @@ export default function CarouselPage() {
   const [list, setList] = useState<CarouselItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [hasLoadedOnce, setHasLoadedOnce] = useState(false);
+  const [sortMode, setSortMode] = useState<SortMode>('createdAt');
   const [refreshKey, setRefreshKey] = useState(0);
 
   const [deleteTarget, setDeleteTarget] = useState<CarouselItem | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [togglingId, setTogglingId] = useState<number | null>(null);
 
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
@@ -48,7 +53,9 @@ export default function CarouselPage() {
     let cancelled = false;
     setLoading(true);
 
-    request<{ success: boolean; data: CarouselItem[] }>('/manage/carousel')
+    request<{ success: boolean; data: CarouselItem[] }>(
+      `/manage/carousel${sortMode === 'order' ? '?sort=order' : ''}`
+    )
       .then((res) => {
         if (cancelled) return;
         if (res.success) setList(res.data);
@@ -62,9 +69,8 @@ export default function CarouselPage() {
       });
 
     return () => { cancelled = true; };
-  }, [refreshKey]);
+  }, [refreshKey, sortMode]);
 
-  // 键盘关闭预览
   useEffect(() => {
     if (!previewUrl) return;
     const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') setPreviewUrl(null); };
@@ -81,6 +87,24 @@ export default function CarouselPage() {
       toast.success('轮播图创建成功');
     }
     setRefreshKey((k) => k + 1);
+  };
+
+  const handleTogglePublish = async (item: CarouselItem) => {
+    if (togglingId === item.id) return;
+    setTogglingId(item.id);
+    try {
+      await request(`/manage/carousel/${item.id}`, {
+        method: 'PATCH',
+        json: { published: !item.published },
+        silent: true,
+      });
+      toast.success(item.published ? '已取消发布' : '发布成功');
+      setRefreshKey((k) => k + 1);
+    } catch {
+      toast.error('操作失败，请重试');
+    } finally {
+      setTogglingId(null);
+    }
   };
 
   const confirmDelete = async () => {
@@ -114,8 +138,6 @@ export default function CarouselPage() {
 
   return (
     <div className="space-y-5">
-      <Toaster position="top-right" richColors />
-
       {/* ── 页面头部 ── */}
       <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
         <div>
@@ -127,6 +149,19 @@ export default function CarouselPage() {
           </div>
         </div>
         <div className="flex gap-2 shrink-0">
+          {/* 排序切换 */}
+          <button
+            onClick={() => setSortMode((m) => m === 'createdAt' ? 'order' : 'createdAt')}
+            title={sortMode === 'createdAt' ? '当前：按创建时间降序，点击切换为自定义顺序' : '当前：按自定义顺序升序，点击切换为创建时间'}
+            className={`h-8.5 px-3 text-body rounded-sm font-medium border transition-colors
+                        flex items-center gap-1.5
+                        ${sortMode === 'order'
+                          ? 'bg-primary/10 border-primary text-primary hover:bg-primary/20'
+                          : 'bg-card border-border text-text-2 hover:bg-surface-2'}`}
+          >
+            {sortMode === 'order' ? <Hash size={13} /> : <ArrowUpDown size={13} />}
+            {sortMode === 'order' ? '自定义顺序' : '创建时间'}
+          </button>
           <button
             onClick={() => setModalState({ mode: 'add' })}
             className="h-8.5 px-3.5 text-body rounded-sm font-medium
@@ -151,6 +186,7 @@ export default function CarouselPage() {
         <div className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 transition-opacity duration-150 ${loading ? 'opacity-50 pointer-events-none' : ''}`}>
           {list.map((item) => {
             const imageUrl = resolveUploadedFileUrl(item.image);
+            const isToggling = togglingId === item.id;
             return (
               <div
                 key={item.id}
@@ -173,9 +209,23 @@ export default function CarouselPage() {
                       <Images size={32} className="text-text-disabled" />
                     </div>
                   )}
-                  {/* ID 标签 */}
-                  <span className="absolute top-2 left-2 text-tiny font-mono bg-black/50 text-white px-1.5 py-0.5 rounded">
-                    #{item.id}
+
+                  {/* 左上：顺序 */}
+                  <div className="absolute top-2 left-2 flex items-center gap-1">
+                    <span className="text-tiny font-mono bg-black/50 text-white px-1.5 py-0.5 rounded flex items-center gap-0.5">
+                      <Hash size={9} />
+                      {item.sortOrder}
+                    </span>
+                  </div>
+
+                  {/* 右上：发布状态 */}
+                  <span
+                    className={`absolute top-2 right-2 text-tiny font-medium px-1.5 py-0.5 rounded
+                                ${item.published
+                                  ? 'bg-success/90 text-white'
+                                  : 'bg-black/50 text-white/70'}`}
+                  >
+                    {item.published ? '已发布' : '未发布'}
                   </span>
                 </div>
 
@@ -194,6 +244,32 @@ export default function CarouselPage() {
                     </div>
                     {/* 操作按钮 */}
                     <div className="flex items-center gap-0.5">
+                      {/* 快捷发布/取消发布 */}
+                      <button
+                        role="switch"
+                        aria-checked={item.published}
+                        onClick={() => handleTogglePublish(item)}
+                        disabled={isToggling}
+                        title={item.published ? '点击取消发布' : '点击发布'}
+                        className="flex items-center gap-1.5 px-1 h-7 rounded-sm
+                                   hover:bg-surface-2 transition-colors
+                                   disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        <span
+                          className={`relative inline-flex h-4 w-7 shrink-0 rounded-full border-2 border-transparent
+                                      transition-colors duration-200
+                                      ${item.published ? 'bg-success' : 'bg-border'}`}
+                        >
+                          <span
+                            className={`pointer-events-none inline-block h-3 w-3 rounded-full bg-white shadow
+                                        transform transition-transform duration-200
+                                        ${item.published ? 'translate-x-3' : 'translate-x-0'}`}
+                          />
+                        </span>
+                        <span className={`text-tiny font-medium ${item.published ? 'text-success' : 'text-text-muted'}`}>
+                          {item.published ? '已发布' : '未发布'}
+                        </span>
+                      </button>
                       <button
                         onClick={() => imageUrl && setPreviewUrl(imageUrl)}
                         title="预览"

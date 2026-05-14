@@ -10,12 +10,16 @@ import { request } from '@/utils/request';
 export type CarouselFormData = {
   image: string;
   path: string;
+  published: boolean;
+  sortOrder: number;
 };
 
 export type EditableCarousel = {
   id: number;
   image: string;
   path: string;
+  published: boolean;
+  sortOrder: number;
 };
 
 export type ModalState =
@@ -55,7 +59,7 @@ function normalizePath(value: string | null | undefined) {
 
 /* ─── Component ───────────────────────────────────────────────────────────── */
 export default function CarouselFormModal({ state, onClose, onSaved }: Props) {
-  const [form, setForm] = useState<CarouselFormData>({ image: '', path: '' });
+  const [form, setForm] = useState<CarouselFormData>({ image: '', path: '', published: false, sortOrder: 0 });
   const [errors, setErrors] = useState<Partial<Record<keyof CarouselFormData, string>>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
@@ -68,10 +72,15 @@ export default function CarouselFormModal({ state, onClose, onSaved }: Props) {
     if (!state) return;
     if (state.mode === 'edit') {
       initialImageRef.current = normalizePath(state.item.image);
-      setForm({ image: state.item.image, path: state.item.path });
+      setForm({
+        image: state.item.image,
+        path: state.item.path,
+        published: state.item.published,
+        sortOrder: state.item.sortOrder,
+      });
     } else {
       initialImageRef.current = '';
-      setForm({ image: '', path: '' });
+      setForm({ image: '', path: '', published: false, sortOrder: 0 });
     }
     setErrors({});
     setIsSubmitting(false);
@@ -88,6 +97,7 @@ export default function CarouselFormModal({ state, onClose, onSaved }: Props) {
     const e: Partial<Record<keyof CarouselFormData, string>> = {};
     if (!form.image.trim()) e.image = '请上传轮播图图片';
     if (!form.path.trim()) e.path = '跳转路径不能为空';
+    if (isNaN(form.sortOrder) || form.sortOrder < 0) e.sortOrder = '顺序须为非负整数';
     setErrors(e);
     return Object.keys(e).length === 0;
   };
@@ -144,7 +154,7 @@ export default function CarouselFormModal({ state, onClose, onSaved }: Props) {
     finally { setIsCleaningImage(false); }
   };
 
-  const handleSubmit = async (ev: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (ev: { preventDefault(): void }) => {
     ev.preventDefault();
     if (!validate()) return;
     setIsSubmitting(true);
@@ -166,7 +176,7 @@ export default function CarouselFormModal({ state, onClose, onSaved }: Props) {
               {editingId ? '编辑轮播图' : '新增轮播图'}
             </h2>
             <p className="text-body-sm text-text-muted mt-1">
-              {editingId ? '修改图片或跳转链接。' : '上传图片并设置点击后的跳转路径。'}
+              {editingId ? '修改图片、链接、发布状态或顺序。' : '上传图片并设置跳转路径和展示顺序。'}
             </p>
           </div>
           <button
@@ -190,7 +200,6 @@ export default function CarouselFormModal({ state, onClose, onSaved }: Props) {
                 轮播图片 <span className="text-danger">*</span>
               </label>
 
-              {/* 预览大图 */}
               {imagePreviewUrl ? (
                 <div className="relative w-full aspect-[2/1] rounded-sm overflow-hidden border border-border bg-surface">
                   <img
@@ -223,7 +232,6 @@ export default function CarouselFormModal({ state, onClose, onSaved }: Props) {
                 </div>
               )}
 
-              {/* 上传按钮区 */}
               <div className="flex items-center gap-2 flex-wrap">
                 <button
                   type="button"
@@ -279,6 +287,54 @@ export default function CarouselFormModal({ state, onClose, onSaved }: Props) {
               ) : (
                 <p className={hintCls}>点击轮播图后跳转的页面路径，支持站内路径或完整 URL。</p>
               )}
+            </div>
+
+            {/* 顺序 + 发布状态 并排 */}
+            <div className="flex gap-4">
+              {/* 展示顺序 */}
+              <div className="w-40 shrink-0 space-y-1.5">
+                <label className={labelCls}>展示顺序</label>
+                <input
+                  type="number"
+                  min={0}
+                  step={1}
+                  value={form.sortOrder}
+                  onChange={(e) => setForm({ ...form, sortOrder: parseInt(e.target.value) || 0 })}
+                  className={inputCls(errors.sortOrder)}
+                  placeholder="0"
+                />
+                {errors.sortOrder ? (
+                  <p className="text-caption text-danger">{errors.sortOrder}</p>
+                ) : (
+                  <p className={hintCls}>数值越小越靠前，0 为默认。</p>
+                )}
+              </div>
+
+              {/* 发布状态 */}
+              <div className="flex-1 space-y-1.5">
+                <label className={labelCls}>发布状态</label>
+                <div className="h-9 flex items-center">
+                  <button
+                    type="button"
+                    role="switch"
+                    aria-checked={form.published}
+                    onClick={() => setForm((prev) => ({ ...prev, published: !prev.published }))}
+                    className={`relative inline-flex h-5.5 w-10 shrink-0 cursor-pointer rounded-full border-2 border-transparent
+                                transition-colors duration-200 focus:outline-none
+                                ${form.published ? 'bg-primary' : 'bg-border'}`}
+                  >
+                    <span
+                      className={`pointer-events-none inline-block h-4.5 w-4.5 rounded-full bg-white shadow
+                                  transform transition-transform duration-200
+                                  ${form.published ? 'translate-x-4.5' : 'translate-x-0'}`}
+                    />
+                  </button>
+                  <span className={`ml-2 text-body-sm ${form.published ? 'text-primary font-medium' : 'text-text-muted'}`}>
+                    {form.published ? '已发布' : '未发布'}
+                  </span>
+                </div>
+                <p className={hintCls}>仅已发布图片在 Portal 展示。</p>
+              </div>
             </div>
           </div>
 

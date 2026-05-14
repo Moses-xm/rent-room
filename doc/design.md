@@ -254,6 +254,8 @@ model Carousel {
   id        Int      @id @default(autoincrement())
   image     String   @db.VarChar(500)
   path      String   @db.VarChar(500)
+  published Boolean  @default(false)
+  sortOrder Int      @default(0)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -719,8 +721,11 @@ import AppLoading from '@/components/AppLoading';
 
 #### 轮播图管理 (`/manage/carousel`)
 
-- 页面功能：轮播图列表、新建（上传图片 + 跳转路径）、编辑、删除
-- API：`GET/POST /api/manage/carousel`，`PUT/DELETE /api/manage/carousel/[id]`
+- 页面功能：轮播图卡片列表、新建（上传图片 + 跳转路径 + 发布状态 + 展示顺序）、编辑、删除
+- 快捷操作：卡片上一键发布/取消发布；图片左上角显示 ID 和自定义顺序，右上角显示发布状态
+- 排序切换：支持「按创建时间降序」和「按自定义顺序升序」两种排列方式
+- API：`GET/POST /api/manage/carousel`，`PUT/PATCH/DELETE /api/manage/carousel/[id]`（PATCH 用于快捷发布切换）
+- Portal 仅展示 `published = true` 的轮播图，按 `sortOrder` 升序排列
 
 #### 收藏管理 (`/manage/collection`)
 
