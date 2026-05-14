@@ -38,7 +38,8 @@ model user {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  rooms room[]
+  rooms       room[]
+  collections collection[]
 }
 
 model community {
@@ -111,6 +112,20 @@ model room {
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
 
-  community community @relation(fields: [cmyId], references: [id])
-  publisher user      @relation(fields: [publisherId], references: [id])
+  community   community    @relation(fields: [cmyId], references: [id])
+  publisher   user         @relation(fields: [publisherId], references: [id])
+  collections collection[]
+}
+
+model collection {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  roomId    Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user user @relation(fields: [userId], references: [id])
+  room room @relation(fields: [roomId], references: [id])
+
+  @@unique([userId, roomId])
 }

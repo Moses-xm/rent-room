@@ -3,7 +3,7 @@
 import Link from "next/link";
 import AppLogo from "@/components/AppLogo";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, Building2, Users, UserRound, MapPin, ChevronsLeft, ChevronsRight, X, GalleryHorizontal, Wrench } from "lucide-react";
+import { LayoutDashboard, Building2, Users, UserRound, MapPin, ChevronsLeft, ChevronsRight, X, GalleryHorizontal, Wrench, Heart } from "lucide-react";
 
 const NAV_GROUPS = [
   {
@@ -20,7 +20,8 @@ const NAV_GROUPS = [
       { key: "community", label: "小区管理",   icon: MapPin,    path: "/manage/community" },
       { key: "room",      label: "房源管理",   icon: Building2,          path: "/manage/room" },
       { key: "facility",  label: "房屋设施",   icon: Wrench,             path: "/manage/facility" },
-      { key: "carousel",  label: "轮播图管理", icon: GalleryHorizontal,  path: "/manage/carousel" },
+      { key: "carousel",    label: "轮播图管理", icon: GalleryHorizontal,  path: "/manage/carousel" },
+      { key: "collection",  label: "收藏管理",   icon: Heart,             path: "/manage/collection" },
     ],
   },
 ];

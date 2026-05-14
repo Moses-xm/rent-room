@@ -735,10 +735,12 @@ import AppLoading from '@/components/AppLoading';
 - API：`GET/POST /api/manage/carousel`，`PUT/PATCH/DELETE /api/manage/carousel/[id]`（PATCH 用于快捷发布切换）
 - Portal 仅展示 `published = true` 的轮播图，按 `sortOrder` 升序排列
 
-#### 收藏管理 (`/manage/collection`)
+#### 收藏管理 (`/manage/collection`) ✅
 
-- 页面功能：收藏记录列表（只读，支持按用户/房源搜索）、删除
-- API：`GET /api/manage/collection`，`DELETE /api/manage/collection/[id]`
+- 页面功能：收藏记录列表（支持按用户名/昵称/房源名/编号搜索）、新增、编辑、删除
+- API：`GET/POST /api/manage/collection`，`PUT/DELETE /api/manage/collection/[id]`
+- 新增/编辑弹窗：用户和房源均支持搜索过滤的可滚动列表选择；同一用户+房源组合唯一约束（409 冲突提示）
+- 序列化：`lib/collection.ts`，列表响应含关联的 `user`（id/username/nickname）和 `room`（id/name/roomCode）字段
 
 #### 预约看房管理 (`/manage/appointment`)
 
@@ -955,7 +957,7 @@ API Key 存放在环境变量 `NEXT_PUBLIC_BAIDU_MAP_AK`（客户端可访问）
 | 房源管理 | ✅ 已实现 | `/manage/room` | 含 Markdown 编辑、多图上传、省市区筛选小区 |
 | 房屋设施管理 | ✅ 已实现 | `/manage/facility` | |
 | 轮播图管理 | ✅ 已实现 | `/manage/carousel` | 卡片展示，含图片上传 |
-| 收藏管理 | ⬜ 待实现 | `/manage/collection` | 只读列表 |
+| 收藏管理 | ✅ 已实现 | `/manage/collection` | |
 | 预约管理 | ⬜ 待实现 | `/manage/appointment` | 只读列表 |
 | 合同管理 | ⬜ 待实现 | `/manage/contract` | 只读列表 |
 | 订单管理 | ⬜ 待实现 | `/manage/order` | 只读列表 |
@@ -984,7 +986,7 @@ API Key 存放在环境变量 `NEXT_PUBLIC_BAIDU_MAP_AK`（客户端可访问）
 | `facility` | ✅ 已建 | |
 | `room` | ✅ 已建 | |
 | `carousel` | ✅ 已建 | |
-| `collection` | ⬜ 待建 | |
+| `collection` | ✅ 已建 | |
 | `appointment` | ⬜ 待建 | |
 | `contract` | ⬜ 待建 | |
 | `order` | ⬜ 待建 | |

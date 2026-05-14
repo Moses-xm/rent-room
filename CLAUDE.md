@@ -70,6 +70,9 @@ rent-room/
 │   │   ├── facility/
 │   │   │   ├── page.tsx              # 房屋设施列表
 │   │   │   └── facility-form-modal.tsx
+│   │   ├── collection/
+│   │   │   ├── page.tsx              # 收藏记录列表
+│   │   │   └── collection-form-modal.tsx
 │   │   ├── room/
 │   │   │   ├── page.tsx              # 房源列表页
 │   │   │   ├── room-form.tsx         # 新建/编辑共享表单（含 MD 编辑器、多图上传）
@@ -101,6 +104,7 @@ rent-room/
 ├── lib/                              # 服务端工具
 │   ├── admin.ts                      # admin 序列化
 │   ├── carousel.ts                   # carousel 序列化
+│   ├── collection.ts                 # collection 序列化
 │   ├── community.ts                  # community 序列化
 │   ├── facility.ts                   # facility 序列化
 │   ├── user.ts                       # user 序列化
@@ -131,7 +135,7 @@ rent-room/
 ```
 
 ## 实现状态
-管理平台：登录 ✅、个人资料 ✅、管理员管理 ✅、用户管理 ✅、小区管理 ✅、轮播图管理 ✅、房屋设施管理 ✅、房源管理 ✅、其余模块 ⬜。用户平台：全部 ⬜。数据库：`admin` 表 ✅、`user` 表 ✅、`community` 表 ✅、`carousel` 表 ✅、`facility` 表 ✅、`room` 表 ✅，其余 ⬜。
+管理平台：登录 ✅、个人资料 ✅、管理员管理 ✅、用户管理 ✅、小区管理 ✅、轮播图管理 ✅、房屋设施管理 ✅、房源管理 ✅、收藏管理 ✅、其余模块 ⬜。用户平台：全部 ⬜。数据库：`admin` 表 ✅、`user` 表 ✅、`community` 表 ✅、`carousel` 表 ✅、`facility` 表 ✅、`room` 表 ✅、`collection` 表 ✅，其余 ⬜。
 
 ## 协作约定
 - 回复用中文，以 **My lord** 开头
