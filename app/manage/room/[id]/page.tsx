@@ -135,12 +135,15 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
   );
 }
 
-function Section({ title, icon, children }: { title: string; icon: React.ReactNode; children: React.ReactNode }) {
+function Section({ title, icon, action, children }: { title: string; icon: React.ReactNode; action?: React.ReactNode; children: React.ReactNode }) {
   return (
     <div className="bg-card border border-border rounded-md shadow-sm overflow-hidden">
-      <div className="flex items-center gap-2 px-5 py-3 border-b border-border-subtle bg-surface">
-        <span className="text-text-disabled">{icon}</span>
-        <span className="text-body-sm font-emphasis text-text-2">{title}</span>
+      <div className="flex items-center justify-between gap-2 px-5 py-3 border-b border-border-subtle bg-surface">
+        <div className="flex items-center gap-2">
+          <span className="text-text-disabled">{icon}</span>
+          <span className="text-body-sm font-emphasis text-text-2">{title}</span>
+        </div>
+        {action}
       </div>
       <div className="px-5">{children}</div>
     </div>
@@ -386,15 +389,16 @@ export default function RoomDetailPage() {
 
           {/* 发布人 */}
           {room.publisher && (
-            <Section title="发布人信息" icon={<User size={14} />}>
-              <Field label="用户名">
-                <Link
-                  href={`/manage/user/${room.publisher.id}`}
-                  className="text-primary hover:underline"
-                >
-                  {room.publisher.username}
+            <Section
+              title="发布人信息"
+              icon={<User size={14} />}
+              action={
+                <Link href={`/manage/user/${room.publisher.id}`} className="text-body-sm text-primary hover:underline">
+                  查看详情
                 </Link>
-              </Field>
+              }
+            >
+              <Field label="用户名">{room.publisher.username}</Field>
               {room.publisher.nickname && <Field label="昵称">{room.publisher.nickname}</Field>}
               {room.publisher.realname && <Field label="姓名">{room.publisher.realname}</Field>}
               {room.publisher.phone && <Field label="手机">{room.publisher.phone}</Field>}
