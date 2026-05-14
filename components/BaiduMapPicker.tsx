@@ -48,27 +48,43 @@ function BaiduMapPickerInner({
   const onPickRef = useRef(onPick);
   useEffect(() => { onPickRef.current = onPick; });
 
+  // Set to true after a map click so the next addressQuery effect skips geocoding.
+  // Without this, onPick updates the form → addressQuery changes → effect re-centers
+  // to the geocoded address midpoint, overriding the precise clicked coordinates.
+  const skipNextQueryRef = useRef(false);
+
   // Re-center when address fields change; zoom comes from parent via zoomRef
   useEffect(() => {
     const query = addressQuery?.trim() ?? '';
     if (!query) return;
+    if (skipNextQueryRef.current) {
+      skipNextQueryRef.current = false;
+      return;
+    }
     new (B()).Geocoder().getPoint(query, (point) => {
       const p = point as BMapGL.Point | null;
       if (!p) return;
       const pt = new (B()).Point(p.lng, p.lat);
       setCenter(pt);
-      // centerAndZoom is imperative-path backup; the zoom prop change (parent setState)
-      // is the primary path that triggers BMapGLMap to reapply the zoom value.
       mapRef.current?.map?.centerAndZoom(pt, zoomRef.current);
     }, '');
   }, [addressQuery]);
 
-  // Map click: reverse-geocode → fill address + coordinates, no zoom/center change
+  // Map click: re-center immediately on clicked point, then reverse-geocode for address fill
   const handleClick = (e: Event) => {
     const { latlng } = e as Event & { latlng: BMapGL.Point };
     if (!latlng) return;
     const { lng, lat } = latlng;
-    new (B()).Geocoder().getLocation(new (B()).Point(lng, lat), (result) => {
+    const pt = new (B()).Point(lng, lat);
+
+    // Center on the exact clicked point right away (consistent, no async delay)
+    setCenter(pt);
+    mapRef.current?.map?.panTo(pt);
+
+    // Block the addressQuery re-center that would fire when onPick updates the form
+    skipNextQueryRef.current = true;
+
+    new (B()).Geocoder().getLocation(pt, (result) => {
       if (!result) return;
       const ac = result.addressComponents;
       onPickRef.current({
