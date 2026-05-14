@@ -12,6 +12,7 @@ import FacilityFormModal, {
   type ModalState,
   type FacilityFormData,
 } from './facility-form-modal';
+import { fmtDateTime } from '@/utils/format';
 
 /* ─── Types ───────────────────────────────────────────────────────────────── */
 type Facility = {
@@ -32,17 +33,6 @@ type FacilitiesResponse = {
 };
 
 /* ─── Helpers ─────────────────────────────────────────────────────────────── */
-function fmtDateTime(iso: string) {
-  if (!iso) return '—';
-  const d = new Date(iso);
-  const y = d.getFullYear();
-  const mo = String(d.getMonth() + 1).padStart(2, '0');
-  const day = String(d.getDate()).padStart(2, '0');
-  const h = String(d.getHours()).padStart(2, '0');
-  const min = String(d.getMinutes()).padStart(2, '0');
-  return `${y}-${mo}-${day} ${h}:${min}`;
-}
-
 async function fetchFacilities(params: { page: number; limit: number; search?: string }) {
   const qs = new URLSearchParams();
   qs.set('page', String(params.page));

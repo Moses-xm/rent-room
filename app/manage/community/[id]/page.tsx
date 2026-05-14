@@ -10,6 +10,7 @@ import { BAIDU_MAP_AK } from '@/utils/constants';
 import {
   ArrowLeft, ChevronRight, Pencil, MapPin, Train, Calendar, RefreshCw, Loader2,
 } from 'lucide-react';
+import { fmtDateTime } from '@/utils/format';
 
 /* ─── Types ───────────────────────────────────────────────────────────────── */
 type CommunityDetail = {
@@ -59,15 +60,6 @@ const BaiduMapReadonly = dynamic(
 );
 
 /* ─── Helpers ─────────────────────────────────────────────────────────────── */
-function fmtDateTime(iso: string) {
-  if (!iso) return '—';
-  const d = new Date(iso);
-  return [
-    [d.getFullYear(), d.getMonth() + 1, d.getDate()].map((v, i) => String(v).padStart(i ? 2 : 4, '0')).join('-'),
-    [d.getHours(), d.getMinutes(), d.getSeconds()].map((v) => String(v).padStart(2, '0')).join(':'),
-  ].join(' ');
-}
-
 function parseSubwayLines(raw: string | null): string[] {
   if (!raw) return [];
   try {

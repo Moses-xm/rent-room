@@ -10,6 +10,7 @@ import CarouselFormModal, {
   type CarouselFormData,
 } from './carousel-form-modal';
 import ConfirmDialog from '@/components/ConfirmDialog';
+import { fmtDate } from '@/utils/format';
 
 /* ─── Types ───────────────────────────────────────────────────────────────── */
 type CarouselItem = {
@@ -23,16 +24,6 @@ type CarouselItem = {
 };
 
 type SortMode = 'createdAt' | 'order';
-
-/* ─── Helpers ─────────────────────────────────────────────────────────────── */
-function fmtDate(iso: string) {
-  if (!iso) return '—';
-  const d = new Date(iso);
-  const y = d.getFullYear();
-  const mo = String(d.getMonth() + 1).padStart(2, '0');
-  const day = String(d.getDate()).padStart(2, '0');
-  return `${y}-${mo}-${day}`;
-}
 
 /* ─── Page ────────────────────────────────────────────────────────────────── */
 export default function CarouselPage() {

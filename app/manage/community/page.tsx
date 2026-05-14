@@ -10,6 +10,7 @@ import ConfirmDialog from '@/components/ConfirmDialog';
 import Pagination from '@/components/Pagination';
 import DataTable, { type Column } from '@/components/DataTable';
 import AppLoading from '@/components/AppLoading';
+import { fmtDateTime } from '@/utils/format';
 
 /* ─── Types ───────────────────────────────────────────────────────────────── */
 type Community = {
@@ -38,17 +39,6 @@ type ListResponse = {
 };
 
 /* ─── Helpers ─────────────────────────────────────────────────────────────── */
-function fmtDateTime(iso: string) {
-  if (!iso) return '—';
-  const d = new Date(iso);
-  const y = d.getFullYear();
-  const mo = String(d.getMonth() + 1).padStart(2, '0');
-  const day = String(d.getDate()).padStart(2, '0');
-  const h = String(d.getHours()).padStart(2, '0');
-  const min = String(d.getMinutes()).padStart(2, '0');
-  return `${y}-${mo}-${day} ${h}:${min}`;
-}
-
 function parseSubwayLines(raw: string | null): string {
   if (!raw) return '—';
   try {
