@@ -1,8 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { normalizeUploadPathForStorage } from '@/lib/upload-path';
+import { isManagedUploadPath, normalizeUploadPathForStorage } from '@/lib/upload-path';
+import { deleteUploadedPicture } from '@/lib/uploaded-file';
 import { requireManageAuth } from '@/lib/manage-auth';
 import { prisma } from '@/lib/prisma';
 import { serializeRoom } from '@/lib/room';
+
+function parseImagePaths(raw: string): string[] {
+  try { const arr = JSON.parse(raw || '[]'); return Array.isArray(arr) ? arr : []; }
+  catch { return []; }
+}
+
+function cleanupFiles(paths: string[]) {
+  const managed = paths.filter(isManagedUploadPath);
+  if (managed.length) Promise.allSettled(managed.map(deleteUploadedPicture)).catch(() => {});
+}
 
 const communitySelect = {
   id: true, name: true, province: true, city: true,
@@ -117,6 +128,14 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
       },
     });
 
+    // 清理被移除的孤儿文件（fire-and-forget）
+    const orphans: string[] = [];
+    if (normalizedCover !== existing.cover) orphans.push(existing.cover);
+    const oldImagePaths = parseImagePaths(existing.images);
+    const newImageSet = new Set(parseImagePaths(normalizedImages));
+    for (const p of oldImagePaths) { if (!newImageSet.has(p)) orphans.push(p); }
+    cleanupFiles(orphans);
+
     return NextResponse.json({ success: true, data: serializeRoom(item) });
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : '服务器内部错误';
@@ -137,6 +156,9 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
     if (!existing) return NextResponse.json({ success: false, message: '房源不存在' }, { status: 404 });
 
     await prisma.room.delete({ where: { id: roomId } });
+
+    // 删除房源时清理所有关联文件
+    cleanupFiles([existing.cover, ...parseImagePaths(existing.images)]);
 
     return NextResponse.json({ success: true, data: { id: roomId } });
   } catch (error: unknown) {

@@ -11,6 +11,7 @@ import { toast } from 'sonner';
 import { isManagedUploadPath, resolveUploadedFileUrl } from '@/lib/upload-path';
 import { request } from '@/utils/request';
 import { getManageCity, getManageProvince } from '@/utils/manage-city';
+import { getManageToken } from '@/utils/manage-auth';
 import { FONT_FAMILY, MUNICIPALITY_PROVINCES, RENT_TYPE_OPTIONS, ROOM_TYPE_OPTIONS, DIRECTION_OPTIONS, LEVEL_OPTIONS, LIFT_OPTIONS } from '@/utils/constants';
 import areaData from '@/localData/area.json';
 
@@ -136,6 +137,12 @@ export default function RoomForm({ title, subtitle, initialData, onSubmit, backH
   const [errors, setErrors] = useState<Partial<Record<keyof RoomFormData | string, string>>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // Tracks latest form state for cleanup closures (refs are stable across renders)
+  const formRef = useRef(form);
+  formRef.current = form;
+  // Set to true on successful save so cleanup doesn't delete committed files
+  const savedRef = useRef(false);
+
   // Province/city/district for community filtering
   const [filterProvince, setFilterProvince] = useState('');
   const [filterCity, setFilterCity] = useState('');
@@ -228,6 +235,34 @@ export default function RoomForm({ title, subtitle, initialData, onSubmit, backH
     setForm({ ...DEFAULT_FORM, ...initialData });
     initialCoverRef.current = initialData.cover ?? '';
     initialImagesRef.current = initialData.images ?? [];
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  /* ── Abandon cleanup: delete transient files when user leaves without saving ── */
+  useEffect(() => {
+    const deleteFiles = (keepalive: boolean) => {
+      if (savedRef.current) return;
+      const f = formRef.current;
+      const token = getManageToken();
+      const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+      if (token) headers['Authorization'] = `Bearer ${token}`;
+
+      const cover = f.cover.trim();
+      if (cover && isManagedUploadPath(cover) && cover !== initialCoverRef.current.trim()) {
+        fetch('/api/upload/avatar', { method: 'DELETE', headers, body: JSON.stringify({ path: cover }), keepalive }).catch(() => {});
+      }
+      for (const img of f.images) {
+        if (!initialImagesRef.current.includes(img) && isManagedUploadPath(img)) {
+          fetch('/api/upload/pictures', { method: 'DELETE', headers, body: JSON.stringify({ path: img }), keepalive }).catch(() => {});
+        }
+      }
+    };
+
+    const onBeforeUnload = () => deleteFiles(true);
+    window.addEventListener('beforeunload', onBeforeUnload);
+    return () => {
+      window.removeEventListener('beforeunload', onBeforeUnload);
+      deleteFiles(false); // soft-nav / component unmount
+    };
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   /* ── Selected community ── */
@@ -387,6 +422,7 @@ export default function RoomForm({ title, subtitle, initialData, onSubmit, backH
     setIsSubmitting(true);
     try {
       await onSubmit(form);
+      savedRef.current = true; // prevent abandon-cleanup from deleting committed files
     } catch (err) {
       console.error(err);
     } finally {
