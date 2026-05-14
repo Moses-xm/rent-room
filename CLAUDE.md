@@ -21,6 +21,7 @@ Next.js 15 App Router · shadcn/ui + Tailwind CSS v4 · Neon Postgres + Prisma �
 - **错误处理**：`request()` 自动处理 4xx/5xx 异常并显示 toast 错误提示，页面层只需处理业务逻辑和成功提示；特殊场景（表单级错误展示、后台清理操作）传 `silent: true` 参数抑制 toast
 - **骨架屏（必须）**：所有页面首次加载不允许白屏。列表页桌面端由 `DataTable` 自动处理，移动端用 `<AppLoading variant="card" />`；详情/表单页在 `if (loading)` 提前返回，用 `skeleton-shimmer` / `skeleton-shimmer-warm` 类搭建与真实布局结构对应的骨架
 - **Toaster 禁止重复渲染**：`ManageLayoutShell` 已全局挂载 `<Toaster />`，各页面只需 `import { toast } from 'sonner'` 调用即可，**不得**在页面内再渲染 `<Toaster />`，否则会在内容区占位，导致顶部间距异常
+- **全大写常量统一存放**：所有大写命名的常量（如魔法数字、枚举值、配置项）一律定义在 `utils/constants.ts`，禁止在页面或组件内就地声明
 
 ## 文件上传
 1. `POST /api/upload/avatar`（FormData）→ `{ path: string }`
@@ -98,6 +99,7 @@ rent-room/
 │   ├── upload-path.ts                # 上传路径工具
 │   └── uploaded-file.ts              # Vercel Blob 操作封装
 ├── utils/                            # 客户端工具
+│   ├── constants.ts                  # 全大写常量统一入口
 │   ├── manage-auth.ts                # token 本地存取
 │   ├── manage-city.ts                # 城市数据工具
 │   ├── request.ts                    # fetch 封装，自动注入 token
