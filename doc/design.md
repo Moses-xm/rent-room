@@ -941,7 +941,7 @@ API Key 存放在环境变量 `NEXT_PUBLIC_BAIDU_MAP_AK`（客户端可访问）
 | 小区管理 | ✅ 已实现 | `/manage/community` | 含百度地图，独立页面 |
 | 房源管理 | ⬜ 待实现 | `/manage/room` | 含富文本编辑 |
 | 房屋设施管理 | ⬜ 待实现 | `/manage/facility` | |
-| 轮播图管理 | ⬜ 待实现 | `/manage/carousel` | |
+| 轮播图管理 | ✅ 已实现 | `/manage/carousel` | 卡片展示，含图片上传 |
 | 收藏管理 | ⬜ 待实现 | `/manage/collection` | 只读列表 |
 | 预约管理 | ⬜ 待实现 | `/manage/appointment` | 只读列表 |
 | 合同管理 | ⬜ 待实现 | `/manage/contract` | 只读列表 |
@@ -970,7 +970,7 @@ API Key 存放在环境变量 `NEXT_PUBLIC_BAIDU_MAP_AK`（客户端可访问）
 | `community` | ✅ 已建 | |
 | `facility` | ⬜ 待建 | |
 | `room` | ⬜ 待建 | |
-| `carousel` | ⬜ 待建 | |
+| `carousel` | ✅ 已建 | |
 | `collection` | ⬜ 待建 | |
 | `appointment` | ⬜ 待建 | |
 | `contract` | ⬜ 待建 | |

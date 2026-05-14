@@ -58,6 +58,9 @@ rent-room/
 │   │   │   └── [id]/
 │   │   │       ├── page.tsx              # 小区详情页
 │   │   │       └── edit/page.tsx         # 编辑小区页
+│   │   ├── carousel/
+│   │   │   ├── page.tsx              # 轮播图卡片列表
+│   │   │   └── carousel-form-modal.tsx
 │   │   ├── login/page.tsx
 │   │   ├── profile/page.tsx
 │   │   ├── room/page.tsx
@@ -82,6 +85,7 @@ rent-room/
 │   └── Topbar.tsx
 ├── lib/                              # 服务端工具
 │   ├── admin.ts                      # admin 序列化
+│   ├── carousel.ts                   # carousel 序列化
 │   ├── community.ts                  # community 序列化
 │   ├── user.ts                       # user 序列化
 │   ├── manage-auth.ts                # JWT 签发 / 验证 / 鉴权
@@ -109,7 +113,7 @@ rent-room/
 ```
 
 ## 实现状态
-管理平台：登录 ✅、个人资料 ✅、管理员管理 ✅、用户管理 ✅、小区管理 ✅、其余模块 ⬜。用户平台：全部 ⬜。数据库：`admin` 表 ✅、`user` 表 ✅、`community` 表 ✅，其余 ⬜。
+管理平台：登录 ✅、个人资料 ✅、管理员管理 ✅、用户管理 ✅、小区管理 ✅、轮播图管理 ✅、其余模块 ⬜。用户平台：全部 ⬜。数据库：`admin` 表 ✅、`user` 表 ✅、`community` 表 ✅、`carousel` 表 ✅，其余 ⬜。
 
 ## 协作约定
 - 回复用中文，以 **My lord** 开头
