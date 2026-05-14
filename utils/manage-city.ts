@@ -1,28 +1,29 @@
 export const MANAGE_CITY_KEY = "cur-city";
+export const MANAGE_PROVINCE_KEY = "cur-province";
 export const MANAGE_CITY_CHANGED_EVENT = "manage-city-changed";
 export const DEFAULT_MANAGE_CITY = "杭州市";
+export const DEFAULT_MANAGE_PROVINCE = "浙江省";
 
-function normalizeCity(city: string | null | undefined) {
-  return city?.trim() ?? "";
+function normalize(val: string | null | undefined) {
+  return val?.trim() ?? "";
 }
 
 export function getManageCity() {
-  if (typeof window === "undefined") {
-    return DEFAULT_MANAGE_CITY;
-  }
-
-  const city = normalizeCity(window.localStorage.getItem(MANAGE_CITY_KEY));
-  return city || DEFAULT_MANAGE_CITY;
+  if (typeof window === "undefined") return DEFAULT_MANAGE_CITY;
+  return normalize(window.localStorage.getItem(MANAGE_CITY_KEY)) || DEFAULT_MANAGE_CITY;
 }
 
-export function setManageCity(city: string) {
-  if (typeof window === "undefined") {
-    return;
-  }
+export function getManageProvince() {
+  if (typeof window === "undefined") return DEFAULT_MANAGE_PROVINCE;
+  return normalize(window.localStorage.getItem(MANAGE_PROVINCE_KEY)) || DEFAULT_MANAGE_PROVINCE;
+}
 
-  const normalizedCity = normalizeCity(city);
-  const nextCity = normalizedCity || DEFAULT_MANAGE_CITY;
-
+export function setManageCity(city: string, province?: string) {
+  if (typeof window === "undefined") return;
+  const nextCity = normalize(city) || DEFAULT_MANAGE_CITY;
   window.localStorage.setItem(MANAGE_CITY_KEY, nextCity);
+  if (province !== undefined) {
+    window.localStorage.setItem(MANAGE_PROVINCE_KEY, normalize(province) || DEFAULT_MANAGE_PROVINCE);
+  }
   window.dispatchEvent(new Event(MANAGE_CITY_CHANGED_EVENT));
 }

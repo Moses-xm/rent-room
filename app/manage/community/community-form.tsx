@@ -5,13 +5,15 @@ import dynamic from 'next/dynamic';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import {
-  ArrowLeft, ChevronRight, Upload, ImagePlus, Loader2, X, Plus,
+  ArrowLeft, ChevronRight, Upload, ImagePlus, Loader2,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { isManagedUploadPath, resolveUploadedFileUrl } from '@/lib/upload-path';
 import { request } from '@/utils/request';
+import { getManageCity, getManageProvince } from '@/utils/manage-city';
 import type { MapPickResult } from '@/components/BaiduMapPicker';
 import areaData from '@/localData/area.json';
+import subwaysData from '@/localData/subways_city.json';
 
 /* ─── Types ───────────────────────────────────────────────────────────────── */
 export type CommunityFormData = {
@@ -62,6 +64,10 @@ const selectCls = (err?: string) =>
 
 const labelCls = 'block text-body-sm font-emphasis text-text-2 mb-1.5';
 
+/* ─── Constants ──────────────────────────────────────────────────────────── */
+// Provinces whose area.json city value is "市辖区" rather than the city name
+const MUNICIPALITY_PROVINCES = new Set(["北京市", "天津市", "上海市", "重庆市"]);
+
 /* ─── Default form values ─────────────────────────────────────────────────── */
 const DEFAULT_FORM: CommunityFormData = {
   name: '',
@@ -92,9 +98,19 @@ export default function CommunityForm({
   const [isUploading, setIsUploading] = useState(false);
   const [isCleaningCover, setIsCleaningCover] = useState(false);
   const [uploadError, setUploadError] = useState('');
-  const [subwayInput, setSubwayInput] = useState('');
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const initialCoverRef = useRef(initialData?.cover ?? '');
+
+  /* Auto-fill province & city from Topbar selection (create mode only) */
+  useEffect(() => {
+    if (initialData?.province || initialData?.city) return;
+    const province = getManageProvince();
+    const city = getManageCity();
+    if (!province || !city) return;
+    // In area.json, direct-administered municipalities have city value = "市辖区"
+    const cityValue = MUNICIPALITY_PROVINCES.has(province) ? '市辖区' : city;
+    setForm((f) => ({ ...f, province, city: cityValue }));
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   /* Sync initial data when it arrives (edit mode) */
   useEffect(() => {
@@ -121,16 +137,10 @@ export default function CommunityForm({
     } catch { return []; }
   }, [form.subwayLine]);
 
-  const addSubwayLine = () => {
-    const val = subwayInput.trim();
-    if (!val || subwayLines.includes(val)) { setSubwayInput(''); return; }
-    const next = [...subwayLines, val];
-    setForm((f) => ({ ...f, subwayLine: JSON.stringify(next) }));
-    setSubwayInput('');
-  };
-
-  const removeSubwayLine = (line: string) => {
-    const next = subwayLines.filter((l) => l !== line);
+  const toggleSubwayLine = (line: string) => {
+    const next = subwayLines.includes(line)
+      ? subwayLines.filter((l) => l !== line)
+      : [...subwayLines, line];
     setForm((f) => ({ ...f, subwayLine: next.length ? JSON.stringify(next) : '' }));
   };
 
@@ -152,12 +162,24 @@ export default function CommunityForm({
     return city?.children?.map((d: any) => ({ label: String(d.label), value: String(d.value) })) ?? [];
   }, [form.province, form.city]);
 
+  /* ── Subway lines for current city ── */
+  const availableSubwayLines = useMemo<string[]>(() => {
+    if (!form.city) return [];
+    // Direct-administered cities (e.g. 北京市/上海市) have city="市辖区", use province name instead
+    const cityName = form.city === '市辖区' ? form.province : form.city;
+    const entry = (subwaysData as { name: string; lines: string[] }[]).find((s) => s.name === cityName);
+    return entry?.lines ?? [];
+  }, [form.city, form.province]);
+
   /* ── Address query for forward geocoding ── */
   const addressQuery = useMemo(() => {
     return [form.province, form.city, form.district, form.street, form.streetNumber]
       .filter(Boolean)
       .join('');
   }, [form.province, form.city, form.district, form.street, form.streetNumber]);
+
+  /* ── Map center city (create mode only) ── */
+  const centerCity = (!initialData?.lng && !initialData?.lat) ? getManageCity() : undefined;
 
   /* ── Map position ── */
   const mapPosition = useMemo(() => {
@@ -230,6 +252,16 @@ export default function CommunityForm({
     setIsCleaningCover(true);
     try { await cleanupTransient(form.cover.trim()); setForm((f) => ({ ...f, cover: '' })); }
     finally { setIsCleaningCover(false); }
+  };
+
+  /* ── Reset (create mode only) ── */
+  const handleReset = () => {
+    const province = getManageProvince();
+    const city = getManageCity();
+    const cityValue = MUNICIPALITY_PROVINCES.has(province) ? '市辖区' : city;
+    setForm({ ...DEFAULT_FORM, province, city: cityValue });
+    setErrors({});
+    setUploadError('');
   };
 
   /* ── Validation ── */
@@ -400,7 +432,9 @@ export default function CommunityForm({
                     </label>
                     <select
                       value={form.province}
-                      onChange={(e) => setForm((f) => ({ ...f, province: e.target.value, city: '', district: '' }))}
+                      onChange={(e) => {
+                        setForm((f) => ({ ...f, province: e.target.value, city: '', district: '', street: '', streetNumber: '', lng: '', lat: '', subwayLine: '' }));
+                                              }}
                       className={selectCls(errors.province)}
                     >
                       <option value="">请选择省份</option>
@@ -416,7 +450,9 @@ export default function CommunityForm({
                     </label>
                     <select
                       value={form.city}
-                      onChange={(e) => setForm((f) => ({ ...f, city: e.target.value, district: '' }))}
+                      onChange={(e) => {
+                        setForm((f) => ({ ...f, city: e.target.value, district: '', street: '', streetNumber: '', lng: '', lat: '', subwayLine: '' }));
+                                              }}
                       disabled={!form.province}
                       className={selectCls(errors.city)}
                     >
@@ -436,7 +472,7 @@ export default function CommunityForm({
                   </label>
                   <select
                     value={form.district}
-                    onChange={(e) => setForm((f) => ({ ...f, district: e.target.value }))}
+                    onChange={(e) => setForm((f) => ({ ...f, district: e.target.value, street: '', streetNumber: '', lng: '', lat: '' }))}
                     disabled={!form.city}
                     className={selectCls(errors.district)}
                   >
@@ -489,8 +525,8 @@ export default function CommunityForm({
                       经度 <span className="text-danger">*</span>
                     </label>
                     <input
-                      type="number"
-                      step="any"
+                      type="text"
+                      inputMode="decimal"
                       value={form.lng}
                       onChange={(e) => setForm((f) => ({ ...f, lng: e.target.value }))}
                       className={inputCls(errors.lng)}
@@ -503,8 +539,8 @@ export default function CommunityForm({
                       纬度 <span className="text-danger">*</span>
                     </label>
                     <input
-                      type="number"
-                      step="any"
+                      type="text"
+                      inputMode="decimal"
                       value={form.lat}
                       onChange={(e) => setForm((f) => ({ ...f, lat: e.target.value }))}
                       className={inputCls(errors.lat)}
@@ -518,41 +554,30 @@ export default function CommunityForm({
                 {/* 地铁线路 */}
                 <div className="space-y-1.5">
                   <label className={labelCls}>地铁线路</label>
-                  <div className="flex gap-2">
-                    <input
-                      type="text"
-                      value={subwayInput}
-                      onChange={(e) => setSubwayInput(e.target.value)}
-                      onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addSubwayLine(); } }}
-                      className={inputCls()}
-                      placeholder="输入线路名后按回车添加，例：2号线"
-                    />
-                    <button
-                      type="button"
-                      onClick={addSubwayLine}
-                      className="h-9 px-3 rounded-sm border border-border bg-card text-text-2 hover:bg-surface-2 transition-colors flex items-center gap-1 shrink-0"
-                    >
-                      <Plus size={14} />
-                    </button>
-                  </div>
-                  {subwayLines.length > 0 && (
-                    <div className="flex flex-wrap gap-1.5 pt-1">
-                      {subwayLines.map((line) => (
-                        <span
-                          key={line}
-                          className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-primary-tint text-primary-dark text-body-sm"
-                        >
-                          {line}
+                  {availableSubwayLines.length > 0 ? (
+                    <div className="flex flex-wrap gap-1.5">
+                      {availableSubwayLines.map((line) => {
+                        const selected = subwayLines.includes(line);
+                        return (
                           <button
+                            key={line}
                             type="button"
-                            onClick={() => removeSubwayLine(line)}
-                            className="text-primary-dark/60 hover:text-primary-dark transition-colors"
+                            onClick={() => toggleSubwayLine(line)}
+                            className={`px-2.5 py-1 rounded-full text-body-sm font-medium transition-colors
+                              ${selected
+                                ? 'bg-primary-tint text-primary-dark'
+                                : 'bg-surface border border-border text-text-2 hover:border-text-disabled hover:text-text'
+                              }`}
                           >
-                            <X size={11} />
+                            {line}
                           </button>
-                        </span>
-                      ))}
+                        );
+                      })}
                     </div>
+                  ) : (
+                    <p className="text-caption text-text-muted py-1">
+                      {form.city ? '当前城市暂无地铁数据' : '请先选择城市'}
+                    </p>
                   )}
                 </div>
 
@@ -560,7 +585,21 @@ export default function CommunityForm({
             </div>
 
             {/* 提交按钮 */}
-            <div className="flex justify-end gap-2 pt-1 pb-4">
+            <div className="flex items-center justify-between pt-1 pb-4">
+              {!initialData && (
+                <button
+                  type="button"
+                  onClick={handleReset}
+                  disabled={busy}
+                  className="h-8.5 px-4 text-body rounded-sm font-medium
+                             bg-card border border-border text-text-muted
+                             hover:bg-surface-2 hover:text-text transition-colors
+                             disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  重置表单
+                </button>
+              )}
+              <div className="flex gap-2 ml-auto">
               <button
                 type="button"
                 onClick={() => router.push(backHref)}
@@ -583,6 +622,7 @@ export default function CommunityForm({
                 {isSubmitting && <Loader2 size={13} className="animate-spin" />}
                 {submitLabel}
               </button>
+              </div>
             </div>
 
           </div>
@@ -598,6 +638,7 @@ export default function CommunityForm({
                 <BaiduMapPicker
                   position={mapPosition}
                   addressQuery={addressQuery}
+                  centerCity={centerCity}
                   onPick={handleMapPick}
                   onPositionChange={handlePositionChange}
                   height="100%"

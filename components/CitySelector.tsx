@@ -106,7 +106,8 @@ export function CitySelector() {
   }, [popoverOpen]);
 
   const handleCityChange = (city: string) => {
-    setManageCity(city);
+    const group = PROVINCE_CITIES.find((g) => g.cities.includes(city));
+    setManageCity(city, group?.province);
     setCurrentCity(city);
     setPopoverOpen(false);
     setModalOpen(false);

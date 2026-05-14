@@ -17,6 +17,7 @@ export interface MapPickResult {
 interface Props {
   position?: { lng: number; lat: number };
   addressQuery?: string;
+  centerCity?: string;
   onPick: (result: MapPickResult) => void;
   onPositionChange?: (lng: number, lat: number) => void;
   height?: string;
@@ -33,17 +34,17 @@ const SafeMarker = BMapGLMarker as unknown as React.ComponentType<{ position: BM
 function BaiduMapPickerInner({
   position,
   addressQuery,
+  centerCity,
   onPick,
   onPositionChange,
   height = '100%',
 }: Props) {
-  // Using InstanceType to get the map component instance, which has .map: BMapGL.Map
   const mapRef = useRef<InstanceType<typeof BMapGLMap> | null>(null);
 
-  // localPos tracks user-initiated positions (click / geocoding).
-  // Position prop is used as fallback so the effect only pans, never calls setState.
-  const [localPos, setLocalPos] = useState<{ lng: number; lat: number } | undefined>();
-  const displayPos = localPos ?? position;
+  // cityCenter is the geocoded result for the selected city (create mode).
+  // It is set only inside async geocoder callbacks — never synchronously in an effect body —
+  // so it does not trigger the react-hooks/set-state-in-effect lint rule.
+  const [cityCenter, setCityCenter] = useState<{ lng: number; lat: number } | undefined>();
 
   const prevQueryRef = useRef('');
   const onPickRef = useRef(onPick);
@@ -51,31 +52,63 @@ function BaiduMapPickerInner({
   useEffect(() => { onPickRef.current = onPick; });
   useEffect(() => { onPositionChangeRef.current = onPositionChange; });
 
-  const defaultPos = position ?? { lng: 116.404, lat: 39.915 };
+  // ── Derived view ──────────────────────────────────────────────────────────
+  // All center/zoom logic is derived so that unrelated re-renders (e.g. typing
+  // in a form field) never silently reset the map view.
+  //   • position set  → street level zoom 15, centered on the picked point
+  //   • only cityCenter → city overview zoom 11
+  //   • neither         → default Beijing zoom 10
+  const mapCenter = position ?? cityCenter ?? { lng: 116.404, lat: 39.915 };
+  const mapZoom   = position ? 15 : cityCenter ? 11 : 10;
 
-  /* Pan map when position prop changes (edit-mode load, manual coordinate entry) */
+  // Marker appears only when there is a concrete position (form has lat/lng).
+  // Clearing lng/lat in the form makes position undefined and removes the marker.
+  const markerPoint = position
+    ? new (B()).Point(position.lng, position.lat)
+    : null;
+
+  // ── Geocode city (create mode) ────────────────────────────────────────────
+  // setState is called inside the async callback, NOT in the effect body itself.
   useEffect(() => {
-    if (!position || !mapRef.current?.map) return;
-    mapRef.current.map.centerAndZoom(new (B()).Point(position.lng, position.lat), 15);
+    const city = centerCity?.trim();
+    if (!city || position) return;
+    new (B()).Geocoder().getPoint(city, (point) => {
+      const p = point as BMapGL.Point | null;
+      if (!p) return;
+      setCityCenter({ lng: p.lng, lat: p.lat });
+      // Backup imperative call in case react-bmapgl defers prop-driven updates
+      mapRef.current?.map?.centerAndZoom(new (B()).Point(p.lng, p.lat), 11);
+    }, '');
+  }, [centerCity]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // ── Sync map view when position prop changes ──────────────────────────────
+  // Only updates the external map instance; no setState here.
+  // When position becomes undefined (form reset / lat+lng cleared), restore city view.
+  useEffect(() => {
+    const map = mapRef.current?.map;
+    if (!map) return;
+    if (position) {
+      map.centerAndZoom(new (B()).Point(position.lng, position.lat), 15);
+    } else if (cityCenter) {
+      map.centerAndZoom(new (B()).Point(cityCenter.lng, cityCenter.lat), 11);
+    }
   }, [position?.lng, position?.lat]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  /* Forward geocoding: address → coordinates */
+  // ── Forward geocoding: address → coordinates ──────────────────────────────
   useEffect(() => {
     const query = addressQuery?.trim() ?? '';
-    if (!query || query === prevQueryRef.current || !mapRef.current?.map) return;
+    if (!query || query === prevQueryRef.current) return;
     prevQueryRef.current = query;
-
     new (B()).Geocoder().getPoint(query, (point) => {
-      // getPoint may return null at runtime despite non-null type declaration
-      const safePoint = point as BMapGL.Point | null;
-      if (!safePoint || !mapRef.current?.map) return;
-      mapRef.current.map.centerAndZoom(new (B()).Point(safePoint.lng, safePoint.lat), 15);
-      setLocalPos({ lng: safePoint.lng, lat: safePoint.lat });
-      onPositionChangeRef.current?.(safePoint.lng, safePoint.lat);
+      const p = point as BMapGL.Point | null;
+      if (!p) return;
+      mapRef.current?.map?.centerAndZoom(new (B()).Point(p.lng, p.lat), 15);
+      // Only pan the map — do NOT call onPositionChange here.
+      // Coordinates are filled exclusively when the user explicitly clicks the map.
     }, '');
   }, [addressQuery]);
 
-  /* Reverse geocoding on map click */
+  // ── Reverse geocoding on map click ────────────────────────────────────────
   const handleClick = (e: Event) => {
     const { latlng } = e as Event & { latlng: BMapGL.Point };
     if (!latlng) return;
@@ -83,8 +116,7 @@ function BaiduMapPickerInner({
     new (B()).Geocoder().getLocation(new (B()).Point(lng, lat), (result) => {
       if (!result) return;
       const ac = result.addressComponents;
-      setLocalPos({ lng, lat });
-      mapRef.current?.map.centerAndZoom(new (B()).Point(lng, lat), 15);
+      mapRef.current?.map?.centerAndZoom(new (B()).Point(lng, lat), 15);
       onPickRef.current({
         lng, lat,
         province: ac.province,
@@ -96,8 +128,10 @@ function BaiduMapPickerInner({
     });
   };
 
-  const centerPoint = new (B()).Point(defaultPos.lng, defaultPos.lat);
-  const markerPoint = displayPos ? new (B()).Point(displayPos.lng, displayPos.lat) : null;
+  const centerPoint = new (B()).Point(mapCenter.lng, mapCenter.lat);
+
+  console.log('mapZoom',mapZoom);
+  console.log('mapCenter',mapCenter);
 
   return (
     <div className="relative w-full rounded-md overflow-hidden border border-border" style={{ height }}>
@@ -109,7 +143,7 @@ function BaiduMapPickerInner({
       <BMapGLMap
         ref={mapRef}
         center={centerPoint}
-        zoom={13}
+        zoom={mapZoom}
         style={{ width: '100%', height: '100%' }}
         enableScrollWheelZoom
         onClick={handleClick}
