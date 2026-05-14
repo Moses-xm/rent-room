@@ -137,15 +137,33 @@ export default function CommunityDetailPage() {
         </div>
         {/* cover card */}
         <div className="bg-card border border-border rounded-md shadow-sm overflow-hidden">
-          <div className="w-full h-52 skeleton-shimmer" />
-          <div className="p-5 space-y-2">
-            <div className="h-5 w-36 rounded skeleton-shimmer" />
-            <div className="h-3.5 w-52 rounded skeleton-shimmer opacity-50" />
+          <div className="flex flex-col lg:flex-row">
+            <div className="w-full aspect-video lg:w-72 lg:aspect-auto shrink-0 skeleton-shimmer" />
+            <div className="p-5 flex-1 flex flex-col gap-4">
+              <div className="space-y-2">
+                <div className="h-5 w-36 rounded skeleton-shimmer" />
+                <div className="h-3.5 w-52 rounded skeleton-shimmer opacity-50" />
+              </div>
+              <div className="border-t border-border-subtle" />
+              <div className="grid grid-cols-3 gap-3">
+                {[0, 1, 2].map((i) => (
+                  <div key={i} className="space-y-1.5">
+                    <div className="h-3 w-8 rounded skeleton-shimmer opacity-50" />
+                    <div className="h-4 w-12 rounded skeleton-shimmer" />
+                  </div>
+                ))}
+              </div>
+              <div className="flex gap-1.5">
+                <div className="h-5 w-18 rounded-full skeleton-shimmer opacity-50" />
+                <div className="h-5 w-18 rounded-full skeleton-shimmer opacity-50" />
+              </div>
+              <div className="mt-auto h-3.5 w-48 rounded skeleton-shimmer opacity-40" />
+            </div>
           </div>
         </div>
         {/* two-column */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-          <div className="lg:col-span-2 space-y-4">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <div className="space-y-4">
             {[4, 2].map((fieldCount, i) => (
               <div key={i} className="bg-card border border-border rounded-md shadow-sm overflow-hidden">
                 <div className="flex items-center gap-2 px-5 py-3 border-b border-border-subtle bg-surface">
@@ -164,7 +182,7 @@ export default function CommunityDetailPage() {
           </div>
           <div className="space-y-4">
             <div className="bg-card border border-border rounded-md shadow-sm overflow-hidden">
-              <div className="h-64 skeleton-shimmer" />
+              <div className="h-101.5 skeleton-shimmer" />
             </div>
             <div className="bg-card border border-border rounded-md shadow-sm overflow-hidden">
               <div className="flex items-center gap-2 px-5 py-3 border-b border-border-subtle bg-surface">
@@ -238,33 +256,73 @@ export default function CommunityDetailPage() {
 
       {/* ── 封面大图 + 名称 ── */}
       <div className="bg-card border border-border rounded-md shadow-sm overflow-hidden">
-        {coverUrl ? (
-          <div className="w-full h-52 overflow-hidden">
-            <img src={coverUrl} alt={community.name} className="w-full h-full object-cover" />
+        <div className="flex flex-col lg:flex-row">
+          {/* 封面图：移动端全宽 16:9，PC 端固定宽度侧栏 */}
+          {coverUrl ? (
+            <div className="w-full aspect-video lg:w-72 lg:aspect-auto shrink-0 overflow-hidden">
+              <img src={coverUrl} alt={community.name} className="w-full h-full object-cover" />
+            </div>
+          ) : (
+            <div className="w-full aspect-video lg:w-72 lg:aspect-auto shrink-0 bg-surface flex items-center justify-center">
+              <MapPin size={36} className="text-text-disabled opacity-40" />
+            </div>
+          )}
+          <div className="p-5 flex-1 flex flex-col gap-4 min-h-30">
+            {/* 名称 + 完整地址 */}
+            <div>
+              <h2 className="text-[17px] font-semibold text-text leading-tight">{community.name}</h2>
+              <p className="text-body-sm text-text-muted mt-1 flex items-center gap-1">
+                <MapPin size={11} className="text-text-disabled shrink-0" />
+                {addressParts.join(' ')}
+              </p>
+            </div>
+
+            <div className="border-t border-border-subtle" />
+
+            {/* 省 / 市 / 区 快览 */}
+            <div className="grid grid-cols-3 gap-3">
+              {[
+                { label: '省份', value: community.province },
+                { label: '城市', value: community.city },
+                { label: '区/县', value: community.district },
+              ].map(({ label, value }) => (
+                <div key={label}>
+                  <p className="text-body-sm text-text-muted mb-0.5">{label}</p>
+                  <p className="text-body font-medium text-text">{value}</p>
+                </div>
+              ))}
+            </div>
+
+            {/* 地铁线路 */}
+            {subwayLines.length > 0 && (
+              <div className="flex flex-wrap gap-1.5">
+                {subwayLines.map((line) => (
+                  <span
+                    key={line}
+                    className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-primary-tint text-primary-dark text-body-sm"
+                  >
+                    <Train size={10} />
+                    {line}
+                  </span>
+                ))}
+              </div>
+            )}
+
+            {/* GPS + ID 脚注 */}
+            <p className="mt-auto text-body-sm text-text-muted font-mono">
+              <span>{community.lng.toFixed(6)}, {community.lat.toFixed(6)}</span>
+              <span className="mx-2 text-text-disabled">·</span>
+              <span>ID {community.id}</span>
+            </p>
           </div>
-        ) : (
-          <div className="w-full h-52 bg-surface flex items-center justify-center">
-            <MapPin size={36} className="text-text-disabled opacity-40" />
-          </div>
-        )}
-        <div className="p-5">
-          <h2 className="text-[17px] font-semibold text-text leading-tight">{community.name}</h2>
-          <p className="text-body-sm text-text-muted font-mono mt-0.5">
-            <span className="inline-flex items-center gap-1">
-              <MapPin size={11} className="text-text-disabled shrink-0" />
-              {addressParts.join(' ')}
-            </span>
-            <span className="mx-2 text-text-disabled">·</span>
-            ID {community.id}
-          </p>
         </div>
       </div>
 
       {/* ── 两栏布局 ── */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
 
         {/* 左栏 */}
-        <div className="lg:col-span-2 space-y-4">
+        <div className="space-y-4">
 
           {/* 地址信息 */}
           <Section title="地址信息" icon={<MapPin size={14} />}>
@@ -310,7 +368,7 @@ export default function CommunityDetailPage() {
               <span className="text-text-disabled"><MapPin size={14} /></span>
               <span className="text-body-sm font-emphasis text-text-2">地图位置</span>
             </div>
-            <div style={{ height: '240px' }}>
+            <div style={{ height: '360px' }}>
               <BaiduMapReadonly lng={community.lng} lat={community.lat} />
             </div>
           </div>
