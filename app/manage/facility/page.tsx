@@ -13,6 +13,7 @@ import FacilityFormModal, {
   type FacilityFormData,
 } from './facility-form-modal';
 import { fmtDateTime } from '@/utils/format';
+import { FONT_FAMILY } from '@/utils/constants';
 
 /* ─── Types ───────────────────────────────────────────────────────────────── */
 type Facility = {
@@ -130,7 +131,7 @@ export default function FacilityPage() {
       render: (item) => (
         <div className="flex items-center gap-3">
           <div className="w-8 h-8 rounded-sm grid place-items-center bg-surface border border-border shrink-0">
-            <i className={`iconfont ${item.icon} text-base text-text-2`} />
+            <i className={`${FONT_FAMILY} ${item.icon} text-base text-text-2`} />
           </div>
           <div>
             <p className="text-body font-emphasis text-text leading-none">{item.name}</p>
@@ -252,7 +253,7 @@ export default function FacilityPage() {
               className="bg-card border border-border rounded shadow-sm p-4 flex items-center gap-3"
             >
               <div className="w-10 h-10 rounded-sm grid place-items-center bg-surface border border-border shrink-0">
-                <i className={`iconfont ${item.icon} text-xl text-text-2`} />
+                <i className={`${FONT_FAMILY} ${item.icon} text-xl text-text-2`} />
               </div>
 
               <div className="flex-1 min-w-0">

@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { X, Loader2 } from 'lucide-react';
 import { Modal } from '@/components/Modal';
+import { FONT_FAMILY } from '@/utils/constants';
 
 /* ─── Types ───────────────────────────────────────────────────────────────── */
 export type FacilityFormData = {
@@ -143,7 +144,7 @@ export default function FacilityFormModal({ state, onClose, onSaved }: Props) {
                 />
                 {form.icon.trim() && (
                   <div className="w-9 h-9 shrink-0 rounded-sm border border-border bg-surface grid place-items-center">
-                    <i className={`iconfont ${form.icon.trim()} text-lg text-text-2`} />
+                    <i className={`${FONT_FAMILY} ${form.icon.trim()} text-lg text-text-2`} />
                   </div>
                 )}
               </div>

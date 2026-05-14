@@ -1,3 +1,6 @@
+// ── Iconfont ──────────────────────────────────────────────────────────────────
+export const FONT_FAMILY = 'iconRentRoom';
+
 // ── Baidu Map ─────────────────────────────────────────────────────────────────
 export const BAIDU_MAP_AK = process.env.NEXT_PUBLIC_BAIDU_MAP_AK ?? 'YOUR_BAIDU_MAP_AK';
 

@@ -13,6 +13,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="zh-CN">
+      <head>
+        <link rel="stylesheet" href="/font/iconfont.css" />
+      </head>
       <body>{children}</body>
     </html>
   );
