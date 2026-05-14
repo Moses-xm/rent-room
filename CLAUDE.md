@@ -24,6 +24,7 @@ Next.js 15 App Router · shadcn/ui + Tailwind CSS v4 · Neon Postgres + Prisma �
 - **Toaster 禁止重复渲染**：`ManageLayoutShell` 已全局挂载 `<Toaster />`，各页面只需 `import { toast } from 'sonner'` 调用即可，**不得**在页面内再渲染 `<Toaster />`，否则会在内容区占位，导致顶部间距异常
 - **全大写常量统一存放**：所有大写命名的常量（如魔法数字、枚举值、配置项）一律定义在 `utils/constants.ts`，禁止在页面或组件内就地声明
 - **日期格式化**：统一使用 `utils/format.ts` 的 `fmtDate`（年月日）和 `fmtDateTime`（年月日时分），禁止在页面内就地定义同类函数
+- **iconfont 图标**：字体族名不是 `iconfont`，必须用 `utils/constants.ts` 的 `FONT_FAMILY` 常量作为类名；图标类名直接使用 `facility.icon` 字段值（已含 `icon-` 前缀），写法为 `<i className={`${FONT_FAMILY} ${item.icon}`} />`，禁止拼接 `icon-${item.icon}`
 
 ## 文件上传
 1. `POST /api/upload/avatar`（FormData）→ `{ path: string }`

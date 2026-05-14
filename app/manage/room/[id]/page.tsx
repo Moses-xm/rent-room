@@ -6,7 +6,7 @@ import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { resolveUploadedFileUrl } from '@/lib/upload-path';
 import { request } from '@/utils/request';
-import { BAIDU_MAP_AK, RENT_TYPE_OPTIONS, LEVEL_OPTIONS, LIFT_OPTIONS } from '@/utils/constants';
+import { BAIDU_MAP_AK, FONT_FAMILY, RENT_TYPE_OPTIONS, LEVEL_OPTIONS, LIFT_OPTIONS } from '@/utils/constants';
 import {
   ArrowLeft, ChevronRight, Pencil, Home, MapPin, User, Calendar,
   RefreshCw, Loader2, Building2,
@@ -407,15 +407,15 @@ export default function RoomDetailPage() {
               <div className="flex items-center gap-2 px-5 py-3 border-b border-border-subtle bg-surface">
                 <span className="text-body-sm font-emphasis text-text-2">房屋设施</span>
               </div>
-              <div className="px-5 py-4 flex flex-wrap gap-2">
+              <div className="px-5 py-4 grid grid-cols-3 sm:grid-cols-4 gap-2">
                 {room.facilities.map((f) => (
-                  <span
+                  <div
                     key={f.id}
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-body-sm font-medium bg-surface border border-border text-text-2"
+                    className="flex flex-col items-center gap-1.5 px-2 py-3 rounded-md border border-border bg-surface text-text-2"
                   >
-                    <span className={`iconfont icon-${f.icon} text-[14px] text-primary`} />
-                    {f.name}
-                  </span>
+                    <i className={`${FONT_FAMILY} ${f.icon} text-[22px] text-primary`} />
+                    <span className="text-caption leading-tight text-center">{f.name}</span>
+                  </div>
                 ))}
               </div>
             </div>

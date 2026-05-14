@@ -11,7 +11,7 @@ import { toast } from 'sonner';
 import { isManagedUploadPath, resolveUploadedFileUrl } from '@/lib/upload-path';
 import { request } from '@/utils/request';
 import { getManageCity, getManageProvince } from '@/utils/manage-city';
-import { MUNICIPALITY_PROVINCES, RENT_TYPE_OPTIONS, ROOM_TYPE_OPTIONS, DIRECTION_OPTIONS, LEVEL_OPTIONS, LIFT_OPTIONS } from '@/utils/constants';
+import { FONT_FAMILY, MUNICIPALITY_PROVINCES, RENT_TYPE_OPTIONS, ROOM_TYPE_OPTIONS, DIRECTION_OPTIONS, LEVEL_OPTIONS, LIFT_OPTIONS } from '@/utils/constants';
 import areaData from '@/localData/area.json';
 
 /* ─── Types ───────────────────────────────────────────────────────────────── */
@@ -727,7 +727,7 @@ export default function RoomForm({ title, subtitle, initialData, onSubmit, backH
           {facilities.length === 0 ? (
             <p className="text-body-sm text-text-muted">暂无设施数据，请先在设施管理中添加。</p>
           ) : (
-            <div className="flex flex-wrap gap-2">
+            <div className="grid grid-cols-4 sm:grid-cols-5 lg:grid-cols-6 gap-2">
               {facilities.map((f) => {
                 const selected = form.facilityIds.includes(f.id);
                 return (
@@ -735,14 +735,14 @@ export default function RoomForm({ title, subtitle, initialData, onSubmit, backH
                     key={f.id}
                     type="button"
                     onClick={() => toggleFacility(f.id)}
-                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-body-sm font-medium transition-colors ${
+                    className={`flex flex-col items-center gap-1.5 px-2 py-3 rounded-md border transition-colors ${
                       selected
-                        ? 'bg-primary-tint text-primary-dark border border-primary/30'
-                        : 'bg-surface border border-border text-text-2 hover:border-text-disabled hover:text-text'
+                        ? 'bg-primary-tint text-primary-dark border-primary/40'
+                        : 'bg-surface border-border text-text-2 hover:border-text-disabled hover:bg-surface-2 hover:text-text'
                     }`}
                   >
-                    <span className={`iconfont icon-${f.icon} text-[14px]`} />
-                    {f.name}
+                    <i className={`${FONT_FAMILY} ${f.icon} text-[22px]`} />
+                    <span className="text-caption leading-tight text-center">{f.name}</span>
                   </button>
                 );
               })}
