@@ -5,6 +5,7 @@ import { X, Eye, EyeOff, Loader2, Upload, ImagePlus } from 'lucide-react';
 import { Modal } from '@/components/Modal';
 import { isManagedUploadPath, resolveUploadedFileUrl } from '@/lib/upload-path';
 import { request } from '@/utils/request';
+import { getManageCity, getManageProvince } from '@/utils/manage-city';
 import areaData from '@/localData/area.json';
 
 /* ─── Types ───────────────────────────────────────────────────────────────── */
@@ -107,6 +108,7 @@ const DEFAULT_FORM: UserFormData = {
 export default function UserFormModal({ state, onClose, onSaved }: Props) {
   const [form, setForm] = useState<UserFormData>(DEFAULT_FORM);
   const [showPw, setShowPw] = useState(false);
+  const [showPayCode, setShowPayCode] = useState(false);
   const [errors, setErrors] = useState<Partial<Record<keyof UserFormData, string>>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
@@ -140,7 +142,7 @@ export default function UserFormModal({ state, onClose, onSaved }: Props) {
       });
     } else {
       initialAvatarRef.current = '';
-      setForm(DEFAULT_FORM);
+      setForm({ ...DEFAULT_FORM, province: getManageProvince(), city: getManageCity() });
     }
     setErrors({});
     setIsSubmitting(false);
@@ -148,6 +150,7 @@ export default function UserFormModal({ state, onClose, onSaved }: Props) {
     setIsCleaningAvatar(false);
     setUploadError('');
     setShowPw(false);
+    setShowPayCode(false);
   }, [state]);
 
   type AreaOption = { label: string; value: string };
@@ -535,14 +538,23 @@ export default function UserFormModal({ state, onClose, onSaved }: Props) {
               </div>
               <div className="space-y-1.5">
                 <label className={labelCls}>支付密码</label>
-                <input
-                  type="text"
-                  value={form.payCode}
-                  onChange={(e) => setForm({ ...form, payCode: e.target.value })}
-                  className={inputCls()}
-                  placeholder="6 位数字密码"
-                  maxLength={10}
-                />
+                <div className="relative">
+                  <input
+                    type={showPayCode ? 'text' : 'password'}
+                    value={form.payCode}
+                    onChange={(e) => setForm({ ...form, payCode: e.target.value })}
+                    className={`${inputCls()} pr-10 ${showPayCode ? '' : 'tracking-[-0.15em]'}`}
+                    placeholder="6 位数字密码"
+                    maxLength={10}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPayCode((v) => !v)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted hover:text-text transition-colors"
+                  >
+                    {showPayCode ? <Eye size={15} /> : <EyeOff size={15} />}
+                  </button>
+                </div>
               </div>
             </div>
 
