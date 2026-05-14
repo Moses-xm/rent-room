@@ -181,6 +181,14 @@ export default function CommunityForm({
   /* ── Map center city (create mode only) ── */
   const centerCity = (!initialData?.lng && !initialData?.lat) ? getManageCity() : undefined;
 
+  /* ── Map zoom: driven by address-fill level ── */
+  const mapZoom = useMemo(() => {
+    if (form.district) return 15;
+    if (form.city) return 12;
+    if (form.province) return 9;
+    return 12;
+  }, [form.province, form.city, form.district]);
+
   /* ── Map position ── */
   const mapPosition = useMemo(() => {
     const lng = parseFloat(form.lng);
@@ -204,10 +212,6 @@ export default function CommunityForm({
     setErrors((e) => ({ ...e, province: undefined, city: undefined, district: undefined, lng: undefined, lat: undefined }));
   };
 
-  const handlePositionChange = (lng: number, lat: number) => {
-    setForm((f) => ({ ...f, lng: String(lng), lat: String(lat) }));
-    setErrors((e) => ({ ...e, lng: undefined, lat: undefined }));
-  };
 
   /* ── Cover upload ── */
   const coverPreviewUrl = resolveUploadedFileUrl(form.cover.trim());
@@ -636,11 +640,11 @@ export default function CommunityForm({
               </div>
               <div className="p-3" style={{ height: '520px' }}>
                 <BaiduMapPicker
-                  position={mapPosition}
-                  addressQuery={addressQuery}
                   centerCity={centerCity}
+                  addressQuery={addressQuery}
+                  zoom={mapZoom}
+                  position={mapPosition}
                   onPick={handleMapPick}
-                  onPositionChange={handlePositionChange}
                   height="100%"
                 />
               </div>
