@@ -12,6 +12,7 @@ import {
   getManageCity,
   setManageCity,
 } from "@/utils/manage-city";
+import { MUNICIPALITY_PROVINCES } from "@/utils/constants";
 
 type SimpleCity      = { name: string };
 type SimpleCityGroup = { name: string; children: SimpleCity[] };
@@ -22,7 +23,6 @@ type ProvinceCities  = { province: string; cities: string[] };
 const SPECIAL_REGION_KEYS = new Set([
   "市辖区", "县", "省直辖县级行政区划", "自治区直辖县级行政区划",
 ]);
-const MUNICIPALITIES = new Set(["北京市", "天津市", "上海市", "重庆市"]);
 
 const AREA_SIMPLE = areaSimpleData as SimpleCityGroup[];
 const HOT_CITIES  = hotCitiesData  as HotCity[];
@@ -38,7 +38,7 @@ function buildProvinceCities(area: AreaNode[]): ProvinceCities[] {
     const cities = (provinceNode.children ?? []).flatMap((cityNode) => {
       const city = cityNode.value;
       if (SPECIAL_REGION_KEYS.has(city)) {
-        if (MUNICIPALITIES.has(province)) return [province];
+        if (MUNICIPALITY_PROVINCES.has(province)) return [province];
         const ch = cityNode.children ?? [];
         return ch.length > 0 ? ch.map((c) => c.value) : [];
       }

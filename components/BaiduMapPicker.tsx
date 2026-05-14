@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Map as BMapGLMap, Marker as BMapGLMarker, MapApiLoaderHOC } from 'react-bmapgl';
 import { MapPin } from 'lucide-react';
+import { BAIDU_MAP_AK, MAP_ZOOM_CITY } from '@/utils/constants';
 
 export interface MapPickResult {
   lng: number;
@@ -23,7 +24,6 @@ interface Props {
   height?: string;
 }
 
-const AK = process.env.NEXT_PUBLIC_BAIDU_MAP_AK ?? 'YOUR_BAIDU_MAP_AK';
 
 const B = () => (window as Window & { BMapGL: typeof BMapGL }).BMapGL;
 const SafeMarker = BMapGLMarker as unknown as React.ComponentType<{ position: BMapGL.Point }>;
@@ -32,7 +32,7 @@ function BaiduMapPickerInner({
   centerCity,
   addressQuery,
   position,
-  zoom = 12,
+  zoom = MAP_ZOOM_CITY,
   onPick,
   height = '100%',
 }: Props) {
@@ -122,5 +122,5 @@ function BaiduMapPickerInner({
 }
 
 export default (
-  MapApiLoaderHOC({ ak: AK })(BaiduMapPickerInner as unknown as React.ComponentType) as unknown
+  MapApiLoaderHOC({ ak: BAIDU_MAP_AK })(BaiduMapPickerInner as unknown as React.ComponentType) as unknown
 ) as React.ComponentType<Props>;

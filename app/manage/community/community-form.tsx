@@ -11,6 +11,7 @@ import { toast } from 'sonner';
 import { isManagedUploadPath, resolveUploadedFileUrl } from '@/lib/upload-path';
 import { request } from '@/utils/request';
 import { getManageCity, getManageProvince } from '@/utils/manage-city';
+import { MAP_ZOOM_PROVINCE, MAP_ZOOM_CITY, MAP_ZOOM_DISTRICT, MUNICIPALITY_PROVINCES } from '@/utils/constants';
 import type { MapPickResult } from '@/components/BaiduMapPicker';
 import areaData from '@/localData/area.json';
 import subwaysData from '@/localData/subways_city.json';
@@ -66,7 +67,6 @@ const labelCls = 'block text-body-sm font-emphasis text-text-2 mb-1.5';
 
 /* ─── Constants ──────────────────────────────────────────────────────────── */
 // Provinces whose area.json city value is "市辖区" rather than the city name
-const MUNICIPALITY_PROVINCES = new Set(["北京市", "天津市", "上海市", "重庆市"]);
 
 /* ─── Default form values ─────────────────────────────────────────────────── */
 const DEFAULT_FORM: CommunityFormData = {
@@ -183,10 +183,10 @@ export default function CommunityForm({
 
   /* ── Map zoom: driven by address-fill level ── */
   const mapZoom = useMemo(() => {
-    if (form.district) return 15;
-    if (form.city) return 12;
-    if (form.province) return 9;
-    return 12;
+    if (form.district) return MAP_ZOOM_DISTRICT;
+    if (form.city) return MAP_ZOOM_CITY;
+    if (form.province) return MAP_ZOOM_PROVINCE;
+    return MAP_ZOOM_CITY;
   }, [form.province, form.city, form.district]);
 
   /* ── Map position ── */

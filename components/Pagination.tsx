@@ -1,4 +1,5 @@
 import { useMemo } from 'react';
+import { DEFAULT_PAGE_SIZE_OPTIONS } from '@/utils/constants';
 import {
   ChevronLeft,
   ChevronRight,
@@ -6,7 +7,6 @@ import {
   ChevronsRight,
 } from 'lucide-react';
 
-const DEFAULT_PAGE_SIZE_OPTIONS = [5, 10, 20, 50];
 
 const navBtnCls =
   'min-w-[30px] h-[30px] rounded-sm grid place-items-center text-body-sm ' +

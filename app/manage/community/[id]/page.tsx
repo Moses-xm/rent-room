@@ -6,6 +6,7 @@ import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { resolveUploadedFileUrl } from '@/lib/upload-path';
 import { request } from '@/utils/request';
+import { BAIDU_MAP_AK } from '@/utils/constants';
 import {
   ArrowLeft, ChevronRight, Pencil, MapPin, Train, Calendar, RefreshCw, Loader2,
 } from 'lucide-react';
@@ -31,7 +32,6 @@ type CommunityDetail = {
 const BaiduMapReadonly = dynamic(
   () =>
     import('react-bmapgl').then(({ Map, Marker, MapApiLoaderHOC }) => {
-      const AK = process.env.NEXT_PUBLIC_BAIDU_MAP_AK ?? 'YOUR_BAIDU_MAP_AK';
       const B = () => (window as Window & { BMapGL: typeof BMapGL }).BMapGL;
       const SafeMarker = Marker as unknown as React.ComponentType<{ position: BMapGL.Point }>;
 
@@ -44,7 +44,7 @@ const BaiduMapReadonly = dynamic(
         );
       }
 
-      return (MapApiLoaderHOC({ ak: AK })(
+      return (MapApiLoaderHOC({ ak: BAIDU_MAP_AK })(
         ReadonlyMapInner as unknown as React.ComponentType
       ) as unknown) as React.ComponentType<{ lng: number; lat: number }>;
     }),
