@@ -26,6 +26,10 @@ type User = {
   identity: number;
   isActive: boolean;
   email?: string | null;
+  province?: string | null;
+  city?: string | null;
+  district?: string | null;
+  address?: string | null;
   wallet: number;
   payCode: string;
   createdAt: string;

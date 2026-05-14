@@ -1,10 +1,11 @@
 'use client';
 
-import { type ChangeEvent, useEffect, useRef, useState } from 'react';
+import { type ChangeEvent, useEffect, useMemo, useRef, useState } from 'react';
 import { X, Eye, EyeOff, Loader2, Upload, ImagePlus } from 'lucide-react';
 import { Modal } from '@/components/Modal';
 import { isManagedUploadPath, resolveUploadedFileUrl } from '@/lib/upload-path';
 import { request } from '@/utils/request';
+import areaData from '@/localData/area.json';
 
 /* ─── Types ───────────────────────────────────────────────────────────────── */
 export type UserFormData = {
@@ -18,6 +19,10 @@ export type UserFormData = {
   identity: number;
   isActive: boolean;
   email: string;
+  province: string;
+  city: string;
+  district: string;
+  address: string;
   wallet: number;
   payCode: string;
 };
@@ -33,6 +38,10 @@ export type EditableUser = {
   identity: number;
   isActive: boolean;
   email?: string | null;
+  province?: string | null;
+  city?: string | null;
+  district?: string | null;
+  address?: string | null;
   wallet: number;
   payCode: string;
 };
@@ -62,6 +71,9 @@ const inputCls = (err?: string) =>
 const labelCls = 'block text-body-sm font-emphasis text-text-2 mb-1.5';
 const hintCls = 'text-caption text-text-muted leading-relaxed';
 
+type AreaNode = { label: string; value: string; children?: AreaNode[] };
+const typedArea = areaData as AreaNode[];
+
 type UploadResponse = {
   success: boolean;
   message?: string;
@@ -83,6 +95,10 @@ const DEFAULT_FORM: UserFormData = {
   identity: 1,
   isActive: true,
   email: '',
+  province: '',
+  city: '',
+  district: '',
+  address: '',
   wallet: 0,
   payCode: '000000',
 };
@@ -115,6 +131,10 @@ export default function UserFormModal({ state, onClose, onSaved }: Props) {
         identity: u.identity,
         isActive: u.isActive,
         email: u.email ?? '',
+        province: u.province ?? '',
+        city: u.city ?? '',
+        district: u.district ?? '',
+        address: u.address ?? '',
         wallet: u.wallet,
         payCode: u.payCode,
       });
@@ -129,6 +149,23 @@ export default function UserFormModal({ state, onClose, onSaved }: Props) {
     setUploadError('');
     setShowPw(false);
   }, [state]);
+
+  type AreaOption = { label: string; value: string };
+  const provinces = useMemo<AreaOption[]>(
+    () => typedArea.map((p) => ({ label: p.label, value: p.value })),
+    []
+  );
+  const cities = useMemo<AreaOption[]>(() => {
+    if (!form.province) return [];
+    const province = typedArea.find((p) => p.value === form.province);
+    return province?.children?.map((c) => ({ label: c.label, value: c.value })) ?? [];
+  }, [form.province]);
+  const districts = useMemo<AreaOption[]>(() => {
+    if (!form.province || !form.city) return [];
+    const province = typedArea.find((p) => p.value === form.province);
+    const city = province?.children?.find((c) => c.value === form.city);
+    return city?.children?.map((d) => ({ label: d.label, value: d.value })) ?? [];
+  }, [form.province, form.city]);
 
   if (!state) return null;
 
@@ -363,6 +400,65 @@ export default function UserFormModal({ state, onClose, onSaved }: Props) {
                   onChange={(e) => setForm({ ...form, email: e.target.value })}
                   className={inputCls()}
                   placeholder="电子邮箱"
+                />
+              </div>
+            </div>
+
+            {/* 省份 + 城市 */}
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-1.5">
+                <label className={labelCls}>省份</label>
+                <select
+                  value={form.province}
+                  onChange={(e) => setForm({ ...form, province: e.target.value, city: '', district: '' })}
+                  className={`${inputCls()} cursor-pointer`}
+                >
+                  <option value="">请选择省份</option>
+                  {provinces.map((p) => (
+                    <option key={p.value} value={p.value}>{p.label}</option>
+                  ))}
+                </select>
+              </div>
+              <div className="space-y-1.5">
+                <label className={labelCls}>城市</label>
+                <select
+                  value={form.city}
+                  onChange={(e) => setForm({ ...form, city: e.target.value, district: '' })}
+                  disabled={!form.province}
+                  className={`${inputCls()} cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed`}
+                >
+                  <option value="">请选择城市</option>
+                  {cities.map((c) => (
+                    <option key={c.value} value={c.value}>{c.label}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            {/* 区/县 + 详细地址 */}
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-1.5">
+                <label className={labelCls}>区/县</label>
+                <select
+                  value={form.district}
+                  onChange={(e) => setForm({ ...form, district: e.target.value })}
+                  disabled={!form.city}
+                  className={`${inputCls()} cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed`}
+                >
+                  <option value="">请选择区/县</option>
+                  {districts.map((d) => (
+                    <option key={d.value} value={d.value}>{d.label}</option>
+                  ))}
+                </select>
+              </div>
+              <div className="space-y-1.5">
+                <label className={labelCls}>详细地址</label>
+                <input
+                  type="text"
+                  value={form.address}
+                  onChange={(e) => setForm({ ...form, address: e.target.value })}
+                  className={inputCls()}
+                  placeholder="街道、门牌号等"
                 />
               </div>
             </div>

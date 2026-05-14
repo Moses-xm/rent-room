@@ -61,7 +61,7 @@ export async function POST(req: Request) {
     if (!auth.ok) return auth.response;
 
     const body = await req.json();
-    const { username, password, avatar, phone, nickname, realname, gender, identity, isActive, email, wallet, payCode } = body;
+    const { username, password, avatar, phone, nickname, realname, gender, identity, isActive, email, province, city, district, address, wallet, payCode } = body;
 
     if (!username || !password) {
       return NextResponse.json({ success: false, message: '用户名和密码必填' }, { status: 400 });
@@ -81,6 +81,10 @@ export async function POST(req: Request) {
         identity: identity !== undefined ? Number(identity) : 1,
         isActive: isActive !== undefined ? isActive : true,
         email: email || null,
+        province: province || null,
+        city: city || null,
+        district: district || null,
+        address: address || null,
         wallet: wallet !== undefined ? Number(wallet) : 0,
         payCode: payCode || '000000',
       },
