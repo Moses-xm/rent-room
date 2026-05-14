@@ -709,8 +709,13 @@ import AppLoading from '@/components/AppLoading';
 
 #### 房源管理 (`/manage/room`) ✅
 
-- 页面功能：房源列表（分页、按名称/编号/发布状态/租出状态筛选）、新建（独立页面）、编辑（独立页面）、查看详情、删除
+- 页面功能：房源列表（分页、搜索、多维筛选）、新建（独立页面）、编辑（独立页面）、查看详情、删除、列表内快捷发布/取消发布
 - API：`GET/POST /api/manage/room`，`GET/PUT/DELETE /api/manage/room/[id]`
+- 列表筛选支持：名称/编号关键词、发布人（下拉）、省市区级联下拉（筛选小区所在地）、租房类型、房屋类型、房屋朝向、发布状态、出租状态；有任意筛选项激活时出现"清空筛选"按钮
+- 省市区级联逻辑：直辖市（北京/上海/天津/重庆）选省后直接跳至区县，API 自动将 city 设为省份名；普通省份按省→市→区三级展示，数据来自 `localData/area.json`
+- 列表列：封面、房源名称（w-[180px] 截断+编号）、小区（w-[140px] 截断+城市区显示）、类型（租房类型+房屋类型）、朝向、发布人（仅用户名）、价格、状态、发布时间、操作（sticky right 固定列）
+- 操作列固定在表格右侧（`sticky right-0`），其他列横向滚动；移动端操作图标内嵌于卡片底部右侧（与内容并排），不占独立行
+- 发布快捷操作：桌面端用"上架"/"下架"文字按钮，移动端用 `Globe`/`GlobeOff` 图标，均在操作列（移动端在卡片底部右侧按钮组中）
 - 特殊字段：`isPublished`（发布状态）、`isRented`（租出状态）、`facilityIds`（JSON 数组）、`images`（JSON 数组，多图上传至 `/upload/pictures/`）
 - 描述字段 `description` 使用 `@uiw/react-md-editor` Markdown 编辑器，详情页使用 `@uiw/react-markdown-preview` 渲染
 - 小区选择支持省市区三级联动筛选，选中后自动预览小区地址信息

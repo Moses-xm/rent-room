@@ -26,6 +26,7 @@ export type Column<T> = {
   align?: keyof typeof alignCls;
   thClassName?: string;
   tdClassName?: string;
+  sticky?: 'right';
   render: (row: T) => React.ReactNode;
 };
 
@@ -81,8 +82,9 @@ export default function DataTable<T>({
                     className={[
                       thBase,
                       alignCls[col.align ?? 'left'],
+                      col.sticky === 'right' ? 'sticky right-0 z-10 border-l border-border-subtle' : '',
                       col.thClassName ?? '',
-                    ].join(' ')}
+                    ].filter(Boolean).join(' ')}
                   >
                     {col.label}
                   </th>
@@ -105,15 +107,16 @@ export default function DataTable<T>({
                 </tr>
               ) : (
                 data.map((row) => (
-                  <tr key={rowKey(row)} className="hover:bg-surface transition-colors">
+                  <tr key={rowKey(row)} className="group hover:bg-surface transition-colors">
                     {columns.map((col) => (
                       <td
                         key={col.key}
                         className={[
                           tdBase,
                           alignCls[col.align ?? 'left'],
+                          col.sticky === 'right' ? 'sticky right-0 z-10 bg-card group-hover:bg-surface border-l border-border-subtle' : '',
                           col.tdClassName ?? '',
-                        ].join(' ')}
+                        ].filter(Boolean).join(' ')}
                       >
                         {col.render(row)}
                       </td>

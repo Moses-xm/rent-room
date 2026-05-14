@@ -23,7 +23,20 @@ export async function GET(req: NextRequest) {
     const search = searchParams.get('search') || '';
     const isPublished = searchParams.get('isPublished');
     const isRented = searchParams.get('isRented');
+    const publisherId = searchParams.get('publisherId');
+    const rentType = searchParams.get('rentType');
+    const roomType = searchParams.get('roomType');
+    const direction = searchParams.get('direction');
+    const province = searchParams.get('province');
+    const city = searchParams.get('city');
+    const district = searchParams.get('district');
     const skip = (page - 1) * limit;
+
+    const communityWhere = {
+      ...(province ? { province } : {}),
+      ...(city ? { city } : {}),
+      ...(district ? { district } : {}),
+    };
 
     const where = {
       ...(search
@@ -36,6 +49,11 @@ export async function GET(req: NextRequest) {
         : {}),
       ...(isPublished ? { isPublished: Number(isPublished) } : {}),
       ...(isRented ? { isRented: Number(isRented) } : {}),
+      ...(publisherId ? { publisherId: Number(publisherId) } : {}),
+      ...(rentType ? { rentType: Number(rentType) } : {}),
+      ...(roomType ? { roomType } : {}),
+      ...(direction ? { direction } : {}),
+      ...(Object.keys(communityWhere).length > 0 ? { community: communityWhere } : {}),
     };
 
     const [total, items] = await Promise.all([
