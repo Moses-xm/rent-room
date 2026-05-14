@@ -29,7 +29,7 @@ export async function GET(req: NextRequest) {
         where,
         take: limit,
         skip,
-        orderBy: { created: 'desc' }
+        orderBy: { createdAt: 'desc' }
       })
     ]);
 

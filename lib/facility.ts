@@ -11,7 +11,7 @@ export function serializeFacility(facility: FacilityRecord) {
     id: facility.id,
     name: facility.name,
     icon: facility.icon,
-    createdAt: facility.createdAt,
-    updatedAt: facility.updatedAt,
+    createdAt: facility.createdAt.toISOString(),
+    updatedAt: facility.updatedAt.toISOString(),
   };
 }

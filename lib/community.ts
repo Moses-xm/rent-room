@@ -27,7 +27,7 @@ export function serializeCommunity(c: CommunityRecord) {
     lng: c.lng,
     lat: c.lat,
     cover: c.cover,
-    createdAt: c.createdAt,
-    updatedAt: c.updatedAt,
+    createdAt: c.createdAt.toISOString(),
+    updatedAt: c.updatedAt.toISOString(),
   };
 }

@@ -38,7 +38,7 @@ export function serializeUser(user: UserRecord) {
     address: user.address,
     wallet: user.wallet,
     payCode: user.payCode,
-    createdAt: user.createdAt,
-    updatedAt: user.updatedAt,
+    createdAt: user.createdAt.toISOString(),
+    updatedAt: user.updatedAt.toISOString(),
   };
 }

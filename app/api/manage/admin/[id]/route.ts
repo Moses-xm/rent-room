@@ -29,16 +29,13 @@ export async function PUT(req: Request, props: { params: Promise<{ id: string }>
       username?: string;
       avatar?: string | null;
       isActive?: boolean;
-      modified: Date;
       password?: string;
     } = {
-      username, 
-      avatar: normalizedAvatar || null, 
+      username,
+      avatar: normalizedAvatar || null,
       isActive,
-      modified: new Date() 
     };
-    
-    // Only update password if provided
+
     if (password) {
       data.password = password;
     }
@@ -58,7 +55,7 @@ export async function PUT(req: Request, props: { params: Promise<{ id: string }>
         console.error('Failed to delete previous avatar:', cleanupError);
       }
     }
-    
+
     return NextResponse.json({ success: true, data: serializeAdmin(admin) });
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : '服务器内部错误';
@@ -74,7 +71,7 @@ export async function DELETE(req: Request, props: { params: Promise<{ id: string
 
     const { id } = await props.params;
     const adminId = parseInt(id);
-    
+
     await prisma.admin.delete({ where: { id: adminId } });
     return NextResponse.json({ success: true, data: { id: adminId } });
   } catch (error: unknown) {

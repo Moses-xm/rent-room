@@ -9,11 +9,12 @@ Next.js 15 App Router · shadcn/ui + Tailwind CSS v4 · Neon Postgres + Prisma �
 `npm run dev` · `npm run build` · `npm run lint` · `npx prisma db push`
 
 ## 数据库规范
-所有表含 `id`（自增主键）、`createdAt`、`updatedAt`。无软删除，硬删除。字段名 camelCase。
+所有表含 `id`（自增主键）、`createdAt`（`@default(now())`）、`updatedAt`（`@updatedAt`），均为非空。无软删除，硬删除。字段名 camelCase。
 
 ## API 规范
 模板参照 `app/api/manage/admin/`：`route.ts` → GET(列表)/POST(创建)，`[id]/route.ts` → PUT(更新)/DELETE(删除)。
 成功：`{ success: true, data }` 列表额外含 `total, page, limit, totalPages`。失败：`{ success: false, message }`（含对应 HTTP 状态码）。
+每个模块在 `lib/` 下对应一个序列化文件（如 `lib/facility.ts`），所有 `Date` 字段必须显式调用 `.toISOString()`，确保 TypeScript 返回类型与前端实际收到的 JSON 一致。
 
 ## 前端规范
 - 请求统一用 `utils/request.ts` 的 `request<T>()`；不满足需求时扩展参数，不另起炉灶

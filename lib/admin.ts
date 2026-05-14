@@ -4,8 +4,8 @@ type AdminRecord = {
   password: string;
   avatar: string | null;
   isActive: boolean;
-  modified: Date | null;
-  created: Date | null;
+  createdAt: Date;
+  updatedAt: Date;
 };
 
 export function serializeAdmin(admin: AdminRecord) {
@@ -14,7 +14,7 @@ export function serializeAdmin(admin: AdminRecord) {
     username: admin.username,
     avatar: admin.avatar,
     isActive: admin.isActive,
-    modified: admin.modified,
-    created: admin.created,
+    createdAt: admin.createdAt.toISOString(),
+    updatedAt: admin.updatedAt.toISOString(),
   };
 }

@@ -28,8 +28,8 @@ type Admin = {
   username: string;
   avatar?: string | null;
   isActive: boolean;
-  created: string;
-  modified: string;
+  createdAt: string;
+  updatedAt: string;
 };
 
 /* ─── Helpers ─────────────────────────────────────────────────────────────── */
@@ -195,16 +195,16 @@ export default function AdminPage() {
       ),
     },
     {
-      key: 'created',
+      key: 'createdAt',
       label: '创建时间',
       tdClassName: 'font-mono',
-      render: (admin) => fmtDateTime(admin.created),
+      render: (admin) => fmtDateTime(admin.createdAt),
     },
     {
-      key: 'modified',
+      key: 'updatedAt',
       label: '最后修改',
       tdClassName: 'font-mono',
-      render: (admin) => fmtDateTime(admin.modified),
+      render: (admin) => fmtDateTime(admin.updatedAt),
     },
     {
       key: 'actions',
@@ -325,10 +325,10 @@ export default function AdminPage() {
                   </StatusPill>
                 </div>
                 <p className="text-tiny text-text-muted font-mono mt-0.5">
-                  创建 {fmtDateTime(admin.created)}
+                  创建 {fmtDateTime(admin.createdAt)}
                 </p>
                 <p className="text-tiny text-text-muted font-mono mt-0.5">
-                  修改 {fmtDateTime(admin.modified)}
+                  修改 {fmtDateTime(admin.updatedAt)}
                 </p>
               </div>
 

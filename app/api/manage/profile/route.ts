@@ -61,7 +61,6 @@ export async function PUT(req: Request) {
       data: {
         ...(hasAvatar ? { avatar: normalizedAvatar || null } : {}),
         ...(password ? { password } : {}),
-        modified: new Date(),
       },
     });
 
