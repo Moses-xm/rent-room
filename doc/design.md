@@ -714,10 +714,11 @@ import AppLoading from '@/components/AppLoading';
 - 特殊字段：`isPublished`（发布状态）、`isRented`（租出状态）、`facilityIds`（JSON 数组）、`images`（JSON 数组）
 - 富文本描述字段 `description` 建议集成 Tiptap 或 Quill
 
-#### 房屋设施管理 (`/manage/facility`)
+#### 房屋设施管理 (`/manage/facility`) ✅
 
-- 页面功能：设施列表、新建、编辑、删除
+- 页面功能：设施列表（分页、按名称搜索）、新建、编辑、删除
 - API：`GET/POST /api/manage/facility`，`PUT/DELETE /api/manage/facility/[id]`
+- 字段：`name`（设施名称）、`icon`（iconfont 类名，表单内含实时预览）
 
 #### 轮播图管理 (`/manage/carousel`)
 
@@ -945,7 +946,7 @@ API Key 存放在环境变量 `NEXT_PUBLIC_BAIDU_MAP_AK`（客户端可访问）
 | 用户管理 | ✅ 已实现 | `/manage/user` | |
 | 小区管理 | ✅ 已实现 | `/manage/community` | 含百度地图，独立页面 |
 | 房源管理 | ⬜ 待实现 | `/manage/room` | 含富文本编辑 |
-| 房屋设施管理 | ⬜ 待实现 | `/manage/facility` | |
+| 房屋设施管理 | ✅ 已实现 | `/manage/facility` | |
 | 轮播图管理 | ✅ 已实现 | `/manage/carousel` | 卡片展示，含图片上传 |
 | 收藏管理 | ⬜ 待实现 | `/manage/collection` | 只读列表 |
 | 预约管理 | ⬜ 待实现 | `/manage/appointment` | 只读列表 |
@@ -973,7 +974,7 @@ API Key 存放在环境变量 `NEXT_PUBLIC_BAIDU_MAP_AK`（客户端可访问）
 | `admin` | ✅ 已建 | |
 | `user` | ✅ 已建 | 含 isActive 字段 |
 | `community` | ✅ 已建 | |
-| `facility` | ⬜ 待建 | |
+| `facility` | ✅ 已建 | |
 | `room` | ⬜ 待建 | |
 | `carousel` | ✅ 已建 | |
 | `collection` | ⬜ 待建 | |

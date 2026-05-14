@@ -64,3 +64,11 @@ model carousel {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
+
+model facility {
+  id        Int      @id @default(autoincrement())
+  name      String   @db.VarChar(50)
+  icon      String   @db.VarChar(100)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
