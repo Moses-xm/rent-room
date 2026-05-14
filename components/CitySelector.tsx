@@ -2,8 +2,8 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { ChevronDown, MapPin, Search, X } from "lucide-react";
-import { createPortal } from "react-dom";
 import areaAllData from "@/localData/area.json";
+import { Modal } from "@/components/Modal";
 import areaSimpleData from "@/localData/areaSimple.json";
 import hotCitiesData from "@/localData/hotcities.json";
 import {
@@ -81,14 +81,9 @@ export function CitySelector() {
 
   useEffect(() => {
     if (!modalOpen) return;
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    const onEsc = (e: KeyboardEvent) => { if (e.key === "Escape") setModalOpen(false); };
+    const onEsc = (e: KeyboardEvent) => { if (e.key === "Escape") { setModalOpen(false); setKeyword(""); } };
     document.addEventListener("keydown", onEsc);
-    return () => {
-      document.body.style.overflow = prev;
-      document.removeEventListener("keydown", onEsc);
-    };
+    return () => document.removeEventListener("keydown", onEsc);
   }, [modalOpen]);
 
   useEffect(() => {
@@ -114,13 +109,11 @@ export function CitySelector() {
     setKeyword("");
   };
 
+  const handleModalClose = () => { setModalOpen(false); setKeyword(""); };
+
   // ── 全城市 Modal ──────────────────────────────────────────
-  const cityModal = modalOpen ? (
-    <div
-      className="fixed inset-0 z-200 flex items-center justify-center p-4"
-      style={{ background: "rgba(26,24,20,.45)", backdropFilter: "blur(3px)" }}
-      onClick={() => setModalOpen(false)}
-    >
+  const cityModal = (
+    <Modal open={modalOpen} onClose={handleModalClose}>
       <div
         className="flex h-[92vh] w-full max-w-5xl flex-col overflow-hidden
                    bg-card border border-border rounded-lg shadow-(--shadow-lg)"
@@ -135,7 +128,7 @@ export function CitySelector() {
           <button
             type="button"
             aria-label="关闭"
-            onClick={() => setModalOpen(false)}
+            onClick={handleModalClose}
             className="w-8 h-8 grid place-items-center rounded-sm text-text-muted
                        hover:bg-surface-2 hover:text-text transition-colors"
           >
@@ -213,8 +206,8 @@ export function CitySelector() {
           )}
         </div>
       </div>
-    </div>
-  ) : null;
+    </Modal>
+  );
 
   // ── 快速 Popover ──────────────────────────────────────────
   return (
@@ -310,9 +303,7 @@ export function CitySelector() {
         )}
       </div>
 
-      {cityModal && typeof document !== "undefined"
-        ? createPortal(cityModal, document.body)
-        : null}
+      {cityModal}
     </>
   );
 }
