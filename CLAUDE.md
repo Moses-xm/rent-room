@@ -21,6 +21,7 @@ Next.js 15 App Router · shadcn/ui + Tailwind CSS v4 · Neon Postgres + Prisma �
 - 新增普通 CRUD 模块时参照管理员管理模块，保持表格/表单/筛选/分页/弹窗风格一致
 - **错误处理**：`request()` 自动处理 4xx/5xx 异常并显示 toast 错误提示，页面层只需处理业务逻辑和成功提示；特殊场景（表单级错误展示、后台清理操作）传 `silent: true` 参数抑制 toast
 - **骨架屏（必须）**：所有页面首次加载不允许白屏。列表页桌面端由 `DataTable` 自动处理，移动端用 `<AppLoading variant="card" />`；详情/表单页在 `if (loading)` 提前返回，用 `skeleton-shimmer` / `skeleton-shimmer-warm` 类搭建与真实布局结构对应的骨架
+- **移动端分页（必须）**：列表页移动端卡片区必须在卡片列表下方渲染 `<Pagination />` 组件（条件：`hasLoadedOnce && total > 0`），禁止只渲染卡片而省略分页；桌面端分页由 `DataTable` 内部处理，移动端须手动补上
 - **Toaster 禁止重复渲染**：`ManageLayoutShell` 已全局挂载 `<Toaster />`，各页面只需 `import { toast } from 'sonner'` 调用即可，**不得**在页面内再渲染 `<Toaster />`，否则会在内容区占位，导致顶部间距异常
 - **全大写常量统一存放**：所有大写命名的常量（如魔法数字、枚举值、配置项）一律定义在 `utils/constants.ts`，禁止在页面或组件内就地声明
 - **日期格式化**：统一使用 `utils/format.ts` 的 `fmtDate`（年月日）和 `fmtDateTime`（年月日时分），禁止在页面内就地定义同类函数

@@ -8,6 +8,7 @@ import { Plus, Search, Pencil, Trash2, Eye, Home, Globe, GlobeOff, X } from 'luc
 import { toast } from 'sonner';
 import ConfirmDialog from '@/components/ConfirmDialog';
 import DataTable, { type Column } from '@/components/DataTable';
+import Pagination from '@/components/Pagination';
 import AppLoading from '@/components/AppLoading';
 import { fmtDate } from '@/utils/format';
 import { RENT_TYPE_OPTIONS, ROOM_TYPE_OPTIONS, DIRECTION_OPTIONS, MUNICIPALITY_PROVINCES } from '@/utils/constants';
@@ -693,6 +694,18 @@ export default function RoomPage() {
               onTogglePublish={() => handleTogglePublish(room)}
             />
           ))
+        )}
+        {hasLoadedOnce && total > 0 && (
+          <div className="bg-card border border-border rounded shadow-sm overflow-hidden">
+            <Pagination
+              page={page}
+              pageSize={pageSize}
+              total={total}
+              totalPages={totalPages}
+              onPageChange={setPage}
+              onPageSizeChange={(s) => { setPageSize(s); setPage(1); }}
+            />
+          </div>
         )}
       </div>
 
