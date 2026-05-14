@@ -440,8 +440,11 @@ export default function RoomForm({ title, subtitle, initialData, onSubmit, backH
             />
             {errors.name && <p className={errCls}>{errors.name}</p>}
           </div>
+        </Section>
 
-          {/* 封面图片 */}
+        {/* ── 房源图片 ── */}
+        <Section title="房源图片">
+          {/* 封面 */}
           <div>
             <label className={labelCls}>房源封面 <span className="text-danger">*</span></label>
             <div className={`flex items-start gap-3 rounded-sm border border-dashed p-4 ${errors.cover ? 'border-danger bg-danger-bg/10' : 'border-border bg-surface'}`}>
@@ -479,6 +482,45 @@ export default function RoomForm({ title, subtitle, initialData, onSubmit, backH
             </div>
             <input ref={coverInputRef} type="file" accept="image/png,image/jpeg,image/webp" onChange={handleCoverUpload} className="hidden" />
             {errors.cover && <p className={errCls}>{errors.cover}</p>}
+          </div>
+
+          {/* 更多图片 */}
+          <div>
+            <label className={labelCls}>更多图片 <span className="text-danger">*</span></label>
+            <p className="text-caption text-text-muted mb-3">支持上传多张图片，可单独删除。建议上传高质量图片，每张不超过 5 MB。</p>
+            {form.images.length > 0 && (
+              <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-5 gap-3 mb-3">
+                {form.images.map((path) => {
+                  const url = resolveUploadedFileUrl(path);
+                  return (
+                    <div key={path} className="relative group aspect-square rounded-md overflow-hidden border border-border bg-surface">
+                      <img src={url} alt="" className="w-full h-full object-cover" />
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveImage(path)}
+                        className="absolute top-1 right-1 w-5 h-5 rounded-full bg-black/60 text-white grid place-items-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-500"
+                      >
+                        <X size={11} />
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+            <div className="flex items-center gap-3">
+              <button
+                type="button"
+                disabled={uploadingImages}
+                onClick={() => imagesInputRef.current?.click()}
+                className="h-8 px-3 text-body-sm rounded-sm font-medium bg-card border border-border text-text-2 hover:bg-surface-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1.5"
+              >
+                {uploadingImages ? <Loader2 size={13} className="animate-spin" /> : <Plus size={13} />}
+                {uploadingImages ? '上传中…' : '添加图片'}
+              </button>
+              <span className="text-caption text-text-muted">已上传 {form.images.length} 张</span>
+            </div>
+            <input ref={imagesInputRef} type="file" accept="image/png,image/jpeg,image/webp" multiple onChange={handleImagesUpload} className="hidden" />
+            {errors.images && <p className={errCls}>{errors.images}</p>}
           </div>
         </Section>
 
@@ -620,7 +662,7 @@ export default function RoomForm({ title, subtitle, initialData, onSubmit, backH
           {/* 楼层 */}
           <div>
             <label className={labelCls}>楼层信息</label>
-            <div className="flex items-center gap-3 flex-wrap">
+            <div className="flex flex-wrap sm:flex-nowrap items-center gap-3">
               <div className="flex items-center gap-1.5">
                 <span className="text-body text-text-muted shrink-0">第</span>
                 <input type="number" min="1" max="200" value={form.floor} onChange={(e) => setField('floor', e.target.value)} className={numInputCls()} />
@@ -749,47 +791,6 @@ export default function RoomForm({ title, subtitle, initialData, onSubmit, backH
             </div>
           )}
           {errors.facilityIds && <p className={errCls}>{errors.facilityIds}</p>}
-        </Section>
-
-        {/* ── 房源图片 ── */}
-        <Section title="房源图片">
-          <p className="text-caption text-text-muted -mt-1">支持上传多张图片，可单独删除。建议上传高质量图片，每张不超过 5 MB。</p>
-
-          {/* 图片网格 */}
-          {form.images.length > 0 && (
-            <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-5 gap-3">
-              {form.images.map((path) => {
-                const url = resolveUploadedFileUrl(path);
-                return (
-                  <div key={path} className="relative group aspect-square rounded-md overflow-hidden border border-border bg-surface">
-                    <img src={url} alt="" className="w-full h-full object-cover" />
-                    <button
-                      type="button"
-                      onClick={() => handleRemoveImage(path)}
-                      className="absolute top-1 right-1 w-5 h-5 rounded-full bg-black/60 text-white grid place-items-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-500"
-                    >
-                      <X size={11} />
-                    </button>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-
-          <div className="flex items-center gap-3">
-            <button
-              type="button"
-              disabled={uploadingImages}
-              onClick={() => imagesInputRef.current?.click()}
-              className="h-8 px-3 text-body-sm rounded-sm font-medium bg-card border border-border text-text-2 hover:bg-surface-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1.5"
-            >
-              {uploadingImages ? <Loader2 size={13} className="animate-spin" /> : <Plus size={13} />}
-              {uploadingImages ? '上传中…' : '添加图片'}
-            </button>
-            <span className="text-caption text-text-muted">已上传 {form.images.length} 张</span>
-          </div>
-          <input ref={imagesInputRef} type="file" accept="image/png,image/jpeg,image/webp" multiple onChange={handleImagesUpload} className="hidden" />
-          {errors.images && <p className={errCls}>{errors.images}</p>}
         </Section>
 
         {/* ── 房源描述 ── */}
