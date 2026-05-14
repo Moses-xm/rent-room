@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import dynamic from 'next/dynamic';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
@@ -8,7 +8,7 @@ import { resolveUploadedFileUrl } from '@/lib/upload-path';
 import { request } from '@/utils/request';
 import { BAIDU_MAP_AK, FONT_FAMILY, RENT_TYPE_OPTIONS, LEVEL_OPTIONS, LIFT_OPTIONS } from '@/utils/constants';
 import {
-  ArrowLeft, ChevronRight, Pencil, Home, MapPin, User, Calendar,
+  ArrowLeft, ChevronLeft, ChevronRight, Pencil, Home, MapPin, User, Calendar,
   RefreshCw, Loader2, Building2,
 } from 'lucide-react';
 import { fmtDate, fmtDateTime } from '@/utils/format';
@@ -159,6 +159,7 @@ export default function RoomDetailPage() {
   const [room, setRoom] = useState<RoomDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [activeImage, setActiveImage] = useState(0);
+  const touchStartX = useRef<number | null>(null);
 
   const fetchRoom = useCallback(async () => {
     setLoading(true);
@@ -235,6 +236,21 @@ export default function RoomDetailPage() {
   const images = parseImages(room.images);
   const allImages = coverUrl ? [room.cover, ...images.filter((x) => x !== room.cover)] : images;
   const displayImages = allImages.map((p) => resolveUploadedFileUrl(p)).filter(Boolean);
+  const total = displayImages.length;
+
+  const goPrev = () => setActiveImage(i => (i - 1 + total) % total);
+  const goNext = () => setActiveImage(i => (i + 1) % total);
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchStartX.current = e.touches[0].clientX;
+  };
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    if (touchStartX.current === null) return;
+    const delta = e.changedTouches[0].clientX - touchStartX.current;
+    if (delta < -50) goNext();
+    else if (delta > 50) goPrev();
+    touchStartX.current = null;
+  };
 
   const addressParts = room.community
     ? [room.community.province, room.community.city, room.community.district, room.community.street, room.community.streetNumber].filter(Boolean)
@@ -273,14 +289,54 @@ export default function RoomDetailPage() {
       <div className="bg-card border border-border rounded-md shadow-sm overflow-hidden">
         {displayImages.length > 0 ? (
           <div>
-            <div className="relative overflow-hidden bg-black" style={{ maxHeight: '360px' }}>
-              <img
-                src={displayImages[activeImage]}
-                alt={room.name}
-                className="w-full object-contain"
-                style={{ maxHeight: '360px' }}
-              />
-              {displayImages.length > 1 && (
+            <div
+              className="relative overflow-hidden"
+              style={{ height: '320px', touchAction: 'pan-y', userSelect: 'none' }}
+              onTouchStart={handleTouchStart}
+              onTouchEnd={handleTouchEnd}
+            >
+              {/* 模糊背景条带 */}
+              <div
+                className="absolute inset-0 flex"
+                style={{ transform: `translateX(-${activeImage * 100}%)`, transition: 'transform 0.35s ease' }}
+              >
+                {displayImages.map((url, i) => (
+                  <div key={i} className="relative w-full h-full shrink-0 overflow-hidden">
+                    <img src={url} alt="" className="absolute inset-0 w-full h-full object-cover" style={{ filter: 'blur(8px)', transform: 'scale(1.08)', opacity: 0.65 }} />
+                  </div>
+                ))}
+              </div>
+              {/* 图片条带 */}
+              <div
+                className="relative flex h-full"
+                style={{ transform: `translateX(-${activeImage * 100}%)`, transition: 'transform 0.35s ease' }}
+              >
+                {displayImages.map((url, i) => (
+                  <div key={i} className="w-full h-full shrink-0 flex items-center justify-center">
+                    <img src={url} alt={i === 0 ? room.name : ''} draggable={false} className="h-full w-full object-contain" />
+                  </div>
+                ))}
+              </div>
+              {/* 左箭头 */}
+              {total > 1 && (
+                <button
+                  onClick={goPrev}
+                  className="absolute left-3 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/30 text-white flex items-center justify-center hover:bg-black/50 transition-colors"
+                >
+                  <ChevronLeft size={18} />
+                </button>
+              )}
+              {/* 右箭头 */}
+              {total > 1 && (
+                <button
+                  onClick={goNext}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/30 text-white flex items-center justify-center hover:bg-black/50 transition-colors"
+                >
+                  <ChevronRight size={18} />
+                </button>
+              )}
+              {/* 圆点指示器 */}
+              {total > 1 && (
                 <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5">
                   {displayImages.map((_, i) => (
                     <button
@@ -292,7 +348,7 @@ export default function RoomDetailPage() {
                 </div>
               )}
             </div>
-            {displayImages.length > 1 && (
+            {total > 1 && (
               <div className="flex gap-2 p-3 overflow-x-auto">
                 {displayImages.map((url, i) => (
                   <button
@@ -300,7 +356,7 @@ export default function RoomDetailPage() {
                     onClick={() => setActiveImage(i)}
                     className={`shrink-0 w-16 h-12 rounded-md overflow-hidden border-2 transition-colors ${i === activeImage ? 'border-primary' : 'border-transparent'}`}
                   >
-                    <img src={url} alt="" className="w-full h-full object-cover" />
+                    <img src={url} alt="" draggable={false} className="w-full h-full object-cover" />
                   </button>
                 ))}
               </div>
