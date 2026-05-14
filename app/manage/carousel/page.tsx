@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { resolveUploadedFileUrl } from '@/lib/upload-path';
 import { request } from '@/utils/request';
-import { Plus, Pencil, Trash2, Images, ExternalLink } from 'lucide-react';
+import { Plus, Pencil, Trash2, Images, ExternalLink, Eye, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { Toaster } from 'sonner';
 import CarouselFormModal, {
@@ -42,6 +42,8 @@ export default function CarouselPage() {
   const [deleteTarget, setDeleteTarget] = useState<CarouselItem | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+
   useEffect(() => {
     let cancelled = false;
     setLoading(true);
@@ -61,6 +63,14 @@ export default function CarouselPage() {
 
     return () => { cancelled = true; };
   }, [refreshKey]);
+
+  // 键盘关闭预览
+  useEffect(() => {
+    if (!previewUrl) return;
+    const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') setPreviewUrl(null); };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [previewUrl]);
 
   const handleSaved = async (data: CarouselFormData, editingId?: number) => {
     if (editingId) {
@@ -91,10 +101,11 @@ export default function CarouselPage() {
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
       {Array.from({ length: 3 }).map((_, i) => (
         <div key={i} className="bg-card border border-border rounded-lg overflow-hidden shadow-sm">
-          <div className="aspect-[2/1] skeleton-shimmer" />
+          <div className="aspect-2/1 skeleton-shimmer" />
           <div className="p-3 space-y-2">
             <div className="h-4 skeleton-shimmer rounded w-3/4" />
             <div className="h-3.5 skeleton-shimmer rounded w-1/2" />
+            <div className="h-3.5 skeleton-shimmer rounded w-1/3" />
           </div>
         </div>
       ))}
@@ -143,11 +154,14 @@ export default function CarouselPage() {
             return (
               <div
                 key={item.id}
-                className="group bg-card border border-border rounded-lg overflow-hidden shadow-sm
+                className="bg-card border border-border rounded-lg overflow-hidden shadow-sm
                            hover:shadow-md hover:border-border-2 transition-all duration-200"
               >
-                {/* 图片预览 */}
-                <div className="relative aspect-[2/1] bg-surface overflow-hidden">
+                {/* 图片区域：点击预览 */}
+                <div
+                  className="relative aspect-2/1 bg-surface overflow-hidden cursor-zoom-in"
+                  onClick={() => imageUrl && setPreviewUrl(imageUrl)}
+                >
                   {imageUrl ? (
                     <img
                       src={imageUrl}
@@ -159,25 +173,6 @@ export default function CarouselPage() {
                       <Images size={32} className="text-text-disabled" />
                     </div>
                   )}
-                  {/* 悬浮操作遮罩 */}
-                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors duration-200 flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100">
-                    <button
-                      onClick={() => setModalState({ mode: 'edit', item })}
-                      title="编辑"
-                      className="w-9 h-9 rounded-sm bg-white/90 hover:bg-white grid place-items-center
-                                 text-text transition-colors shadow"
-                    >
-                      <Pencil size={15} />
-                    </button>
-                    <button
-                      onClick={() => setDeleteTarget(item)}
-                      title="删除"
-                      className="w-9 h-9 rounded-sm bg-white/90 hover:bg-white grid place-items-center
-                                 text-danger transition-colors shadow"
-                    >
-                      <Trash2 size={15} />
-                    </button>
-                  </div>
                   {/* ID 标签 */}
                   <span className="absolute top-2 left-2 text-tiny font-mono bg-black/50 text-white px-1.5 py-0.5 rounded">
                     #{item.id}
@@ -193,11 +188,19 @@ export default function CarouselPage() {
                     </p>
                   </div>
                   <div className="flex items-center justify-between">
-                    <p className="text-caption text-text-muted">
-                      创建于 {fmtDate(item.createdAt)}
-                    </p>
-                    {/* 移动端操作按钮（hover 遮罩在移动端不可用） */}
-                    <div className="flex sm:hidden items-center gap-0.5">
+                    <div className="space-y-0.5">
+                      <p className="text-caption text-text-muted">创建 {fmtDate(item.createdAt)}</p>
+                      <p className="text-caption text-text-muted">更新 {fmtDate(item.updatedAt)}</p>
+                    </div>
+                    {/* 操作按钮 */}
+                    <div className="flex items-center gap-0.5">
+                      <button
+                        onClick={() => imageUrl && setPreviewUrl(imageUrl)}
+                        title="预览"
+                        className="w-7 h-7 rounded-sm grid place-items-center text-text-muted hover:text-text hover:bg-surface-2 transition-colors"
+                      >
+                        <Eye size={13} />
+                      </button>
                       <button
                         onClick={() => setModalState({ mode: 'edit', item })}
                         title="编辑"
@@ -218,6 +221,28 @@ export default function CarouselPage() {
               </div>
             );
           })}
+        </div>
+      )}
+
+      {/* ── 图片 Lightbox ── */}
+      {previewUrl && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm animate-in fade-in duration-150"
+          onClick={() => setPreviewUrl(null)}
+        >
+          <button
+            onClick={() => setPreviewUrl(null)}
+            className="absolute top-4 right-4 w-9 h-9 rounded-sm bg-white/10 hover:bg-white/20
+                       grid place-items-center text-white transition-colors"
+          >
+            <X size={18} />
+          </button>
+          <img
+            src={previewUrl}
+            alt="轮播图预览"
+            className="max-w-[90vw] max-h-[85vh] rounded-sm object-contain shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          />
         </div>
       )}
 
