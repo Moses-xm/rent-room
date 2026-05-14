@@ -14,26 +14,31 @@ export async function GET(req: NextRequest) {
     const page = parseInt(searchParams.get('page') || '1');
     const limit = parseInt(searchParams.get('limit') || '10');
     const search = searchParams.get('search') || '';
+    const identity = searchParams.get('identity');
+    const all = searchParams.get('all') === 'true';
     const skip = (page - 1) * limit;
 
-    const where = search
-      ? {
-          OR: [
-            { username: { contains: search, mode: 'insensitive' as const } },
-            { phone: { contains: search, mode: 'insensitive' as const } },
-            { nickname: { contains: search, mode: 'insensitive' as const } },
-          ],
-        }
-      : {};
+    const where = {
+      ...(search
+        ? {
+            OR: [
+              { username: { contains: search, mode: 'insensitive' as const } },
+              { phone: { contains: search, mode: 'insensitive' as const } },
+              { nickname: { contains: search, mode: 'insensitive' as const } },
+            ],
+          }
+        : {}),
+      ...(identity ? { identity: Number(identity) } : {}),
+    };
+
+    if (all) {
+      const users = await prisma.user.findMany({ where, orderBy: { username: 'asc' } });
+      return NextResponse.json({ success: true, data: users.map(serializeUser) });
+    }
 
     const [total, users] = await Promise.all([
       prisma.user.count({ where }),
-      prisma.user.findMany({
-        where,
-        take: limit,
-        skip,
-        orderBy: { createdAt: 'desc' },
-      }),
+      prisma.user.findMany({ where, take: limit, skip, orderBy: { createdAt: 'desc' } }),
     ]);
 
     return NextResponse.json({

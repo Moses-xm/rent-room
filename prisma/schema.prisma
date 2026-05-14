@@ -25,7 +25,7 @@ model user {
   nickname  String?  @db.VarChar(50)
   realname  String?  @db.VarChar(50)
   gender    Int      @default(3)
-  identity  Int      @default(1)
+  identity  Int      @default(1)          // 1=普通用户 2=房东
   isActive  Boolean  @default(true)
   avatar    String?  @db.VarChar(500)
   email     String?  @db.VarChar(100)
@@ -37,6 +37,8 @@ model user {
   payCode   String   @default("000000") @db.VarChar(10)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  rooms room[]
 }
 
 model community {
@@ -53,6 +55,8 @@ model community {
   cover        String   @db.VarChar(500)
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
+
+  rooms room[]
 }
 
 model carousel {
@@ -71,4 +75,42 @@ model facility {
   icon      String   @db.VarChar(100)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+model room {
+  id          Int       @id @default(autoincrement())
+  name        String    @db.VarChar(200)
+  cmyId       Int
+  rentType    Int                          // 1=整租 2=合租
+  minTenancy  Int                          // 最短租期（月）
+  bedroom     Int
+  parlour     Int
+  bathroom    Int
+  roomType    String    @db.VarChar(20)   // 普通住宅 / 公寓
+  direction   String    @db.VarChar(10)
+  price       Float
+  area        Int
+  pledge      Int                          // 押几个月
+  pay         Int                          // 付几个月
+  floor       Int
+  floors      Int
+  level       Int                          // 1=低 2=中 3=高
+  lift        Int       @default(1)        // 1=无电梯 2=有电梯
+  description String?   @db.Text
+  cover       String    @db.VarChar(500)
+  images      String    @db.Text           // JSON 字符串，多张图片 URL 数组
+  facilityIds String    @db.VarChar(500)   // JSON 字符串，设施 ID 数组
+  publisherId Int
+  isPublished Int       @default(1)        // 1=未发布 2=已发布
+  publishTime DateTime?
+  roomCode    String    @unique @db.VarChar(20)
+  isRented    Int       @default(1)        // 1=未租出 2=已租出
+  views       Int       @default(0)
+  times       Int       @default(0)
+  income      Float     @default(0)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  community community @relation(fields: [cmyId], references: [id])
+  publisher user      @relation(fields: [publisherId], references: [id])
 }

@@ -1,4 +1,6 @@
 @import 'tailwindcss';
+@import '@uiw/react-md-editor/markdown-editor.css';
+@import '@uiw/react-markdown-preview/markdown.css';
 
 /* ═══════════════════════════════════════════════════════════
    全局原子令牌 + 语义变量默认值

@@ -3,6 +3,7 @@ import { del, put } from "@vercel/blob";
 import path from "path";
 import {
   AVATAR_UPLOAD_PREFIX,
+  PICTURES_UPLOAD_PREFIX,
   toBlobPathname,
 } from "@/lib/upload-path";
 
@@ -51,6 +52,26 @@ export async function saveAvatarUpload(file: File) {
   return {
     path: storedPath,
   };
+}
+
+export async function savePictureUpload(file: File) {
+  assertBlobStorageConfigured();
+
+  const dateFolder = getAvatarDateFolder();
+  const fileExtension = getAvatarFileExtension(file.name, file.type);
+  const storedFileName = `${Date.now()}-${randomUUID()}${fileExtension}`;
+  const storedPath = `${PICTURES_UPLOAD_PREFIX}${dateFolder}/${storedFileName}`;
+  const blobPathname = storedPath.replace(/^\/+/, "");
+
+  await put(blobPathname, file, { access: "public" });
+  return { path: storedPath };
+}
+
+export async function deleteUploadedPicture(filePath: string | null | undefined) {
+  const blobPathname = toBlobPathname(filePath);
+  if (!blobPathname) return;
+  assertBlobStorageConfigured();
+  await del(blobPathname);
 }
 
 export async function deleteUploadedAvatar(filePath: string | null | undefined) {

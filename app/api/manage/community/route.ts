@@ -13,26 +13,38 @@ export async function GET(req: NextRequest) {
     const page = parseInt(searchParams.get('page') || '1');
     const limit = parseInt(searchParams.get('limit') || '10');
     const search = searchParams.get('search') || '';
+    const province = searchParams.get('province') || '';
+    const city = searchParams.get('city') || '';
+    const district = searchParams.get('district') || '';
+    const all = searchParams.get('all') === 'true';
     const skip = (page - 1) * limit;
 
-    const where = search
-      ? {
-          OR: [
-            { name: { contains: search, mode: 'insensitive' as const } },
-            { city: { contains: search, mode: 'insensitive' as const } },
-            { district: { contains: search, mode: 'insensitive' as const } },
-          ],
-        }
-      : {};
+    const where = {
+      ...(search
+        ? {
+            OR: [
+              { name: { contains: search, mode: 'insensitive' as const } },
+              { city: { contains: search, mode: 'insensitive' as const } },
+              { district: { contains: search, mode: 'insensitive' as const } },
+            ],
+          }
+        : {}),
+      ...(province ? { province } : {}),
+      ...(city ? { city } : {}),
+      ...(district ? { district } : {}),
+    };
+
+    if (all) {
+      const items = await prisma.community.findMany({
+        where,
+        orderBy: { name: 'asc' },
+      });
+      return NextResponse.json({ success: true, data: items.map(serializeCommunity) });
+    }
 
     const [total, items] = await Promise.all([
       prisma.community.count({ where }),
-      prisma.community.findMany({
-        where,
-        take: limit,
-        skip,
-        orderBy: { createdAt: 'desc' },
-      }),
+      prisma.community.findMany({ where, take: limit, skip, orderBy: { createdAt: 'desc' } }),
     ]);
 
     return NextResponse.json({

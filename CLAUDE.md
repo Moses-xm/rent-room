@@ -68,9 +68,15 @@ rent-room/
 │   │   ├── facility/
 │   │   │   ├── page.tsx              # 房屋设施列表
 │   │   │   └── facility-form-modal.tsx
+│   │   ├── room/
+│   │   │   ├── page.tsx              # 房源列表页
+│   │   │   ├── room-form.tsx         # 新建/编辑共享表单（含 MD 编辑器、多图上传）
+│   │   │   ├── new/page.tsx          # 新建房源页
+│   │   │   └── [id]/
+│   │   │       ├── page.tsx          # 房源详情页（含地图、MD 渲染）
+│   │   │       └── edit/page.tsx     # 编辑房源页
 │   │   ├── login/page.tsx
 │   │   ├── profile/page.tsx
-│   │   ├── room/page.tsx
 │   │   ├── layout.tsx
 │   │   └── page.tsx                  # Dashboard
 │   ├── portal/
@@ -123,7 +129,7 @@ rent-room/
 ```
 
 ## 实现状态
-管理平台：登录 ✅、个人资料 ✅、管理员管理 ✅、用户管理 ✅、小区管理 ✅、轮播图管理 ✅、房屋设施管理 ✅、其余模块 ⬜。用户平台：全部 ⬜。数据库：`admin` 表 ✅、`user` 表 ✅、`community` 表 ✅、`carousel` 表 ✅、`facility` 表 ✅，其余 ⬜。
+管理平台：登录 ✅、个人资料 ✅、管理员管理 ✅、用户管理 ✅、小区管理 ✅、轮播图管理 ✅、房屋设施管理 ✅、房源管理 ✅、其余模块 ⬜。用户平台：全部 ⬜。数据库：`admin` 表 ✅、`user` 表 ✅、`community` 表 ✅、`carousel` 表 ✅、`facility` 表 ✅、`room` 表 ✅，其余 ⬜。
 
 ## 协作约定
 - 回复用中文，以 **My lord** 开头

@@ -707,12 +707,14 @@ import AppLoading from '@/components/AppLoading';
 - 新建时：点击地图自动填充 province/city/district/street/streetNumber/lng/lat
 - 图片：小区封面，单张，使用统一上传方式
 
-#### 房源管理 (`/manage/room`)
+#### 房源管理 (`/manage/room`) ✅
 
-- 页面功能：房源列表（分页、按小区/状态/发布人搜索）、查看、新建、编辑、删除
-- API：`GET/POST /api/manage/room`，`PUT/DELETE /api/manage/room/[id]`
-- 特殊字段：`isPublished`（发布状态）、`isRented`（租出状态）、`facilityIds`（JSON 数组）、`images`（JSON 数组）
-- 富文本描述字段 `description` 建议集成 Tiptap 或 Quill
+- 页面功能：房源列表（分页、按名称/编号/发布状态/租出状态筛选）、新建（独立页面）、编辑（独立页面）、查看详情、删除
+- API：`GET/POST /api/manage/room`，`GET/PUT/DELETE /api/manage/room/[id]`
+- 特殊字段：`isPublished`（发布状态）、`isRented`（租出状态）、`facilityIds`（JSON 数组）、`images`（JSON 数组，多图上传至 `/upload/pictures/`）
+- 描述字段 `description` 使用 `@uiw/react-md-editor` Markdown 编辑器，详情页使用 `@uiw/react-markdown-preview` 渲染
+- 小区选择支持省市区三级联动筛选，选中后自动预览小区地址信息
+- 详情页展示小区百度地图定位，发布人可点击跳转用户详情
 
 #### 房屋设施管理 (`/manage/facility`) ✅
 
@@ -945,7 +947,7 @@ API Key 存放在环境变量 `NEXT_PUBLIC_BAIDU_MAP_AK`（客户端可访问）
 | 管理员管理 | ✅ 已实现 | `/manage/admin` | 作为标准参考模块 |
 | 用户管理 | ✅ 已实现 | `/manage/user` | |
 | 小区管理 | ✅ 已实现 | `/manage/community` | 含百度地图，独立页面 |
-| 房源管理 | ⬜ 待实现 | `/manage/room` | 含富文本编辑 |
+| 房源管理 | ✅ 已实现 | `/manage/room` | 含 Markdown 编辑、多图上传、省市区筛选小区 |
 | 房屋设施管理 | ✅ 已实现 | `/manage/facility` | |
 | 轮播图管理 | ✅ 已实现 | `/manage/carousel` | 卡片展示，含图片上传 |
 | 收藏管理 | ⬜ 待实现 | `/manage/collection` | 只读列表 |
@@ -975,7 +977,7 @@ API Key 存放在环境变量 `NEXT_PUBLIC_BAIDU_MAP_AK`（客户端可访问）
 | `user` | ✅ 已建 | 含 isActive 字段 |
 | `community` | ✅ 已建 | |
 | `facility` | ✅ 已建 | |
-| `room` | ⬜ 待建 | |
+| `room` | ✅ 已建 | |
 | `carousel` | ✅ 已建 | |
 | `collection` | ⬜ 待建 | |
 | `appointment` | ⬜ 待建 | |

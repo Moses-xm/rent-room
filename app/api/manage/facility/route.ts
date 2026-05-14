@@ -12,11 +12,17 @@ export async function GET(req: NextRequest) {
     const page = parseInt(searchParams.get('page') || '1');
     const limit = parseInt(searchParams.get('limit') || '10');
     const search = searchParams.get('search') || '';
+    const all = searchParams.get('all') === 'true';
     const skip = (page - 1) * limit;
 
     const where = search
       ? { OR: [{ name: { contains: search, mode: 'insensitive' as const } }] }
       : {};
+
+    if (all) {
+      const items = await prisma.facility.findMany({ where, orderBy: { name: 'asc' } });
+      return NextResponse.json({ success: true, data: items.map(serializeFacility) });
+    }
 
     const [total, items] = await Promise.all([
       prisma.facility.count({ where }),

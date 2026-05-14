@@ -1,157 +1,386 @@
-import { Search } from 'lucide-react';
-import { StatusPill } from '@/components/StatusPill';
+'use client';
 
-/* ─── Mock data ───────────────────────────────────────────── */
-const tabs = [
-  { label: '全部',   count: 128, key: 'all',      active: true  },
-  { label: '待出租', count: 24,  key: 'vacant',   active: false },
-  { label: '看房中', count: 16,  key: 'viewing',  active: false },
-  { label: '签约中', count: 5,   key: 'signing',  active: false },
-  { label: '已出租', count: 83,  key: 'occupied', active: false },
-];
+import { useEffect, useMemo, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { resolveUploadedFileUrl } from '@/lib/upload-path';
+import { request } from '@/utils/request';
+import { Plus, Search, Pencil, Trash2, Eye, Home } from 'lucide-react';
+import { toast } from 'sonner';
+import ConfirmDialog from '@/components/ConfirmDialog';
+import DataTable, { type Column } from '@/components/DataTable';
+import AppLoading from '@/components/AppLoading';
+import { fmtDate, fmtDateTime } from '@/utils/format';
+import { RENT_TYPE_OPTIONS } from '@/utils/constants';
 
-const mockData = [
-  { id: 1, name: '阳光精品两居室', code: 'ROOM-001', client: 'Michael Yang', source: '直租',    date: '2026-03-25', loc: '朝阳区' },
-  { id: 2, name: '温馨主卧合租',   code: 'ROOM-002', client: 'Monkey Wong',  source: '中介转租', date: '2026-03-25', loc: '海淀区' },
-  { id: 3, name: 'CBD 豪华单间',   code: 'ROOM-003', client: 'Pangyu Song',  source: '直租',    date: '2026-03-25', loc: '静安区' },
-];
+/* ─── Types ───────────────────────────────────────────────────────────────── */
+type CommunitySnap = { id: number; name: string; city: string; district: string };
+type PublisherSnap = { id: number; username: string; nickname: string | null; realname: string | null };
 
-function initials(name: string) {
-  return name.split(' ').map((n) => n[0]).join('').toUpperCase().slice(0, 2);
+type Room = {
+  id: number;
+  name: string;
+  cmyId: number;
+  rentType: number;
+  roomType: string;
+  price: number;
+  area: number;
+  bedroom: number;
+  parlour: number;
+  bathroom: number;
+  cover: string;
+  roomCode: string;
+  isPublished: number;
+  isRented: number;
+  publishTime: string | null;
+  publisherId: number;
+  createdAt: string;
+  community: CommunitySnap | null;
+  publisher: PublisherSnap | null;
+};
+
+type ListResponse = {
+  success: boolean;
+  data: Room[];
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+};
+
+/* ─── Helpers ─────────────────────────────────────────────────────────────── */
+function publishedPill(v: number) {
+  return v === 2
+    ? <span className="inline-flex items-center px-2 py-0.5 rounded-full text-body-sm bg-success-bg text-success font-medium">已发布</span>
+    : <span className="inline-flex items-center px-2 py-0.5 rounded-full text-body-sm bg-surface-2 text-text-muted font-medium">未发布</span>;
 }
 
-/* ─── Page ────────────────────────────────────────────────── */
+function rentedPill(v: number) {
+  return v === 2
+    ? <span className="inline-flex items-center px-2 py-0.5 rounded-full text-body-sm bg-warning-bg text-warning font-medium">已租出</span>
+    : <span className="inline-flex items-center px-2 py-0.5 rounded-full text-body-sm bg-primary-tint text-primary font-medium">待出租</span>;
+}
+
+function rentTypeLabel(v: number) {
+  return RENT_TYPE_OPTIONS.find((o) => o.value === v)?.label ?? '—';
+}
+
+function publisherLabel(p: PublisherSnap | null) {
+  if (!p) return '—';
+  const parts = [p.username];
+  if (p.nickname) parts.push(p.nickname);
+  if (p.realname) parts.push(`(${p.realname})`);
+  return parts.join(' ');
+}
+
+/* ─── Action buttons ─────────────────────────────────────────────────────── */
+function ActionButtons({ onDetail, onEdit, onDelete }: {
+  onDetail: () => void; onEdit: () => void; onDelete: () => void;
+}) {
+  return (
+    <div className="flex items-center gap-0.5 justify-end">
+      <button onClick={onDetail} title="查看详情"
+        className="w-8 h-8 rounded-sm grid place-items-center text-text-muted hover:bg-surface-2 hover:text-text transition-colors cursor-pointer">
+        <Eye size={15} />
+      </button>
+      <button onClick={onEdit} title="编辑房源"
+        className="w-8 h-8 rounded-sm grid place-items-center text-text-muted hover:bg-surface-2 hover:text-primary transition-colors cursor-pointer">
+        <Pencil size={15} />
+      </button>
+      <button onClick={onDelete} title="删除房源"
+        className="w-8 h-8 rounded-sm grid place-items-center text-text-muted hover:bg-red-50 hover:text-red-500 transition-colors cursor-pointer">
+        <Trash2 size={15} />
+      </button>
+    </div>
+  );
+}
+
+/* ─── Mobile card ─────────────────────────────────────────────────────────── */
+function MobileCard({ room, onDetail, onEdit, onDelete }: {
+  room: Room; onDetail: () => void; onEdit: () => void; onDelete: () => void;
+}) {
+  const coverUrl = resolveUploadedFileUrl(room.cover);
+  return (
+    <div className="bg-card border border-border rounded-md shadow-sm overflow-hidden flex gap-3 p-3">
+      <div className="w-20 h-16 rounded-md shrink-0 overflow-hidden bg-surface">
+        {coverUrl
+          ? <img src={coverUrl} alt={room.name} className="w-full h-full object-cover" />
+          : <div className="w-full h-full flex items-center justify-center"><Home size={18} className="text-text-disabled" /></div>
+        }
+      </div>
+      <div className="flex-1 min-w-0">
+        <p className="text-body font-emphasis text-text truncate">{room.name}</p>
+        <p className="text-caption text-text-muted mt-0.5">{room.community?.name ?? '—'} · {rentTypeLabel(room.rentType)}</p>
+        <div className="flex items-center gap-1.5 mt-1.5">
+          {publishedPill(room.isPublished)}
+          {room.isPublished === 2 && rentedPill(room.isRented)}
+          <span className="text-caption text-text-muted ml-auto">¥{room.price.toLocaleString()}/月</span>
+        </div>
+      </div>
+      <div className="flex flex-col gap-0.5 shrink-0">
+        <button onClick={onDetail} className="w-7 h-7 rounded-sm grid place-items-center text-text-muted hover:bg-surface-2 hover:text-text transition-colors cursor-pointer"><Eye size={13} /></button>
+        <button onClick={onEdit} className="w-7 h-7 rounded-sm grid place-items-center text-text-muted hover:bg-surface-2 hover:text-primary transition-colors cursor-pointer"><Pencil size={13} /></button>
+        <button onClick={onDelete} className="w-7 h-7 rounded-sm grid place-items-center text-text-muted hover:bg-red-50 hover:text-red-500 transition-colors cursor-pointer"><Trash2 size={13} /></button>
+      </div>
+    </div>
+  );
+}
+
+/* ─── Page ────────────────────────────────────────────────────────────────── */
 export default function RoomPage() {
+  const router = useRouter();
+  const [list, setList] = useState<Room[]>([]);
+  const [total, setTotal] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
+  const [loading, setLoading] = useState(true);
+  const [hasLoadedOnce, setHasLoadedOnce] = useState(false);
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+  const [query, setQuery] = useState('');
+  const [debouncedQuery, setDebouncedQuery] = useState('');
+  const [isPublishedFilter, setIsPublishedFilter] = useState('');
+  const [isRentedFilter, setIsRentedFilter] = useState('');
+  const [deleteTarget, setDeleteTarget] = useState<Room | null>(null);
+  const [deleting, setDeleting] = useState(false);
+
+  useEffect(() => {
+    const t = setTimeout(() => setDebouncedQuery(query), 300);
+    return () => clearTimeout(t);
+  }, [query]);
+
+  const fetchList = async () => {
+    setLoading(true);
+    try {
+      const params = new URLSearchParams({
+        page: String(page),
+        limit: String(pageSize),
+        search: debouncedQuery,
+        ...(isPublishedFilter ? { isPublished: isPublishedFilter } : {}),
+        ...(isRentedFilter ? { isRented: isRentedFilter } : {}),
+      });
+      const res = await request<ListResponse>(`/manage/room?${params}`);
+      if (res.success) {
+        setList(res.data);
+        setTotal(res.total);
+        setTotalPages(res.totalPages);
+      }
+    } finally {
+      setLoading(false);
+      setHasLoadedOnce(true);
+    }
+  };
+
+  useEffect(() => { fetchList(); }, [page, pageSize, debouncedQuery, isPublishedFilter, isRentedFilter]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const handleDelete = async () => {
+    if (!deleteTarget) return;
+    setDeleting(true);
+    try {
+      await request(`/manage/room/${deleteTarget.id}`, { method: 'DELETE' });
+      toast.success(`已删除房源「${deleteTarget.name}」`);
+      setDeleteTarget(null);
+      fetchList();
+    } finally {
+      setDeleting(false);
+    }
+  };
+
+  const columns = useMemo<Column<Room>[]>(() => [
+    {
+      key: 'cover',
+      label: '封面',
+      render: (r) => {
+        const url = resolveUploadedFileUrl(r.cover);
+        return (
+          <div className="w-16 h-11 rounded-md overflow-hidden bg-surface shrink-0">
+            {url
+              ? <img src={url} alt={r.name} className="w-full h-full object-cover" />
+              : <div className="w-full h-full flex items-center justify-center"><Home size={14} className="text-text-disabled" /></div>
+            }
+          </div>
+        );
+      },
+    },
+    {
+      key: 'name',
+      label: '房源',
+      render: (r) => (
+        <div>
+          <p className="text-body font-emphasis text-text">{r.name}</p>
+          <p className="text-caption text-text-muted mt-0.5 font-mono">{r.roomCode}</p>
+        </div>
+      ),
+    },
+    {
+      key: 'community',
+      label: '小区',
+      render: (r) => (
+        <div>
+          <p className="text-body text-text">{r.community?.name ?? '—'}</p>
+          <p className="text-caption text-text-muted">{r.community ? `${r.community.city} ${r.community.district}` : ''}</p>
+        </div>
+      ),
+    },
+    {
+      key: 'publisher',
+      label: '发布人',
+      render: (r) => <span className="text-body text-text-2">{publisherLabel(r.publisher)}</span>,
+    },
+    {
+      key: 'price',
+      label: '价格',
+      align: 'right',
+      render: (r) => (
+        <div className="text-right">
+          <p className="text-body font-emphasis text-text">¥{r.price.toLocaleString()}</p>
+          <p className="text-caption text-text-muted">{r.area}㎡ · {r.bedroom}室{r.parlour}厅</p>
+        </div>
+      ),
+    },
+    {
+      key: 'status',
+      label: '状态',
+      align: 'center',
+      render: (r) => (
+        <div className="flex flex-col items-center gap-1">
+          {publishedPill(r.isPublished)}
+          {r.isPublished === 2 && rentedPill(r.isRented)}
+        </div>
+      ),
+    },
+    {
+      key: 'publishTime',
+      label: '发布时间',
+      render: (r) => (
+        <span className="text-body-sm text-text-muted font-mono">
+          {r.publishTime ? fmtDate(r.publishTime) : '—'}
+        </span>
+      ),
+    },
+    {
+      key: 'actions',
+      label: '操作',
+      align: 'right',
+      render: (r) => (
+        <ActionButtons
+          onDetail={() => router.push(`/manage/room/${r.id}`)}
+          onEdit={() => router.push(`/manage/room/${r.id}/edit`)}
+          onDelete={() => setDeleteTarget(r)}
+        />
+      ),
+    },
+  ], [router]);
+
   return (
     <div className="space-y-5">
 
       {/* ── 页面头部 ── */}
-      <div className="flex items-end justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
         <div>
           <h1 className="font-(family-name:--typeface-display) text-h1 font-heading tracking-tight text-text leading-[1.1] m-0">
             房源管理
           </h1>
           <div className="text-body text-text-muted mt-1.5">
-            管理所有已发布租赁房源的状态信息，跟踪签约进度。
+            管理所有租赁房源，跟踪发布与出租状态。
           </div>
         </div>
-      </div>
-
-      {/* ── 状态分组标签 ── */}
-      <div className="flex flex-wrap gap-2">
-        {tabs.map((tab) => (
-          <div
-            key={tab.key}
-            className={`flex items-center gap-2 px-4 py-2 rounded-sm border cursor-pointer transition-colors text-body ${
-              tab.active
-                ? 'bg-primary-tint border-primary text-primary font-semibold'
-                : 'bg-card border-border text-text-2 hover:bg-surface-2'
-            }`}
-          >
-            <span>{tab.label}</span>
-            <span
-              className={`text-caption font-semibold tabular-nums ${
-                tab.active ? 'text-primary' : 'text-text-muted'
-              }`}
-            >
-              {tab.count}
-            </span>
-          </div>
-        ))}
+        <button
+          onClick={() => router.push('/manage/room/new')}
+          className="h-8.5 px-3.5 text-body rounded-sm font-medium bg-primary text-white hover:bg-primary-dark transition-colors flex items-center gap-1.5 shrink-0 sm:self-end"
+        >
+          <Plus size={15} strokeWidth={2.5} />
+          新建房源
+        </button>
       </div>
 
       {/* ── 筛选区 ── */}
-      <div className="py-[14px] flex items-center gap-2.5 flex-wrap">
-        <div className="relative w-72">
+      <div className="flex items-center gap-2.5 flex-wrap">
+        <div className="relative w-full sm:w-64">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none" size={13} />
           <input
             type="text"
+            value={query}
+            onChange={(e) => { setQuery(e.target.value); setPage(1); }}
             placeholder="搜索房源名称或编号…"
-            className="w-full h-8.5 pl-9 pr-3 border border-border rounded-sm
-                       bg-card text-text text-body outline-none
-                       transition-[border-color,box-shadow]
-                       hover:border-text-disabled
-                       focus:border-primary
-                       focus:shadow-[0_0_0_3px_color-mix(in_srgb,var(--color-primary)_15%,transparent)]
+            className="w-full h-8.5 pl-9 pr-3 border border-border rounded-sm bg-card text-text text-body outline-none
+                       transition-[border-color,box-shadow] hover:border-text-disabled
+                       focus:border-primary focus:shadow-[0_0_0_3px_color-mix(in_srgb,var(--color-primary)_15%,transparent)]
                        placeholder:text-text-muted"
           />
         </div>
-        <select className="h-8.5 px-3 border border-border rounded-sm bg-card text-text-2 text-body outline-none focus:border-primary transition-colors min-w-35">
-          <option>所有区域</option>
-          <option>朝阳区</option>
-          <option>海淀区</option>
-          <option>静安区</option>
+        <select
+          value={isPublishedFilter}
+          onChange={(e) => { setIsPublishedFilter(e.target.value); setPage(1); }}
+          className="h-8.5 px-3 border border-border rounded-sm bg-card text-text-2 text-body outline-none focus:border-primary transition-colors min-w-28"
+        >
+          <option value="">全部状态</option>
+          <option value="1">未发布</option>
+          <option value="2">已发布</option>
+        </select>
+        <select
+          value={isRentedFilter}
+          onChange={(e) => { setIsRentedFilter(e.target.value); setPage(1); }}
+          className="h-8.5 px-3 border border-border rounded-sm bg-card text-text-2 text-body outline-none focus:border-primary transition-colors min-w-28"
+        >
+          <option value="">全部租出</option>
+          <option value="1">待出租</option>
+          <option value="2">已租出</option>
         </select>
         <span className="ml-auto text-body-sm text-text-muted tabular-nums">
-          共 <span className="font-semibold text-text">{mockData.length}</span> 件房源
+          共 <span className="font-semibold text-text">{total}</span> 套房源
         </span>
       </div>
 
-      {/* ── 卡片：表格 ── */}
-      <div className="bg-card border border-border rounded shadow-sm overflow-hidden">
-        {/* 表格 */}
-        <div className="overflow-x-auto">
-          <table className="w-full text-left whitespace-nowrap">
-            <thead>
-              <tr>
-                <th className="text-left text-caption font-emphasis text-text-muted uppercase tracking-[.04em] px-4 py-2.5 bg-surface-2 border-t border-b border-border-subtle">房东 / 业主</th>
-                <th className="text-left text-caption font-emphasis text-text-muted uppercase tracking-[.04em] px-4 py-2.5 bg-surface-2 border-t border-b border-border-subtle">房源名称</th>
-                <th className="text-left text-caption font-emphasis text-text-muted uppercase tracking-[.04em] px-4 py-2.5 bg-surface-2 border-t border-b border-border-subtle">状态</th>
-                <th className="text-left text-caption font-emphasis text-text-muted uppercase tracking-[.04em] px-4 py-2.5 bg-surface-2 border-t border-b border-border-subtle">发布时间</th>
-                <th className="text-left text-caption font-emphasis text-text-muted uppercase tracking-[.04em] px-4 py-2.5 bg-surface-2 border-t border-b border-border-subtle">位置</th>
-              </tr>
-            </thead>
-            <tbody>
-              {mockData.map((row) => (
-                <tr key={row.id} className="hover:bg-surface transition-colors">
-                  <td className="px-4 py-3.5 border-b border-border-subtle align-middle text-text-2 text-body">
-                    <div className="flex items-center gap-3">
-                      <div className="w-7.5 h-7.5 rounded-full shrink-0 grid place-items-center bg-surface-2 text-text-muted text-tiny font-semibold border border-border">
-                        {initials(row.client)}
-                      </div>
-                      <div>
-                        <p className="text-body font-emphasis text-text leading-none">{row.client}</p>
-                        <p className="text-tiny text-text-muted mt-0.5">{row.code} · {row.source}</p>
-                      </div>
-                    </div>
-                  </td>
-                  <td className="px-4 py-3.5 border-b border-border-subtle align-middle text-text-2 text-body">
-                    {row.name}
-                  </td>
-                  <td className="px-4 py-3.5 border-b border-border-subtle align-middle">
-                    <StatusPill variant="accent">待出租</StatusPill>
-                  </td>
-                  <td className="px-4 py-3.5 border-b border-border-subtle align-middle text-text-2 text-body font-mono">
-                    {row.date}
-                  </td>
-                  <td className="px-4 py-3.5 border-b border-border-subtle align-middle text-text-2 text-body">
-                    {row.loc}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-
-        {/* 分页占位 */}
-        <div className="flex items-center justify-between px-4.5 py-3.5 border-t border-border-subtle">
-          <span className="text-body-sm text-text-muted">第 1 / 1 页</span>
-          <div className="flex items-center gap-0.5">
-            {['«', '‹', '1', '›', '»'].map((p, i) => (
-              <button
-                key={i}
-                className={`min-w-7.5 h-7.5 rounded-sm text-body-sm transition-colors ${
-                  p === '1'
-                    ? 'font-semibold bg-primary text-white'
-                    : 'text-text-2 hover:bg-surface-2'
-                }`}
-              >
-                {p}
-              </button>
-            ))}
-          </div>
-        </div>
+      {/* ── 桌面表格 ── */}
+      <div className="hidden md:block">
+        <DataTable
+          columns={columns}
+          data={list}
+          rowKey={(r) => r.id}
+          loading={loading}
+          hasLoaded={hasLoadedOnce}
+          skeletonRows={6}
+          emptyIcon={<Home size={36} />}
+          emptyText={debouncedQuery ? '未找到符合条件的房源' : '暂无房源数据'}
+          pagination={{
+            page, pageSize, total, totalPages,
+            onPageChange: setPage,
+            onPageSizeChange: (s) => { setPageSize(s); setPage(1); },
+          }}
+        />
       </div>
+
+      {/* ── 移动端卡片 ── */}
+      <div className="md:hidden space-y-3">
+        {!hasLoadedOnce ? (
+          <AppLoading variant="card" rows={4} actionCount={3} />
+        ) : list.length === 0 ? (
+          <div className="flex flex-col items-center py-16 gap-3 text-text-muted">
+            <Home size={36} className="opacity-25" />
+            <p className="text-body">{debouncedQuery ? '未找到符合条件的房源' : '暂无房源数据'}</p>
+          </div>
+        ) : (
+          list.map((room) => (
+            <MobileCard
+              key={room.id}
+              room={room}
+              onDetail={() => router.push(`/manage/room/${room.id}`)}
+              onEdit={() => router.push(`/manage/room/${room.id}/edit`)}
+              onDelete={() => setDeleteTarget(room)}
+            />
+          ))
+        )}
+      </div>
+
+      {/* ── 删除确认 ── */}
+      <ConfirmDialog
+        open={!!deleteTarget}
+        title="删除房源"
+        description={deleteTarget ? `确定要删除房源「${deleteTarget.name}」吗？此操作不可撤销。` : ''}
+        danger
+        loading={deleting}
+        onConfirm={handleDelete}
+        onClose={() => setDeleteTarget(null)}
+      />
     </div>
   );
 }

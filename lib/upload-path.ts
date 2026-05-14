@@ -1,6 +1,7 @@
 export const BLOB_HOST_SUFFIX = ".blob.vercel-storage.com";
 export const UPLOAD_ROOT_PREFIX = "/upload/";
 export const AVATAR_UPLOAD_PREFIX = `${UPLOAD_ROOT_PREFIX}avatar/`;
+export const PICTURES_UPLOAD_PREFIX = `${UPLOAD_ROOT_PREFIX}pictures/`;
 
 function trimUploadPath(value: string | null | undefined) {
   return value?.trim() ?? "";
