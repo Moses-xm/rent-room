@@ -12,9 +12,9 @@ type AppointmentRecord = {
   landlordDeleted: boolean;
   createdAt: Date;
   updatedAt: Date;
-  user?: { id: number; username: string; nickname: string | null } | null;
-  room?: { id: number; name: string; roomCode: string } | null;
-  landlord?: { id: number; username: string; nickname: string | null } | null;
+  user?: { id: number; username: string; nickname: string | null; avatar: string | null } | null;
+  room?: { id: number; name: string; roomCode: string; cover: string } | null;
+  landlord?: { id: number; username: string; nickname: string | null; avatar: string | null } | null;
 };
 
 export function serializeAppointment(a: AppointmentRecord) {

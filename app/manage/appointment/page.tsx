@@ -2,7 +2,8 @@
 
 import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
-import { Plus, Search, Pencil, Trash2, CalendarCheck, CheckCheck, X, Home, UserRound } from 'lucide-react';
+import { Plus, Search, Pencil, Trash2, CalendarCheck, CheckCheck, X, Home } from 'lucide-react';
+import { resolveUploadedFileUrl } from '@/lib/upload-path';
 import { toast } from 'sonner';
 import { request } from '@/utils/request';
 import DataTable, { type Column } from '@/components/DataTable';
@@ -27,9 +28,9 @@ type AppointmentItem = {
   status: number;
   remark: string | null;
   createdAt: string;
-  user: { id: number; username: string; nickname: string | null } | null;
-  room: { id: number; name: string; roomCode: string } | null;
-  landlord: { id: number; username: string; nickname: string | null } | null;
+  user: { id: number; username: string; nickname: string | null; avatar: string | null } | null;
+  room: { id: number; name: string; roomCode: string; cover: string } | null;
+  landlord: { id: number; username: string; nickname: string | null; avatar: string | null } | null;
 };
 
 type AppointmentsResponse = {
@@ -166,7 +167,11 @@ export default function AppointmentPage() {
       render: (item) => item.user ? (
         <Link href={`/manage/user/${item.user.id}`} className="flex items-center gap-2.5 group/user w-fit">
           <div className="w-8 h-8 rounded-full grid place-items-center shrink-0 bg-primary-tint text-primary-dark text-xs font-semibold border border-border overflow-hidden">
-            {(item.user.nickname || item.user.username).trim().charAt(0).toUpperCase()}
+            {item.user.avatar ? (
+              <img src={resolveUploadedFileUrl(item.user.avatar)} alt={item.user.username} className="w-full h-full object-cover" />
+            ) : (
+              (item.user.nickname || item.user.username).trim().charAt(0).toUpperCase()
+            )}
           </div>
           <div>
             <p className="text-body font-emphasis text-text group-hover/user:text-primary leading-none transition-colors">
@@ -181,12 +186,16 @@ export default function AppointmentPage() {
       key: 'room',
       label: '房源',
       render: (item) => item.room ? (
-        <Link href={`/manage/room/${item.room.id}`} className="flex items-center gap-2.5 group/room w-fit">
-          <div className="w-8 h-8 rounded shrink-0 bg-surface border border-border flex items-center justify-center">
-            <Home size={13} className="text-text-muted" />
+        <Link href={`/manage/room/${item.room.id}`} className="flex items-center gap-2.5 group/room w-fit max-w-50">
+          <div className="w-8 h-8 rounded shrink-0 bg-surface border border-border overflow-hidden flex items-center justify-center">
+            {item.room.cover ? (
+              <img src={resolveUploadedFileUrl(item.room.cover)} alt={item.room.name} className="w-full h-full object-cover" />
+            ) : (
+              <Home size={13} className="text-text-muted" />
+            )}
           </div>
-          <div>
-            <p className="text-body font-emphasis text-text group-hover/room:text-primary leading-none line-clamp-1 transition-colors max-w-[130px]">
+          <div className="min-w-0">
+            <p className="text-body font-emphasis text-text group-hover/room:text-primary leading-none truncate transition-colors">
               {item.room.name}
             </p>
             <p className="text-tiny text-text-muted font-mono mt-0.5">{item.room.roomCode}</p>
@@ -199,8 +208,12 @@ export default function AppointmentPage() {
       label: '房东',
       render: (item) => item.landlord ? (
         <Link href={`/manage/user/${item.landlord.id}`} className="flex items-center gap-2 group/landlord w-fit">
-          <div className="w-7 h-7 rounded-full grid place-items-center shrink-0 bg-surface border border-border text-text-muted">
-            <UserRound size={13} />
+          <div className="w-8 h-8 rounded-full grid place-items-center shrink-0 bg-primary-tint text-primary-dark text-xs font-semibold border border-border overflow-hidden">
+            {item.landlord.avatar ? (
+              <img src={resolveUploadedFileUrl(item.landlord.avatar)} alt={item.landlord.username} className="w-full h-full object-cover" />
+            ) : (
+              (item.landlord.nickname || item.landlord.username).trim().charAt(0).toUpperCase()
+            )}
           </div>
           <div>
             <p className="text-body-sm font-emphasis text-text group-hover/landlord:text-primary leading-none transition-colors">
@@ -290,7 +303,7 @@ export default function AppointmentPage() {
           onClick={() => setModalState({ mode: 'add' })}
           className="h-8.5 px-3.5 text-body rounded-sm font-medium
                      bg-primary text-white hover:bg-primary-dark transition-colors
-                     flex items-center justify-center gap-2 cursor-pointer shrink-0"
+                     flex items-center justify-center gap-2 cursor-pointer shrink-0 w-fit"
         >
           <Plus size={14} strokeWidth={2.5} />
           新增预约
@@ -343,11 +356,15 @@ export default function AppointmentPage() {
                 href={item.room ? `/manage/room/${item.room.id}` : '#'}
                 className="flex items-center gap-3 px-4 pt-4 pb-3 group/room"
               >
-                <div className="w-10 h-10 rounded shrink-0 bg-surface border border-border flex items-center justify-center">
-                  <Home size={15} className="text-text-muted" />
+                <div className="w-10 h-10 rounded shrink-0 bg-surface border border-border overflow-hidden flex items-center justify-center">
+                  {item.room?.cover ? (
+                    <img src={resolveUploadedFileUrl(item.room.cover)} alt={item.room.name} className="w-full h-full object-cover" />
+                  ) : (
+                    <Home size={15} className="text-text-muted" />
+                  )}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-body font-emphasis text-text group-hover/room:text-primary transition-colors leading-none line-clamp-1">
+                  <p className="text-body font-emphasis text-text group-hover/room:text-primary transition-colors leading-none truncate">
                     {item.room?.name ?? '—'}
                   </p>
                   <p className="text-tiny text-text-muted font-mono mt-0.5">{item.room?.roomCode ?? ''}</p>
@@ -360,20 +377,34 @@ export default function AppointmentPage() {
               {/* 租客 + 房东 行 */}
               <div className="flex items-center gap-3 px-4 py-3">
                 <Link href={item.user ? `/manage/user/${item.user.id}` : '#'} className="flex items-center gap-2 group/user flex-1 min-w-0">
-                  <div className="w-7 h-7 rounded-full grid place-items-center shrink-0 bg-primary-tint text-primary-dark text-xs font-semibold border border-border">
-                    {(item.user?.nickname || item.user?.username || '?').charAt(0).toUpperCase()}
+                  <div className="w-7 h-7 rounded-full grid place-items-center shrink-0 bg-primary-tint text-primary-dark text-xs font-semibold border border-border overflow-hidden">
+                    {item.user?.avatar ? (
+                      <img src={resolveUploadedFileUrl(item.user.avatar)} alt={item.user.username} className="w-full h-full object-cover" />
+                    ) : (
+                      (item.user?.nickname || item.user?.username || '?').charAt(0).toUpperCase()
+                    )}
                   </div>
-                  <span className="text-body-sm font-emphasis text-text group-hover/user:text-primary transition-colors truncate">
-                    {item.user?.username ?? '—'}
-                  </span>
+                  <div className="min-w-0">
+                    <p className="text-tiny text-text-muted leading-none mb-0.5">租客</p>
+                    <p className="text-body-sm font-emphasis text-text group-hover/user:text-primary transition-colors truncate leading-none">
+                      {item.user?.username ?? '—'}
+                    </p>
+                  </div>
                 </Link>
-                <span className="text-tiny text-text-muted shrink-0">→ 房东</span>
+                <div className="shrink-0 w-px h-6 bg-border" />
                 <Link href={item.landlord ? `/manage/user/${item.landlord.id}` : '#'} className="flex items-center gap-2 group/landlord flex-1 min-w-0 justify-end">
-                  <span className="text-body-sm font-emphasis text-text group-hover/landlord:text-primary transition-colors truncate">
-                    {item.landlord?.username ?? '—'}
-                  </span>
-                  <div className="w-7 h-7 rounded-full grid place-items-center shrink-0 bg-surface border border-border text-text-muted">
-                    <UserRound size={13} />
+                  <div className="min-w-0 text-right">
+                    <p className="text-tiny text-text-muted leading-none mb-0.5">房东</p>
+                    <p className="text-body-sm font-emphasis text-text group-hover/landlord:text-primary transition-colors truncate leading-none">
+                      {item.landlord?.username ?? '—'}
+                    </p>
+                  </div>
+                  <div className="w-7 h-7 rounded-full grid place-items-center shrink-0 bg-primary-tint text-primary-dark text-xs font-semibold border border-border overflow-hidden">
+                    {item.landlord?.avatar ? (
+                      <img src={resolveUploadedFileUrl(item.landlord.avatar)} alt={item.landlord.username} className="w-full h-full object-cover" />
+                    ) : (
+                      (item.landlord?.nickname || item.landlord?.username || '?').charAt(0).toUpperCase()
+                    )}
                   </div>
                 </Link>
               </div>

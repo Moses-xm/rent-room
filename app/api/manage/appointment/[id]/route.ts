@@ -6,9 +6,9 @@ import { prisma } from '@/lib/prisma';
 type RouteProps = { params: Promise<{ id: string }> };
 
 const INCLUDE = {
-  user:     { select: { id: true, username: true, nickname: true } },
-  room:     { select: { id: true, name: true, roomCode: true } },
-  landlord: { select: { id: true, username: true, nickname: true } },
+  user:     { select: { id: true, username: true, nickname: true, avatar: true } },
+  room:     { select: { id: true, name: true, roomCode: true, cover: true } },
+  landlord: { select: { id: true, username: true, nickname: true, avatar: true } },
 } as const;
 
 export async function PUT(req: Request, props: RouteProps) {
