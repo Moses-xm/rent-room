@@ -512,7 +512,7 @@ export default function RoomForm({ title, subtitle, initialData, onSubmit, backH
                     type="button"
                     disabled={isUploadingCover}
                     onClick={() => coverInputRef.current?.click()}
-                    className="h-7 px-3 text-body-sm rounded-sm font-medium bg-card border border-border text-text-2 hover:bg-surface-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1.5"
+                    className="h-7 px-3 text-body-sm rounded-sm font-medium bg-card border border-border text-text-2 hover:bg-surface-2 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1.5"
                   >
                     {isUploadingCover ? <Loader2 size={13} className="animate-spin" /> : <Upload size={13} />}
                     {isUploadingCover ? '上传中…' : '上传封面'}
@@ -522,7 +522,7 @@ export default function RoomForm({ title, subtitle, initialData, onSubmit, backH
                       type="button"
                       onClick={handleClearCover}
                       disabled={isUploadingCover}
-                      className="text-body-sm text-text-muted hover:text-text transition-colors disabled:opacity-40"
+                      className="text-body-sm text-text-muted hover:text-text transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
                     >
                       清除
                     </button>
@@ -550,7 +550,7 @@ export default function RoomForm({ title, subtitle, initialData, onSubmit, backH
                       <button
                         type="button"
                         onClick={() => handleRemoveImage(path)}
-                        className="absolute top-1 right-1 w-5 h-5 rounded-full bg-black/60 text-white grid place-items-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-500"
+                        className="absolute top-1 right-1 w-5 h-5 rounded-full bg-black/60 text-white grid place-items-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-500 cursor-pointer"
                       >
                         <X size={11} />
                       </button>
@@ -564,7 +564,7 @@ export default function RoomForm({ title, subtitle, initialData, onSubmit, backH
                 type="button"
                 disabled={uploadingImages}
                 onClick={() => imagesInputRef.current?.click()}
-                className="h-8 px-3 text-body-sm rounded-sm font-medium bg-card border border-border text-text-2 hover:bg-surface-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1.5"
+                className="h-8 px-3 text-body-sm rounded-sm font-medium bg-card border border-border text-text-2 hover:bg-surface-2 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1.5"
               >
                 {uploadingImages ? <Loader2 size={13} className="animate-spin" /> : <Plus size={13} />}
                 {uploadingImages ? '上传中…' : '添加图片'}
@@ -860,7 +860,7 @@ export default function RoomForm({ title, subtitle, initialData, onSubmit, backH
                     key={f.id}
                     type="button"
                     onClick={() => toggleFacility(f.id)}
-                    className={`flex flex-col items-center gap-1.5 px-2 py-3 rounded-md border transition-colors ${
+                    className={`flex flex-col items-center gap-1.5 px-2 py-3 rounded-md border transition-colors cursor-pointer ${
                       selected
                         ? 'bg-primary-tint text-primary-dark border-primary/40'
                         : 'bg-surface border-border text-text-2 hover:border-text-disabled hover:bg-surface-2 hover:text-text'
@@ -899,7 +899,7 @@ export default function RoomForm({ title, subtitle, initialData, onSubmit, backH
                 setErrors({});
               }}
               disabled={busy}
-              className="h-8.5 px-4 text-body rounded-sm font-medium bg-card border border-border text-text-muted hover:bg-surface-2 hover:text-text transition-colors disabled:opacity-50 disabled:cursor-not-allowed mr-auto"
+              className="h-8.5 px-4 text-body rounded-sm font-medium bg-card border border-border text-text-muted hover:bg-surface-2 hover:text-text transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed mr-auto"
             >
               重置
             </button>
@@ -908,14 +908,14 @@ export default function RoomForm({ title, subtitle, initialData, onSubmit, backH
             type="button"
             onClick={handleCancel}
             disabled={busy}
-            className="h-8.5 px-4 text-body rounded-sm font-medium bg-card border border-border text-text-2 hover:bg-surface-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="h-8.5 px-4 text-body rounded-sm font-medium bg-card border border-border text-text-2 hover:bg-surface-2 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
           >
             取消
           </button>
           <button
             type="submit"
             disabled={busy}
-            className="h-8.5 px-5 text-body rounded-sm font-medium bg-primary text-white hover:bg-primary-dark transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="h-8.5 px-5 text-body rounded-sm font-medium bg-primary text-white hover:bg-primary-dark transition-colors flex items-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isSubmitting && <Loader2 size={13} className="animate-spin" />}
             {submitLabel}

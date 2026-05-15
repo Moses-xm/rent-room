@@ -147,7 +147,7 @@ export default function CollectionFormModal({ state, onClose, onSaved }: Props) 
             disabled={isSubmitting}
             className="w-7.5 h-7.5 rounded-sm grid place-items-center
                        text-text-muted hover:bg-surface-2 hover:text-text
-                       transition-colors disabled:opacity-40 disabled:cursor-not-allowed shrink-0"
+                       transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed shrink-0"
           >
             <X size={16} />
           </button>
@@ -294,7 +294,7 @@ export default function CollectionFormModal({ state, onClose, onSaved }: Props) 
               disabled={isSubmitting}
               className="h-8.5 px-3.5 text-body rounded-sm font-medium
                          bg-card border border-border text-text-2
-                         hover:bg-surface-2 transition-colors
+                         hover:bg-surface-2 transition-colors cursor-pointer
                          disabled:opacity-50 disabled:cursor-not-allowed"
             >
               取消
@@ -304,7 +304,7 @@ export default function CollectionFormModal({ state, onClose, onSaved }: Props) 
               disabled={isSubmitting || loadingOptions}
               className="h-8.5 px-3.5 text-body rounded-sm font-medium
                          bg-primary text-white hover:bg-primary-dark transition-colors
-                         flex items-center gap-2
+                         flex items-center gap-2 cursor-pointer
                          disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isSubmitting && <Loader2 size={13} className="animate-spin" />}

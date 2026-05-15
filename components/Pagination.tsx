@@ -10,7 +10,7 @@ import {
 
 const navBtnCls =
   'min-w-[30px] h-[30px] rounded-sm grid place-items-center text-body-sm ' +
-  'text-text-2 hover:bg-surface-2 disabled:text-text-disabled disabled:cursor-not-allowed transition-colors';
+  'text-text-2 hover:bg-surface-2 cursor-pointer disabled:text-text-disabled disabled:cursor-not-allowed transition-colors';
 
 interface PaginationProps {
   page: number;
@@ -90,7 +90,7 @@ export default function Pagination({
             <button
               key={p}
               onClick={() => onPageChange(p as number)}
-              className={`min-w-[30px] h-[30px] rounded-sm text-body-sm transition-colors ${
+              className={`min-w-[30px] h-[30px] rounded-sm text-body-sm transition-colors cursor-pointer ${
                 p === page
                   ? 'font-semibold bg-primary text-white'
                   : 'text-text-2 hover:bg-surface-2'

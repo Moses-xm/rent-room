@@ -130,7 +130,7 @@ export function CitySelector() {
             aria-label="关闭"
             onClick={handleModalClose}
             className="w-8 h-8 grid place-items-center rounded-sm text-text-muted
-                       hover:bg-surface-2 hover:text-text transition-colors"
+                       hover:bg-surface-2 hover:text-text transition-colors cursor-pointer"
           >
             <X className="h-4 w-4" />
           </button>
@@ -160,7 +160,7 @@ export function CitySelector() {
                   key={item.name}
                   type="button"
                   onClick={() => handleCityChange(item.name)}
-                  className={`px-3 py-1 rounded-sm text-body-sm font-medium border transition-colors
+                  className={`px-3 py-1 rounded-sm text-body-sm font-medium border transition-colors cursor-pointer
                     ${item.name === currentCity
                       ? "bg-primary-tint text-primary border-transparent font-semibold"
                       : "bg-card text-text-2 border-border hover:border-text-disabled hover:text-text"
@@ -191,7 +191,7 @@ export function CitySelector() {
                       key={`${group.province}-${city}`}
                       type="button"
                       onClick={() => handleCityChange(city)}
-                      className={`px-2.5 py-1 rounded-sm text-body-sm font-medium transition-colors
+                      className={`px-2.5 py-1 rounded-sm text-body-sm font-medium transition-colors cursor-pointer
                         ${city === currentCity
                           ? "bg-primary-tint text-primary"
                           : "bg-surface-2 text-text-2 hover:text-text hover:bg-surface"
@@ -224,7 +224,7 @@ export function CitySelector() {
             }
           }}
           className="flex items-center gap-2 px-2 py-1 rounded-sm text-body-sm
-                     hover:bg-surface-2 transition-colors"
+                     hover:bg-surface-2 transition-colors cursor-pointer"
         >
           <MapPin className="w-[14px] h-[14px] text-primary shrink-0" />
           <span className="font-medium text-text max-w-24 truncate">{currentCity}</span>
@@ -273,7 +273,7 @@ export function CitySelector() {
                         type="button"
                         onClick={() => handleCityChange(city.name)}
                         className={`px-2 py-0.5 rounded-sm text-caption font-medium
-                          transition-colors
+                          transition-colors cursor-pointer
                           ${city.name === currentCity
                             ? "bg-primary-tint text-primary font-semibold"
                             : "bg-surface text-text-2 hover:bg-surface-2 hover:text-text"
@@ -293,7 +293,7 @@ export function CitySelector() {
                 type="button"
                 onClick={() => { setPopoverOpen(false); setModalOpen(true); }}
                 className="flex items-center gap-1 text-body-sm font-medium
-                           text-primary hover:text-primary-dark transition-colors"
+                           text-primary hover:text-primary-dark transition-colors cursor-pointer"
               >
                 更多城市
                 <ChevronDown className="w-3 h-3 -rotate-90" />

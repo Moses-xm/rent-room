@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { resolveUploadedFileUrl } from '@/lib/upload-path';
 import { request } from '@/utils/request';
-import { Plus, Search, Pencil, Trash2, Users, Eye } from 'lucide-react';
+import { Plus, Search, Pencil, Trash2, Users } from 'lucide-react';
 import { toast } from 'sonner';
 import UserFormModal, { type ModalState, type UserFormData } from './user-form-modal';
 import ConfirmDialog from '@/components/ConfirmDialog';
@@ -60,24 +60,15 @@ function getEmptyStateText(search: string) {
 /* ─── Action buttons ─────────────────────────────────────────────────────── */
 function ActionButtons({
   size = 15,
-  onDetail,
   onEdit,
   onDelete,
 }: {
   size?: number;
-  onDetail: () => void;
   onEdit: () => void;
   onDelete: () => void;
 }) {
   return (
     <div className="flex items-center gap-0.5">
-      <button
-        onClick={onDetail}
-        title="查看详情"
-        className="w-8 h-8 rounded-sm grid place-items-center text-text-muted hover:bg-surface-2 hover:text-text transition-colors active:scale-95 cursor-pointer"
-      >
-        <Eye size={size} />
-      </button>
       <button
         onClick={onEdit}
         title="编辑用户"
@@ -204,7 +195,10 @@ export default function UserPage() {
       key: 'username',
       label: '用户',
       render: (user) => (
-        <div className="flex items-center gap-3">
+        <div
+          className="flex items-center gap-3 cursor-pointer group"
+          onClick={() => router.push(`/manage/user/${user.id}`)}
+        >
           <div className="w-7.5 h-7.5 rounded-full grid place-items-center overflow-hidden shrink-0 bg-primary-tint text-primary-dark text-xs font-semibold border border-border">
             {user.avatar ? (
               <img
@@ -217,7 +211,7 @@ export default function UserPage() {
             )}
           </div>
           <div>
-            <p className="text-body font-emphasis text-text leading-none">
+            <p className="text-body font-emphasis text-text leading-none group-hover:text-primary transition-colors">
               {user.nickname || user.username}
             </p>
             <p className="text-tiny text-text-muted font-mono mt-0.5">
@@ -280,14 +274,13 @@ export default function UserPage() {
       render: (user) => (
         <div className="flex justify-end">
           <ActionButtons
-            onDetail={() => router.push(`/manage/user/${user.id}`)}
             onEdit={() => setModalState({ mode: 'edit', user })}
             onDelete={() => setDeleteTarget(user)}
           />
         </div>
       ),
     },
-  ], [router, setModalState, setDeleteTarget]);
+  ], [setModalState, setDeleteTarget]);
 
   return (
     <div className="space-y-5">
@@ -307,7 +300,7 @@ export default function UserPage() {
             onClick={() => setModalState({ mode: 'add' })}
             className="h-8.5 px-3.5 text-body rounded-sm font-medium
                        bg-primary text-white hover:bg-primary-dark transition-colors
-                       flex items-center justify-center gap-2"
+                       flex items-center justify-center gap-2 cursor-pointer"
           >
             <Plus size={14} strokeWidth={2.5} />
             新建用户
@@ -345,7 +338,7 @@ export default function UserPage() {
       {/* ── 移动端卡片列表（< md）── */}
       <div className="md:hidden space-y-3">
         {!hasLoadedOnce ? (
-          <AppLoading variant="card" rows={4} actionCount={3} />
+          <AppLoading variant="card" rows={4} actionCount={2} />
         ) : list.length === 0 ? (
           <div className="bg-card border border-border rounded shadow-sm py-20 flex flex-col items-center gap-3 opacity-40">
             <Users size={36} className="text-text-disabled" />
@@ -357,41 +350,45 @@ export default function UserPage() {
               key={user.id}
               className="bg-card border border-border rounded shadow-sm p-4 flex items-center gap-3"
             >
-              <div className="w-9.5 h-9.5 rounded-full grid place-items-center overflow-hidden shrink-0 bg-primary-tint text-primary-dark text-xs font-semibold border border-border">
-                {user.avatar ? (
-                  <img
-                    src={resolveUploadedFileUrl(user.avatar)}
-                    alt={user.username}
-                    className="h-full w-full object-cover"
-                  />
-                ) : (
-                  initials(user.nickname || user.username)
-                )}
-              </div>
-
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 flex-wrap">
-                  <p className="text-body font-emphasis text-text">
-                    {user.nickname || user.username}
-                  </p>
-                  <StatusPill variant={user.identity === 2 ? 'warning' : 'info'}>
-                    {getIdentityLabel(user.identity)}
-                  </StatusPill>
-                  <StatusPill variant={user.isActive ? 'success' : 'muted'}>
-                    {user.isActive ? '正常' : '停用'}
-                  </StatusPill>
+              <div
+                className="flex items-center gap-3 flex-1 min-w-0 cursor-pointer"
+                onClick={() => router.push(`/manage/user/${user.id}`)}
+              >
+                <div className="w-9.5 h-9.5 rounded-full grid place-items-center overflow-hidden shrink-0 bg-primary-tint text-primary-dark text-xs font-semibold border border-border">
+                  {user.avatar ? (
+                    <img
+                      src={resolveUploadedFileUrl(user.avatar)}
+                      alt={user.username}
+                      className="h-full w-full object-cover"
+                    />
+                  ) : (
+                    initials(user.nickname || user.username)
+                  )}
                 </div>
-                <p className="text-tiny text-text-muted font-mono mt-0.5">
-                  @{user.username}{user.phone ? ` · ${user.phone}` : ''}
-                </p>
-                <p className="text-tiny text-text-muted font-mono mt-0.5">
-                  注册 {fmtDateTime(user.createdAt)}
-                </p>
+
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <p className="text-body font-emphasis text-text">
+                      {user.nickname || user.username}
+                    </p>
+                    <StatusPill variant={user.identity === 2 ? 'warning' : 'info'}>
+                      {getIdentityLabel(user.identity)}
+                    </StatusPill>
+                    <StatusPill variant={user.isActive ? 'success' : 'muted'}>
+                      {user.isActive ? '正常' : '停用'}
+                    </StatusPill>
+                  </div>
+                  <p className="text-tiny text-text-muted font-mono mt-0.5">
+                    @{user.username}{user.phone ? ` · ${user.phone}` : ''}
+                  </p>
+                  <p className="text-tiny text-text-muted font-mono mt-0.5">
+                    注册 {fmtDateTime(user.createdAt)}
+                  </p>
+                </div>
               </div>
 
               <ActionButtons
                 size={15}
-                onDetail={() => router.push(`/manage/user/${user.id}`)}
                 onEdit={() => setModalState({ mode: 'edit', user })}
                 onDelete={() => setDeleteTarget(user)}
               />

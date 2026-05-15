@@ -364,7 +364,7 @@ export default function ManageProfilePage() {
                     className={`${inputCls} pr-10 ${showPassword ? '' : 'tracking-[-0.15em]'}`}
                     placeholder="请输入新的登录密码"
                   />
-                  <button type="button" onClick={() => setShowPassword((v) => !v)} className="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted hover:text-text transition-colors">
+                  <button type="button" onClick={() => setShowPassword((v) => !v)} className="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted hover:text-text transition-colors cursor-pointer">
                     {showPassword ? <Eye size={15} /> : <EyeOff size={15} />}
                   </button>
                 </div>
@@ -382,7 +382,7 @@ export default function ManageProfilePage() {
                     className={`${inputCls} pr-10 ${showConfirmPassword ? '' : 'tracking-[-0.15em]'}`}
                     placeholder="请再次输入新的登录密码"
                   />
-                  <button type="button" onClick={() => setShowConfirmPassword((v) => !v)} className="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted hover:text-text transition-colors">
+                  <button type="button" onClick={() => setShowConfirmPassword((v) => !v)} className="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted hover:text-text transition-colors cursor-pointer">
                     {showConfirmPassword ? <Eye size={15} /> : <EyeOff size={15} />}
                   </button>
                 </div>

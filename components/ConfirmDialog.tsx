@@ -68,7 +68,7 @@ export default function ConfirmDialog({
             disabled={loading}
             className="h-8.5 px-3.5 text-body rounded-sm font-medium transition-colors
                        bg-card border border-border text-text-2
-                       hover:bg-surface-2
+                       hover:bg-surface-2 cursor-pointer
                        disabled:cursor-not-allowed disabled:opacity-50"
           >
             {cancelText}
@@ -78,7 +78,7 @@ export default function ConfirmDialog({
             onClick={onConfirm}
             disabled={loading}
             className="h-8.5 px-3.5 text-body rounded-sm font-medium transition-colors
-                       bg-danger text-white hover:opacity-90 active:scale-95
+                       bg-danger text-white hover:opacity-90 active:scale-95 cursor-pointer
                        disabled:cursor-not-allowed disabled:opacity-50
                        flex items-center justify-center gap-2"
           >

@@ -120,7 +120,7 @@ export default function FilterSelect({
         type="button"
         onClick={() => setOpen((o) => !o)}
         disabled={disabled}
-        className={`w-full h-8.5 pl-3 pr-8 border rounded-sm bg-card text-text-2 text-body outline-none transition-[border-color,box-shadow] text-left relative disabled:opacity-40 disabled:cursor-not-allowed ${
+        className={`w-full h-8.5 pl-3 pr-8 border rounded-sm bg-card text-text-2 text-body outline-none transition-[border-color,box-shadow] text-left relative cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed ${
           error
             ? 'border-danger hover:border-danger focus:border-danger focus:shadow-[0_0_0_3px_color-mix(in_srgb,var(--color-danger)_15%,transparent)]'
             : 'border-border hover:border-text-disabled focus:border-primary focus:shadow-[0_0_0_3px_color-mix(in_srgb,var(--color-primary)_15%,transparent)]'
@@ -143,7 +143,7 @@ export default function FilterSelect({
             <button
               type="button"
               onClick={() => { onChange(''); setOpen(false); }}
-              className={`w-full text-left flex items-center gap-2 px-3 py-2 text-body transition-colors ${
+              className={`w-full text-left flex items-center gap-2 px-3 py-2 text-body transition-colors cursor-pointer ${
                 !value ? 'text-primary font-medium' : 'text-text-muted hover:bg-surface-2'
               }`}
             >
@@ -157,7 +157,7 @@ export default function FilterSelect({
               key={o.value}
               type="button"
               onClick={() => { onChange(o.value); setOpen(false); }}
-              className={`w-full text-left flex items-center gap-2 px-3 py-2 text-body transition-colors ${
+              className={`w-full text-left flex items-center gap-2 px-3 py-2 text-body transition-colors cursor-pointer ${
                 o.value === value
                   ? 'text-primary font-medium bg-primary-tint'
                   : 'text-text hover:bg-surface-2'

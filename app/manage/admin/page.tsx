@@ -244,7 +244,7 @@ export default function AdminPage() {
             onClick={() => setModalState({ mode: 'add' })}
             className="h-8.5 px-3.5 text-body rounded-sm font-medium
                        bg-primary text-white hover:bg-primary-dark transition-colors
-                       flex items-center justify-center gap-2"
+                       flex items-center justify-center gap-2 cursor-pointer"
           >
             <Plus size={14} strokeWidth={2.5} />
             新建管理员

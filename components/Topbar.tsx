@@ -144,7 +144,7 @@ export function Topbar({ onMobileMenuToggle }: { onMobileMenuToggle?: () => void
           onClick={onMobileMenuToggle}
           title="打开菜单"
           className="lg:hidden w-8.5 h-8.5 mr-2 rounded-sm grid place-items-center
-                     text-text-2 hover:bg-surface-2 hover:text-text transition-colors"
+                     text-text-2 hover:bg-surface-2 hover:text-text transition-colors cursor-pointer"
         >
           <Menu className="w-4.5 h-4.5" />
         </button>
@@ -175,7 +175,7 @@ export function Topbar({ onMobileMenuToggle }: { onMobileMenuToggle?: () => void
           <button
             title="通知"
             className="w-8.5 h-8.5 rounded-sm grid place-items-center relative
-                       text-text-2 hover:bg-surface-2 hover:text-text transition-colors"
+                       text-text-2 hover:bg-surface-2 hover:text-text transition-colors cursor-pointer"
           >
             <Bell className="w-4.25 h-4.25" />
             <span className="absolute top-2 right-2 w-1.5 h-1.5 rounded-full bg-danger" />
@@ -193,7 +193,7 @@ export function Topbar({ onMobileMenuToggle }: { onMobileMenuToggle?: () => void
               type="button"
               onClick={() => setMenuOpen((v) => !v)}
               className="flex items-center gap-2 px-2 py-1 rounded-sm text-body-sm
-                         hover:bg-surface-2 transition-colors"
+                         hover:bg-surface-2 transition-colors cursor-pointer"
             >
               <Avatar size="sm" />
               <span className="hidden sm:block font-medium text-text max-w-30 truncate">
@@ -254,7 +254,7 @@ export function Topbar({ onMobileMenuToggle }: { onMobileMenuToggle?: () => void
                   type="button"
                   onClick={() => { setMenuOpen(false); setLogoutOpen(true); }}
                   className="flex items-center gap-2.5 w-full px-3 py-2.25 rounded-sm
-                             text-body text-danger hover:bg-danger-bg transition-colors"
+                             text-body text-danger hover:bg-danger-bg transition-colors cursor-pointer"
                 >
                   <LogOut className="w-4 h-4 text-danger" />
                   退出登录

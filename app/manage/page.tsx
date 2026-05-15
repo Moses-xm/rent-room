@@ -197,10 +197,10 @@ export default function DashboardPage() {
           </div>
         </div>
         <div className="flex gap-2 shrink-0">
-          <button className="h-8.5 px-3.5 text-body rounded-sm font-medium flex items-center gap-1.5 bg-card border border-border text-text-2 hover:bg-surface-2 transition-colors">
+          <button className="h-8.5 px-3.5 text-body rounded-sm font-medium flex items-center gap-1.5 bg-card border border-border text-text-2 hover:bg-surface-2 transition-colors cursor-pointer">
             <Calendar size={13} /> 本月 <ChevronDown size={12} />
           </button>
-          <button className="h-8.5 px-3.5 text-body rounded-sm font-medium flex items-center gap-1.5 bg-primary text-white hover:bg-primary-dark transition-colors">
+          <button className="h-8.5 px-3.5 text-body rounded-sm font-medium flex items-center gap-1.5 bg-primary text-white hover:bg-primary-dark transition-colors cursor-pointer">
             <Plus size={14} strokeWidth={2.5} /> 快速创建
           </button>
         </div>
@@ -243,7 +243,7 @@ export default function DashboardPage() {
             </div>
             <div className="flex gap-1">
               {['本年', '近半年', '近一月'].map((l, i) => (
-                <button key={l} className={`h-7 px-2.5 text-xs rounded-sm transition-colors ${
+                <button key={l} className={`h-7 px-2.5 text-xs rounded-sm transition-colors cursor-pointer ${
                   i === 0
                     ? 'bg-primary-tint text-primary-dark font-semibold'
                     : 'text-text-muted hover:text-text hover:bg-surface-2'
@@ -277,7 +277,7 @@ export default function DashboardPage() {
               <div className="text-h4 font-heading text-text tracking-tight">收藏量 Top 5</div>
               <div className="text-xs text-text-muted mt-0.75">最受欢迎的房源</div>
             </div>
-            <button className="text-xs text-primary hover:text-primary-dark transition-colors flex items-center gap-0.5">
+            <button className="text-xs text-primary hover:text-primary-dark transition-colors flex items-center gap-0.5 cursor-pointer">
               查看全部 <ChevronRight size={12} />
             </button>
           </div>
@@ -314,7 +314,7 @@ export default function DashboardPage() {
               <div className="text-h4 font-heading text-text tracking-tight">最新订单</div>
               <div className="text-xs text-text-muted mt-0.75">实时支付记录</div>
             </div>
-            <button className="text-xs text-primary hover:text-primary-dark transition-colors flex items-center gap-0.5">
+            <button className="text-xs text-primary hover:text-primary-dark transition-colors flex items-center gap-0.5 cursor-pointer">
               查看全部 <ChevronRight size={12} />
             </button>
           </div>

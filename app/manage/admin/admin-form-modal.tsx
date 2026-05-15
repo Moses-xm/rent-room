@@ -191,7 +191,7 @@ export default function AdminFormModal({ state, onClose, onSaved }: Props) {
             disabled={busy}
             className="w-7.5 h-7.5 rounded-sm grid place-items-center
                        text-text-muted hover:bg-surface-2 hover:text-text
-                       transition-colors disabled:opacity-40 disabled:cursor-not-allowed shrink-0"
+                       transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed shrink-0"
           >
             <X size={16} />
           </button>
@@ -226,7 +226,7 @@ export default function AdminFormModal({ state, onClose, onSaved }: Props) {
                   type="button"
                   onClick={() => setForm({ ...form, isActive: !form.isActive })}
                   aria-pressed={form.isActive}
-                  className={`relative inline-flex h-5.5 w-9 shrink-0 items-center rounded-full transition-colors ${
+                  className={`relative inline-flex h-5.5 w-9 shrink-0 items-center rounded-full transition-colors cursor-pointer ${
                     form.isActive ? 'bg-primary' : 'bg-text-disabled'
                   }`}
                 >
@@ -269,7 +269,7 @@ export default function AdminFormModal({ state, onClose, onSaved }: Props) {
                       onClick={() => fileInputRef.current?.click()}
                       className="h-7 px-3 text-body-sm rounded-sm font-medium
                                  bg-card border border-border text-text-2
-                                 hover:bg-surface-2 transition-colors
+                                 hover:bg-surface-2 transition-colors cursor-pointer
                                  disabled:opacity-50 disabled:cursor-not-allowed
                                  flex items-center gap-1.5"
                     >
@@ -285,7 +285,7 @@ export default function AdminFormModal({ state, onClose, onSaved }: Props) {
                         type="button"
                         onClick={handleClearAvatar}
                         disabled={isUploading || isCleaningAvatar}
-                        className="text-body-sm text-text-muted hover:text-text transition-colors disabled:opacity-40"
+                        className="text-body-sm text-text-muted hover:text-text transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
                       >
                         清空
                       </button>
@@ -335,7 +335,7 @@ export default function AdminFormModal({ state, onClose, onSaved }: Props) {
                 <button
                   type="button"
                   onClick={() => setShowPw((v) => !v)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted hover:text-text transition-colors"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted hover:text-text transition-colors cursor-pointer"
                 >
                   {showPw ? <Eye size={15} /> : <EyeOff size={15} />}
                 </button>
@@ -360,7 +360,7 @@ export default function AdminFormModal({ state, onClose, onSaved }: Props) {
               disabled={busy}
               className="h-8.5 px-3.5 text-body rounded-sm font-medium
                          bg-card border border-border text-text-2
-                         hover:bg-surface-2 transition-colors
+                         hover:bg-surface-2 transition-colors cursor-pointer
                          disabled:opacity-50 disabled:cursor-not-allowed"
             >
               取消
@@ -370,7 +370,7 @@ export default function AdminFormModal({ state, onClose, onSaved }: Props) {
               disabled={busy}
               className="h-8.5 px-3.5 text-body rounded-sm font-medium
                          bg-primary text-white hover:bg-primary-dark transition-colors
-                         flex items-center gap-2
+                         flex items-center gap-2 cursor-pointer
                          disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isSubmitting && <Loader2 size={13} className="animate-spin" />}

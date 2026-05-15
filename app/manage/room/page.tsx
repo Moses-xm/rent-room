@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { resolveUploadedFileUrl } from '@/lib/upload-path';
 import { request } from '@/utils/request';
-import { Plus, Search, Pencil, Trash2, Eye, Home, Globe, GlobeOff, X } from 'lucide-react';
+import { Plus, Search, Pencil, Trash2, Home, Globe, GlobeOff, X } from 'lucide-react';
 import { toast } from 'sonner';
 import ConfirmDialog from '@/components/ConfirmDialog';
 import DataTable, { type Column } from '@/components/DataTable';
@@ -107,10 +107,9 @@ function rentTypeLabel(v: number) {
 }
 
 /* ─── Desktop action buttons ─────────────────────────────────────────────── */
-function ActionButtons({ room, toggling, onDetail, onEdit, onDelete, onTogglePublish }: {
+function ActionButtons({ room, toggling, onEdit, onDelete, onTogglePublish }: {
   room: Room;
   toggling: boolean;
-  onDetail: () => void;
   onEdit: () => void;
   onDelete: () => void;
   onTogglePublish: () => void;
@@ -118,22 +117,17 @@ function ActionButtons({ room, toggling, onDetail, onEdit, onDelete, onTogglePub
   const isPublished = room.isPublished === 2;
   return (
     <div className="flex items-center gap-1 justify-end">
-      {/* 发布切换 — 文字按钮，语义清晰 */}
       <button
         onClick={onTogglePublish}
         disabled={toggling}
         title={isPublished ? '取消发布' : '发布房源'}
-        className={`h-6 px-2 rounded text-body-sm font-medium border transition-colors whitespace-nowrap disabled:opacity-40 ${
+        className={`h-6 px-2 rounded text-body-sm font-medium border transition-colors whitespace-nowrap cursor-pointer disabled:opacity-40 ${
           isPublished
             ? 'border-border text-text-muted hover:border-text-disabled hover:text-text'
             : 'border-success/40 text-success bg-success-bg hover:bg-success hover:text-white hover:border-transparent'
         }`}
       >
         {isPublished ? '下架' : '上架'}
-      </button>
-      <button onClick={onDetail} title="查看详情"
-        className="w-8 h-8 rounded-sm grid place-items-center text-text-muted hover:bg-surface-2 hover:text-text transition-colors cursor-pointer">
-        <Eye size={15} />
       </button>
       <button onClick={onEdit} title="编辑房源"
         className="w-8 h-8 rounded-sm grid place-items-center text-text-muted hover:bg-surface-2 hover:text-primary transition-colors cursor-pointer">
@@ -159,7 +153,10 @@ function MobileCard({ room, toggling, onDetail, onEdit, onDelete, onTogglePublis
   const coverUrl = resolveUploadedFileUrl(room.cover);
   const isPublished = room.isPublished === 2;
   return (
-    <div className="bg-card border border-border rounded-md shadow-sm overflow-hidden">
+    <div
+      className="bg-card border border-border rounded-md shadow-sm overflow-hidden cursor-pointer"
+      onClick={onDetail}
+    >
       <div className="flex gap-3 p-3">
         {/* 封面 */}
         <div className="w-20 h-16 rounded-md shrink-0 overflow-hidden bg-surface self-start">
@@ -182,7 +179,7 @@ function MobileCard({ room, toggling, onDetail, onEdit, onDelete, onTogglePublis
             {room.isPublished === 2 && rentedPill(room.isRented)}
             <span className="text-caption text-text-muted ml-1">¥{room.price.toLocaleString()}</span>
             {/* 操作按钮 — 推到右下角 */}
-            <div className="ml-auto flex items-center gap-0.5 shrink-0">
+            <div className="ml-auto flex items-center gap-0.5 shrink-0" onClick={(e) => e.stopPropagation()}>
               <button
                 onClick={onTogglePublish}
                 disabled={toggling}
@@ -194,10 +191,6 @@ function MobileCard({ room, toggling, onDetail, onEdit, onDelete, onTogglePublis
                 }`}
               >
                 {isPublished ? <GlobeOff size={13} /> : <Globe size={13} />}
-              </button>
-              <button onClick={onDetail} title="查看"
-                className="w-6 h-6 rounded-sm grid place-items-center text-text-muted hover:bg-surface-2 hover:text-text transition-colors cursor-pointer">
-                <Eye size={13} />
               </button>
               <button onClick={onEdit} title="编辑"
                 className="w-6 h-6 rounded-sm grid place-items-center text-text-muted hover:bg-surface-2 hover:text-primary transition-colors cursor-pointer">
@@ -409,8 +402,11 @@ export default function RoomPage() {
       tdClassName: 'pl-2',
       thClassName: 'pl-2',
       render: (r) => (
-        <div className="w-[180px]">
-          <p className="text-body font-emphasis text-text truncate" title={r.name}>{r.name}</p>
+        <div
+          className="w-[180px] cursor-pointer group"
+          onClick={() => router.push(`/manage/room/${r.id}`)}
+        >
+          <p className="text-body font-emphasis text-text truncate group-hover:text-primary transition-colors" title={r.name}>{r.name}</p>
           <p className="text-caption text-text-muted mt-0.5 font-mono">{r.roomCode}</p>
         </div>
       ),
@@ -486,12 +482,11 @@ export default function RoomPage() {
       key: 'actions',
       label: '操作',
       align: 'right',
-      sticky: 'right',
+
       render: (r) => (
         <ActionButtons
           room={r}
           toggling={togglingId === r.id}
-          onDetail={() => router.push(`/manage/room/${r.id}`)}
           onEdit={() => router.push(`/manage/room/${r.id}/edit`)}
           onDelete={() => setDeleteTarget(r)}
           onTogglePublish={() => handleTogglePublish(r)}
@@ -515,7 +510,7 @@ export default function RoomPage() {
         </div>
         <button
           onClick={() => router.push('/manage/room/new')}
-          className="h-8.5 px-3.5 text-body rounded-sm font-medium bg-primary text-white hover:bg-primary-dark transition-colors flex items-center gap-1.5 shrink-0 self-start sm:self-end"
+          className="h-8.5 px-3.5 text-body rounded-sm font-medium bg-primary text-white hover:bg-primary-dark transition-colors flex items-center gap-1.5 shrink-0 self-start sm:self-end cursor-pointer"
         >
           <Plus size={15} strokeWidth={2.5} />
           新建房源
@@ -662,7 +657,7 @@ export default function RoomPage() {
       {/* ── 移动端卡片 ── */}
       <div className="md:hidden space-y-3">
         {!hasLoadedOnce ? (
-          <AppLoading variant="card" rows={4} actionCount={4} />
+          <AppLoading variant="card" rows={4} actionCount={3} />
         ) : list.length === 0 ? (
           <div className="flex flex-col items-center py-16 gap-3 text-text-muted">
             <Home size={36} className="opacity-25" />

@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { resolveUploadedFileUrl } from '@/lib/upload-path';
 import { request } from '@/utils/request';
-import { Plus, Search, Pencil, Trash2, MapPin, Eye } from 'lucide-react';
+import { Plus, Search, Pencil, Trash2, MapPin } from 'lucide-react';
 import { toast } from 'sonner';
 import ConfirmDialog from '@/components/ConfirmDialog';
 import Pagination from '@/components/Pagination';
@@ -56,24 +56,15 @@ function getEmptyText(search: string) {
 /* ─── Action buttons ─────────────────────────────────────────────────────── */
 function ActionButtons({
   size = 15,
-  onDetail,
   onEdit,
   onDelete,
 }: {
   size?: number;
-  onDetail: () => void;
   onEdit: () => void;
   onDelete: () => void;
 }) {
   return (
     <div className="flex items-center gap-0.5">
-      <button
-        onClick={onDetail}
-        title="查看详情"
-        className="w-8 h-8 rounded-sm grid place-items-center text-text-muted hover:bg-surface-2 hover:text-text transition-colors active:scale-95 cursor-pointer"
-      >
-        <Eye size={size} />
-      </button>
       <button
         onClick={onEdit}
         title="编辑小区"
@@ -162,7 +153,10 @@ export default function CommunityPage() {
       key: 'name',
       label: '小区',
       render: (c) => (
-        <div className="flex items-center gap-3">
+        <div
+          className="flex items-center gap-3 cursor-pointer group"
+          onClick={() => router.push(`/manage/community/${c.id}`)}
+        >
           <div className="w-9 h-9 rounded-md overflow-hidden shrink-0 bg-surface border border-border">
             {c.cover ? (
               <img
@@ -177,7 +171,7 @@ export default function CommunityPage() {
             )}
           </div>
           <div>
-            <p className="text-body font-emphasis text-text leading-none">{c.name}</p>
+            <p className="text-body font-emphasis text-text leading-none group-hover:text-primary transition-colors">{c.name}</p>
             <p className="text-tiny text-text-muted font-mono mt-0.5">ID: {c.id}</p>
           </div>
         </div>
@@ -224,7 +218,6 @@ export default function CommunityPage() {
       render: (c) => (
         <div className="flex justify-end">
           <ActionButtons
-            onDetail={() => router.push(`/manage/community/${c.id}`)}
             onEdit={() => router.push(`/manage/community/${c.id}/edit`)}
             onDelete={() => setDeleteTarget(c)}
           />
@@ -251,7 +244,7 @@ export default function CommunityPage() {
             onClick={() => router.push('/manage/community/new')}
             className="h-8.5 px-3.5 text-body rounded-sm font-medium
                        bg-primary text-white hover:bg-primary-dark transition-colors
-                       flex items-center justify-center gap-2"
+                       flex items-center justify-center gap-2 cursor-pointer"
           >
             <Plus size={14} strokeWidth={2.5} />
             新建小区
@@ -286,7 +279,7 @@ export default function CommunityPage() {
       {/* ── 移动端卡片列表（< md）── */}
       <div className="md:hidden space-y-3">
         {!hasLoadedOnce ? (
-          <AppLoading variant="card" rows={4} actionCount={3} />
+          <AppLoading variant="card" rows={4} actionCount={2} />
         ) : list.length === 0 ? (
           <div className="bg-card border border-border rounded shadow-sm py-20 flex flex-col items-center gap-3 opacity-40">
             <MapPin size={36} className="text-text-disabled" />
@@ -298,31 +291,35 @@ export default function CommunityPage() {
               key={c.id}
               className="bg-card border border-border rounded shadow-sm p-4 flex items-start gap-3"
             >
-              <div className="w-12 h-12 rounded-md overflow-hidden shrink-0 bg-surface border border-border">
-                {c.cover ? (
-                  <img
-                    src={resolveUploadedFileUrl(c.cover)}
-                    alt={c.name}
-                    className="h-full w-full object-cover"
-                  />
-                ) : (
-                  <div className="h-full w-full grid place-items-center">
-                    <MapPin size={16} className="text-text-disabled" />
-                  </div>
-                )}
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-body font-emphasis text-text">{c.name}</p>
-                <p className="text-tiny text-text-muted mt-0.5">
-                  {[c.province, c.city, c.district, c.street].filter(Boolean).join(' ')}
-                </p>
-                <p className="text-tiny text-text-muted font-mono mt-0.5">
-                  {c.lng.toFixed(5)}, {c.lat.toFixed(5)}
-                </p>
+              <div
+                className="flex items-start gap-3 flex-1 min-w-0 cursor-pointer"
+                onClick={() => router.push(`/manage/community/${c.id}`)}
+              >
+                <div className="w-12 h-12 rounded-md overflow-hidden shrink-0 bg-surface border border-border">
+                  {c.cover ? (
+                    <img
+                      src={resolveUploadedFileUrl(c.cover)}
+                      alt={c.name}
+                      className="h-full w-full object-cover"
+                    />
+                  ) : (
+                    <div className="h-full w-full grid place-items-center">
+                      <MapPin size={16} className="text-text-disabled" />
+                    </div>
+                  )}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-body font-emphasis text-text">{c.name}</p>
+                  <p className="text-tiny text-text-muted mt-0.5">
+                    {[c.province, c.city, c.district, c.street].filter(Boolean).join(' ')}
+                  </p>
+                  <p className="text-tiny text-text-muted font-mono mt-0.5">
+                    {c.lng.toFixed(5)}, {c.lat.toFixed(5)}
+                  </p>
+                </div>
               </div>
               <ActionButtons
                 size={15}
-                onDetail={() => router.push(`/manage/community/${c.id}`)}
                 onEdit={() => router.push(`/manage/community/${c.id}/edit`)}
                 onDelete={() => setDeleteTarget(c)}
               />

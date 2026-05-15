@@ -51,7 +51,7 @@ export function Drawer({ open, title, subtitle, onClose, children, footer }: Dra
             onClick={onClose}
             className="w-[30px] h-[30px] rounded-[var(--radius-sm)] grid place-items-center
                        text-[var(--color-text-muted)] hover:bg-[var(--color-surface-2)]
-                       hover:text-[var(--color-text)] transition-colors shrink-0 ml-4"
+                       hover:text-[var(--color-text)] transition-colors shrink-0 ml-4 cursor-pointer"
           >
             <X size={16} />
           </button>

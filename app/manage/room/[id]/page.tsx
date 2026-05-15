@@ -224,7 +224,7 @@ export default function RoomDetailPage() {
         <p className="text-body">房源不存在或已被删除</p>
         <button
           onClick={() => router.push('/manage/room')}
-          className="h-8.5 px-3.5 text-body rounded-sm font-medium bg-card border border-border text-text-2 hover:bg-surface-2 transition-colors"
+          className="h-8.5 px-3.5 text-body rounded-sm font-medium bg-card border border-border text-text-2 hover:bg-surface-2 transition-colors cursor-pointer"
         >
           返回房源管理
         </button>
@@ -278,7 +278,7 @@ export default function RoomDetailPage() {
         </nav>
         <button
           onClick={() => router.push(`/manage/room/${room.id}/edit`)}
-          className="h-8 px-3 text-body-sm rounded-sm font-medium bg-primary text-white hover:bg-primary-dark transition-colors flex items-center gap-1.5 shrink-0"
+          className="h-8 px-3 text-body-sm rounded-sm font-medium bg-primary text-white hover:bg-primary-dark transition-colors flex items-center gap-1.5 shrink-0 cursor-pointer"
         >
           <Pencil size={12} strokeWidth={2.5} />
           编辑
@@ -321,7 +321,7 @@ export default function RoomDetailPage() {
               {total > 1 && (
                 <button
                   onClick={goPrev}
-                  className="absolute left-3 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/30 text-white flex items-center justify-center hover:bg-black/50 transition-colors"
+                  className="absolute left-3 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/30 text-white flex items-center justify-center hover:bg-black/50 transition-colors cursor-pointer"
                 >
                   <ChevronLeft size={18} />
                 </button>
@@ -330,7 +330,7 @@ export default function RoomDetailPage() {
               {total > 1 && (
                 <button
                   onClick={goNext}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/30 text-white flex items-center justify-center hover:bg-black/50 transition-colors"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/30 text-white flex items-center justify-center hover:bg-black/50 transition-colors cursor-pointer"
                 >
                   <ChevronRight size={18} />
                 </button>
@@ -342,7 +342,7 @@ export default function RoomDetailPage() {
                     <button
                       key={i}
                       onClick={() => setActiveImage(i)}
-                      className={`w-1.5 h-1.5 rounded-full transition-colors ${i === activeImage ? 'bg-white' : 'bg-white/40'}`}
+                      className={`w-1.5 h-1.5 rounded-full transition-colors cursor-pointer ${i === activeImage ? 'bg-white' : 'bg-white/40'}`}
                     />
                   ))}
                 </div>
