@@ -3,7 +3,7 @@ export const MANAGE_PROFILE_KEY = "manage-profile";
 export const MANAGE_LOGIN_PATH = "/manage/login";
 export const MANAGE_HOME_PATH = "/manage";
 export const MANAGE_PROFILE_PATH = "/manage/profile";
-export const MANAGE_TOKEN_EXPIRES_IN_SECONDS = 60 * 60 * 24;
+export const MANAGE_TOKEN_EXPIRES_IN_SECONDS = 60 * 60 * 24 * 7; // 7 天
 export const MANAGE_AUTH_CHANGED_EVENT = "manage-auth-changed";
 export const MANAGE_PROFILE_CHANGED_EVENT = "manage-profile-changed";
 
