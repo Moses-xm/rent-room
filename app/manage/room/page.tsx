@@ -12,6 +12,7 @@ import Pagination from '@/components/Pagination';
 import AppLoading from '@/components/AppLoading';
 import { fmtDate } from '@/utils/format';
 import { RENT_TYPE_OPTIONS, ROOM_TYPE_OPTIONS, DIRECTION_OPTIONS, MUNICIPALITY_PROVINCES } from '@/utils/constants';
+import FilterSelect from '@/components/FilterSelect';
 import { getManageCity, getManageProvince, MANAGE_CITY_CHANGED_EVENT } from '@/utils/manage-city';
 import areaData from '@/localData/area.json';
 
@@ -21,6 +22,13 @@ const AREA = areaData as AreaNode[];
 const SPECIAL_KEYS = new Set(['市辖区', '县', '省直辖县级行政区划', '自治区直辖县级行政区划']);
 
 const ALL_PROVINCES = AREA.map((p) => p.value);
+
+const PROVINCE_OPTS = ALL_PROVINCES.map((p) => ({ value: p, label: p }));
+const RENT_TYPE_OPTS = RENT_TYPE_OPTIONS.map((o) => ({ value: String(o.value), label: o.label }));
+const ROOM_TYPE_OPTS = ROOM_TYPE_OPTIONS.map((t) => ({ value: t, label: t }));
+const DIRECTION_OPTS = DIRECTION_OPTIONS.map((d) => ({ value: d, label: d }));
+const PUBLISHED_OPTS = [{ value: '1', label: '未发布' }, { value: '2', label: '已发布' }];
+const RENTED_OPTS = [{ value: '1', label: '待出租' }, { value: '2', label: '已租出' }];
 
 function getCities(province: string): string[] {
   if (!province || MUNICIPALITY_PROVINCES.has(province)) return [];
@@ -252,6 +260,16 @@ export default function RoomPage() {
     return getDistricts(filterProvince, apiCity);
   }, [filterProvince, filterCity]);
 
+  const publisherOptions = useMemo(
+    () => publishers.map((p) => ({
+      value: String(p.id),
+      label: p.nickname ? `${p.username} (${p.nickname})` : p.username,
+    })),
+    [publishers]
+  );
+  const cityFilterOpts = useMemo(() => cityOptions.map((c) => ({ value: c, label: c })), [cityOptions]);
+  const districtFilterOpts = useMemo(() => districtOptions.map((d) => ({ value: d, label: d })), [districtOptions]);
+
   // 与基准省市对比，才算"已激活筛选"
   const hasFilters = !!(
     query ||
@@ -482,8 +500,6 @@ export default function RoomPage() {
     },
   ], [router, togglingId, handleTogglePublish]);
 
-  const selectCls = 'h-8.5 px-3 border border-border rounded-sm bg-card text-text-2 text-body outline-none focus:border-primary transition-colors';
-
   return (
     <div className="space-y-5">
 
@@ -525,117 +541,87 @@ export default function RoomPage() {
         </div>
 
         {/* 发布人 */}
-        <select
+        <FilterSelect
           value={publisherIdFilter}
-          onChange={(e) => { setPublisherIdFilter(e.target.value); setPage(1); }}
-          className={`${selectCls} min-w-32`}
-        >
-          <option value="">全部发布人</option>
-          {publishers.map((p) => (
-            <option key={p.id} value={p.id}>
-              {p.nickname ? `${p.username} (${p.nickname})` : p.username}
-            </option>
-          ))}
-        </select>
+          onChange={(v) => { setPublisherIdFilter(v); setPage(1); }}
+          options={publisherOptions}
+          placeholder="全部发布人"
+          className="min-w-36"
+        />
 
         {/* 省份 */}
-        <select
+        <FilterSelect
           value={filterProvince}
-          onChange={(e) => {
-            setFilterProvince(e.target.value);
-            setFilterCity('');
-            setFilterDistrict('');
-            setPage(1);
-          }}
-          className={`${selectCls} min-w-28`}
-        >
-          <option value="">全部省份</option>
-          {ALL_PROVINCES.map((p) => <option key={p} value={p}>{p}</option>)}
-        </select>
+          onChange={(v) => { setFilterProvince(v); setFilterCity(''); setFilterDistrict(''); setPage(1); }}
+          options={PROVINCE_OPTS}
+          placeholder="全部省份"
+          className="min-w-32"
+        />
 
         {/* 城市（始终显示，直辖市或未选省时禁用） */}
-        <select
+        <FilterSelect
           value={filterCity}
           disabled={cityOptions.length === 0}
-          onChange={(e) => {
-            setFilterCity(e.target.value);
-            setFilterDistrict('');
-            setPage(1);
-          }}
-          className={`${selectCls} min-w-28 disabled:opacity-40 disabled:cursor-not-allowed`}
-        >
-          <option value="">全部城市</option>
-          {cityOptions.map((c) => <option key={c} value={c}>{c}</option>)}
-        </select>
+          onChange={(v) => { setFilterCity(v); setFilterDistrict(''); setPage(1); }}
+          options={cityFilterOpts}
+          placeholder="全部城市"
+          className="min-w-32"
+        />
 
         {/* 区县（始终显示，未选省或未选城市时禁用） */}
-        <select
+        <FilterSelect
           value={filterDistrict}
           disabled={districtOptions.length === 0}
-          onChange={(e) => { setFilterDistrict(e.target.value); setPage(1); }}
-          className={`${selectCls} min-w-28 disabled:opacity-40 disabled:cursor-not-allowed`}
-        >
-          <option value="">全部区县</option>
-          {districtOptions.map((d) => <option key={d} value={d}>{d}</option>)}
-        </select>
+          onChange={(v) => { setFilterDistrict(v); setPage(1); }}
+          options={districtFilterOpts}
+          placeholder="全部区县"
+          className="min-w-32"
+        />
 
         {/* 租房类型 */}
-        <select
+        <FilterSelect
           value={rentTypeFilter}
-          onChange={(e) => { setRentTypeFilter(e.target.value); setPage(1); }}
-          className={`${selectCls} min-w-24`}
-        >
-          <option value="">租房类型</option>
-          {RENT_TYPE_OPTIONS.map((o) => (
-            <option key={o.value} value={o.value}>{o.label}</option>
-          ))}
-        </select>
+          onChange={(v) => { setRentTypeFilter(v); setPage(1); }}
+          options={RENT_TYPE_OPTS}
+          placeholder="租房类型"
+          className="min-w-28"
+        />
 
         {/* 房屋类型 */}
-        <select
+        <FilterSelect
           value={roomTypeFilter}
-          onChange={(e) => { setRoomTypeFilter(e.target.value); setPage(1); }}
-          className={`${selectCls} min-w-24`}
-        >
-          <option value="">房屋类型</option>
-          {ROOM_TYPE_OPTIONS.map((t) => (
-            <option key={t} value={t}>{t}</option>
-          ))}
-        </select>
+          onChange={(v) => { setRoomTypeFilter(v); setPage(1); }}
+          options={ROOM_TYPE_OPTS}
+          placeholder="房屋类型"
+          className="min-w-28"
+        />
 
         {/* 房屋朝向 */}
-        <select
+        <FilterSelect
           value={directionFilter}
-          onChange={(e) => { setDirectionFilter(e.target.value); setPage(1); }}
-          className={`${selectCls} min-w-24`}
-        >
-          <option value="">房屋朝向</option>
-          {DIRECTION_OPTIONS.map((d) => (
-            <option key={d} value={d}>{d}</option>
-          ))}
-        </select>
+          onChange={(v) => { setDirectionFilter(v); setPage(1); }}
+          options={DIRECTION_OPTS}
+          placeholder="房屋朝向"
+          className="min-w-28"
+        />
 
         {/* 发布状态 */}
-        <select
+        <FilterSelect
           value={isPublishedFilter}
-          onChange={(e) => { setIsPublishedFilter(e.target.value); setPage(1); }}
-          className={`${selectCls} min-w-24`}
-        >
-          <option value="">全部状态</option>
-          <option value="1">未发布</option>
-          <option value="2">已发布</option>
-        </select>
+          onChange={(v) => { setIsPublishedFilter(v); setPage(1); }}
+          options={PUBLISHED_OPTS}
+          placeholder="全部状态"
+          className="min-w-28"
+        />
 
         {/* 出租状态 */}
-        <select
+        <FilterSelect
           value={isRentedFilter}
-          onChange={(e) => { setIsRentedFilter(e.target.value); setPage(1); }}
-          className={`${selectCls} min-w-24`}
-        >
-          <option value="">全部租出</option>
-          <option value="1">待出租</option>
-          <option value="2">已租出</option>
-        </select>
+          onChange={(v) => { setIsRentedFilter(v); setPage(1); }}
+          options={RENTED_OPTS}
+          placeholder="全部租出"
+          className="min-w-28"
+        />
 
         {/* 重置按钮（有任意激活筛选时显示） */}
         {hasFilters && (

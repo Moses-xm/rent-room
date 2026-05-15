@@ -13,6 +13,7 @@ import { request } from '@/utils/request';
 import { getManageCity, getManageProvince } from '@/utils/manage-city';
 import { MAP_ZOOM_PROVINCE, MAP_ZOOM_CITY, MAP_ZOOM_DISTRICT, MUNICIPALITY_PROVINCES } from '@/utils/constants';
 import type { MapPickResult } from '@/components/BaiduMapPicker';
+import FilterSelect from '@/components/FilterSelect';
 import areaData from '@/localData/area.json';
 import subwaysData from '@/localData/subways_city.json';
 
@@ -59,9 +60,6 @@ const inputCls = (err?: string) =>
        ? 'border-danger focus:border-danger focus:shadow-[0_0_0_3px_color-mix(in_srgb,var(--color-danger)_15%,transparent)]'
        : 'border-border focus:border-primary focus:shadow-[0_0_0_3px_color-mix(in_srgb,var(--color-primary)_15%,transparent)]'
    }`;
-
-const selectCls = (err?: string) =>
-  `${inputCls(err)} cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed`;
 
 const labelCls = 'block text-body-sm font-emphasis text-text-2 mb-1.5';
 
@@ -434,37 +432,29 @@ export default function CommunityForm({
                     <label className={labelCls}>
                       省份 <span className="text-danger">*</span>
                     </label>
-                    <select
+                    <FilterSelect
                       value={form.province}
-                      onChange={(e) => {
-                        setForm((f) => ({ ...f, province: e.target.value, city: '', district: '', street: '', streetNumber: '', lng: '', lat: '', subwayLine: '' }));
-                                              }}
-                      className={selectCls(errors.province)}
-                    >
-                      <option value="">请选择省份</option>
-                      {provinces.map((p) => (
-                        <option key={p.value} value={p.value}>{p.label}</option>
-                      ))}
-                    </select>
+                      onChange={(v) => setForm((f) => ({ ...f, province: v, city: '', district: '', street: '', streetNumber: '', lng: '', lat: '', subwayLine: '' }))}
+                      options={provinces}
+                      placeholder="请选择省份"
+                      error={errors.province}
+                      className="w-full"
+                    />
                     {errors.province && <p className="text-caption text-danger">{errors.province}</p>}
                   </div>
                   <div className="space-y-1.5">
                     <label className={labelCls}>
                       城市 <span className="text-danger">*</span>
                     </label>
-                    <select
+                    <FilterSelect
                       value={form.city}
-                      onChange={(e) => {
-                        setForm((f) => ({ ...f, city: e.target.value, district: '', street: '', streetNumber: '', lng: '', lat: '', subwayLine: '' }));
-                                              }}
+                      onChange={(v) => setForm((f) => ({ ...f, city: v, district: '', street: '', streetNumber: '', lng: '', lat: '', subwayLine: '' }))}
                       disabled={!form.province}
-                      className={selectCls(errors.city)}
-                    >
-                      <option value="">请选择城市</option>
-                      {cities.map((c) => (
-                        <option key={c.value} value={c.value}>{c.label}</option>
-                      ))}
-                    </select>
+                      options={cities}
+                      placeholder="请选择城市"
+                      error={errors.city}
+                      className="w-full"
+                    />
                     {errors.city && <p className="text-caption text-danger">{errors.city}</p>}
                   </div>
                 </div>
@@ -474,17 +464,15 @@ export default function CommunityForm({
                   <label className={labelCls}>
                     区/县 <span className="text-danger">*</span>
                   </label>
-                  <select
+                  <FilterSelect
                     value={form.district}
-                    onChange={(e) => setForm((f) => ({ ...f, district: e.target.value, street: '', streetNumber: '', lng: '', lat: '' }))}
+                    onChange={(v) => setForm((f) => ({ ...f, district: v, street: '', streetNumber: '', lng: '', lat: '' }))}
                     disabled={!form.city}
-                    className={selectCls(errors.district)}
-                  >
-                    <option value="">请选择区/县</option>
-                    {districts.map((d) => (
-                      <option key={d.value} value={d.value}>{d.label}</option>
-                    ))}
-                  </select>
+                    options={districts}
+                    placeholder="请选择区/县"
+                    error={errors.district}
+                    className="w-full"
+                  />
                   {errors.district && <p className="text-caption text-danger">{errors.district}</p>}
                 </div>
 

@@ -13,6 +13,7 @@ import { request } from '@/utils/request';
 import { getManageCity, getManageProvince } from '@/utils/manage-city';
 import { getManageToken } from '@/utils/manage-auth';
 import { FONT_FAMILY, MUNICIPALITY_PROVINCES, RENT_TYPE_OPTIONS, ROOM_TYPE_OPTIONS, DIRECTION_OPTIONS, LEVEL_OPTIONS, LIFT_OPTIONS } from '@/utils/constants';
+import FilterSelect from '@/components/FilterSelect';
 import areaData from '@/localData/area.json';
 
 /* ─── Types ───────────────────────────────────────────────────────────────── */
@@ -93,9 +94,6 @@ const inputCls = (err?: string) =>
        : 'border-border focus:border-primary focus:shadow-[0_0_0_3px_color-mix(in_srgb,var(--color-primary)_15%,transparent)]'
    }`;
 
-const selectCls = (err?: string) =>
-  `${inputCls(err)} cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed`;
-
 const numInputCls = (err?: string) =>
   `h-[36px] px-3 border rounded-sm bg-card text-text text-body outline-none w-20 text-center
    transition-[border-color,box-shadow] hover:border-text-disabled ${
@@ -106,6 +104,12 @@ const numInputCls = (err?: string) =>
 
 const labelCls = 'block text-body-sm font-emphasis text-text-2 mb-1.5';
 const errCls = 'text-caption text-danger mt-1';
+
+const RENT_TYPE_FORM_OPTS = RENT_TYPE_OPTIONS.map((o) => ({ value: String(o.value), label: o.label }));
+const ROOM_TYPE_FORM_OPTS = ROOM_TYPE_OPTIONS.map((o) => ({ value: o, label: o }));
+const DIRECTION_FORM_OPTS = DIRECTION_OPTIONS.map((o) => ({ value: o, label: o }));
+const LEVEL_FORM_OPTS = LEVEL_OPTIONS.map((o) => ({ value: String(o.value), label: o.label }));
+const LIFT_FORM_OPTS = LIFT_OPTIONS.map((o) => ({ value: String(o.value), label: o.label }));
 
 /* ─── Default form ────────────────────────────────────────────────────────── */
 const DEFAULT_FORM: RoomFormData = {
@@ -264,6 +268,18 @@ export default function RoomForm({ title, subtitle, initialData, onSubmit, backH
       deleteFiles(false); // soft-nav / component unmount
     };
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const communityOptions = useMemo(
+    () => communities.map((c) => ({ value: String(c.id), label: `${c.name} — ${c.district}` })),
+    [communities]
+  );
+  const landlordOptions = useMemo(
+    () => landlords.map((u) => ({
+      value: String(u.id),
+      label: u.username + (u.nickname ? ` · ${u.nickname}` : '') + (u.realname ? ` (${u.realname})` : ''),
+    })),
+    [landlords]
+  );
 
   /* ── Selected community ── */
   const selectedCommunity = useMemo(
@@ -568,43 +584,50 @@ export default function RoomForm({ title, subtitle, initialData, onSubmit, backH
           <div className="grid grid-cols-3 gap-3">
             <div>
               <label className={labelCls}>省份</label>
-              <select value={filterProvince} onChange={(e) => handleFilterProvinceChange(e.target.value)} className={selectCls()}>
-                <option value="">全部省份</option>
-                {provinces.map((p) => <option key={p.value} value={p.value}>{p.label}</option>)}
-              </select>
+              <FilterSelect
+                value={filterProvince}
+                onChange={handleFilterProvinceChange}
+                options={provinces}
+                placeholder="全部省份"
+                className="w-full"
+              />
             </div>
             <div>
               <label className={labelCls}>城市</label>
-              <select value={filterCity} onChange={(e) => handleFilterCityChange(e.target.value)} disabled={!filterProvince} className={selectCls()}>
-                <option value="">全部城市</option>
-                {cities.map((c) => <option key={c.value} value={c.value}>{c.label}</option>)}
-              </select>
+              <FilterSelect
+                value={filterCity}
+                onChange={handleFilterCityChange}
+                disabled={!filterProvince}
+                options={cities}
+                placeholder="全部城市"
+                className="w-full"
+              />
             </div>
             <div>
               <label className={labelCls}>区/县</label>
-              <select value={filterDistrict} onChange={(e) => handleFilterDistrictChange(e.target.value)} disabled={!filterCity} className={selectCls()}>
-                <option value="">全部区县</option>
-                {districts.map((d) => <option key={d.value} value={d.value}>{d.label}</option>)}
-              </select>
+              <FilterSelect
+                value={filterDistrict}
+                onChange={handleFilterDistrictChange}
+                disabled={!filterCity}
+                options={districts}
+                placeholder="全部区县"
+                className="w-full"
+              />
             </div>
           </div>
 
           {/* 小区选择 */}
           <div>
             <label className={labelCls}>所属小区 <span className="text-danger">*</span></label>
-            <select
+            <FilterSelect
               value={form.cmyId}
-              onChange={(e) => setField('cmyId', e.target.value)}
-              className={selectCls(errors.cmyId)}
+              onChange={(v) => setField('cmyId', v)}
+              options={communityOptions}
+              placeholder={loadingCommunities ? '加载中…' : `请选择小区（共 ${communities.length} 个）`}
+              error={errors.cmyId}
               disabled={loadingCommunities}
-            >
-              <option value="">{loadingCommunities ? '加载中…' : `请选择小区（共 ${communities.length} 个）`}</option>
-              {communities.map((c) => (
-                <option key={c.id} value={String(c.id)}>
-                  {c.name} — {c.district}
-                </option>
-              ))}
-            </select>
+              className="w-full"
+            />
             {errors.cmyId && <p className={errCls}>{errors.cmyId}</p>}
           </div>
 
@@ -628,17 +651,27 @@ export default function RoomForm({ title, subtitle, initialData, onSubmit, backH
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className={labelCls}>租房类型 <span className="text-danger">*</span></label>
-              <select value={form.rentType} onChange={(e) => setField('rentType', e.target.value)} className={selectCls(errors.rentType)}>
-                {RENT_TYPE_OPTIONS.map((o) => <option key={o.value} value={String(o.value)}>{o.label}</option>)}
-              </select>
+              <FilterSelect
+                value={form.rentType}
+                onChange={(v) => setField('rentType', v)}
+                clearable={false}
+                options={RENT_TYPE_FORM_OPTS}
+                placeholder="请选择租房类型"
+                error={errors.rentType}
+                className="w-full"
+              />
               {errors.rentType && <p className={errCls}>{errors.rentType}</p>}
             </div>
             <div>
               <label className={labelCls}>房屋类型 <span className="text-danger">*</span></label>
-              <select value={form.roomType} onChange={(e) => setField('roomType', e.target.value)} className={selectCls(errors.roomType)}>
-                <option value="">请选择</option>
-                {ROOM_TYPE_OPTIONS.map((o) => <option key={o} value={o}>{o}</option>)}
-              </select>
+              <FilterSelect
+                value={form.roomType}
+                onChange={(v) => setField('roomType', v)}
+                options={ROOM_TYPE_FORM_OPTS}
+                placeholder="请选择"
+                error={errors.roomType}
+                className="w-full"
+              />
               {errors.roomType && <p className={errCls}>{errors.roomType}</p>}
             </div>
           </div>
@@ -668,10 +701,14 @@ export default function RoomForm({ title, subtitle, initialData, onSubmit, backH
             </div>
             <div>
               <label className={labelCls}>朝向 <span className="text-danger">*</span></label>
-              <select value={form.direction} onChange={(e) => setField('direction', e.target.value)} className={selectCls(errors.direction)}>
-                <option value="">请选择</option>
-                {DIRECTION_OPTIONS.map((o) => <option key={o} value={o}>{o}</option>)}
-              </select>
+              <FilterSelect
+                value={form.direction}
+                onChange={(v) => setField('direction', v)}
+                options={DIRECTION_FORM_OPTS}
+                placeholder="请选择"
+                error={errors.direction}
+                className="w-full"
+              />
               {errors.direction && <p className={errCls}>{errors.direction}</p>}
             </div>
           </div>
@@ -706,9 +743,14 @@ export default function RoomForm({ title, subtitle, initialData, onSubmit, backH
                 <input type="number" min="1" max="200" value={form.floors} onChange={(e) => setField('floors', e.target.value)} className={numInputCls()} />
                 <span className="text-body text-text-muted shrink-0">层</span>
               </div>
-              <select value={form.level} onChange={(e) => setField('level', e.target.value)} className={`${selectCls()} w-28`}>
-                {LEVEL_OPTIONS.map((o) => <option key={o.value} value={String(o.value)}>{o.label}</option>)}
-              </select>
+              <FilterSelect
+                value={form.level}
+                onChange={(v) => setField('level', v)}
+                clearable={false}
+                options={LEVEL_FORM_OPTS}
+                placeholder="楼层段"
+                className="w-28"
+              />
             </div>
           </div>
 
@@ -716,9 +758,14 @@ export default function RoomForm({ title, subtitle, initialData, onSubmit, backH
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className={labelCls}>电梯</label>
-              <select value={form.lift} onChange={(e) => setField('lift', e.target.value)} className={selectCls()}>
-                {LIFT_OPTIONS.map((o) => <option key={o.value} value={String(o.value)}>{o.label}</option>)}
-              </select>
+              <FilterSelect
+                value={form.lift}
+                onChange={(v) => setField('lift', v)}
+                clearable={false}
+                options={LIFT_FORM_OPTS}
+                placeholder="请选择"
+                className="w-full"
+              />
             </div>
             <div>
               <label className={labelCls}>最短租期（月）</label>
@@ -735,14 +782,14 @@ export default function RoomForm({ title, subtitle, initialData, onSubmit, backH
           {/* 发布人 */}
           <div>
             <label className={labelCls}>发布人（房东）<span className="text-danger">*</span></label>
-            <select value={form.publisherId} onChange={(e) => setField('publisherId', e.target.value)} className={selectCls(errors.publisherId)}>
-              <option value="">请选择发布人</option>
-              {landlords.map((u) => (
-                <option key={u.id} value={String(u.id)}>
-                  {u.username}{u.nickname ? ` · ${u.nickname}` : ''}{u.realname ? ` (${u.realname})` : ''}
-                </option>
-              ))}
-            </select>
+            <FilterSelect
+              value={form.publisherId}
+              onChange={(v) => setField('publisherId', v)}
+              options={landlordOptions}
+              placeholder="请选择发布人"
+              error={errors.publisherId}
+              className="w-full"
+            />
             {errors.publisherId && <p className={errCls}>{errors.publisherId}</p>}
           </div>
 

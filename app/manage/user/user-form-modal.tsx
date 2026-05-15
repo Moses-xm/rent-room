@@ -3,6 +3,7 @@
 import { type ChangeEvent, useEffect, useMemo, useRef, useState } from 'react';
 import { X, Eye, EyeOff, Loader2, Upload, ImagePlus } from 'lucide-react';
 import { Modal } from '@/components/Modal';
+import FilterSelect from '@/components/FilterSelect';
 import { isManagedUploadPath, resolveUploadedFileUrl } from '@/lib/upload-path';
 import { request } from '@/utils/request';
 import { getManageCity, getManageProvince } from '@/utils/manage-city';
@@ -71,6 +72,16 @@ const inputCls = (err?: string) =>
 
 const labelCls = 'block text-body-sm font-emphasis text-text-2 mb-1.5';
 const hintCls = 'text-caption text-text-muted leading-relaxed';
+
+const GENDER_OPTIONS = [
+  { value: '1', label: '男' },
+  { value: '2', label: '女' },
+  { value: '3', label: '不愿透露' },
+];
+const IDENTITY_OPTIONS = [
+  { value: '1', label: '普通用户' },
+  { value: '2', label: '房东' },
+];
 
 type AreaNode = { label: string; value: string; children?: AreaNode[] };
 const typedArea = areaData as AreaNode[];
@@ -247,17 +258,6 @@ export default function UserFormModal({ state, onClose, onSaved }: Props) {
 
   const busy = isSubmitting || isUploading || isCleaningAvatar;
 
-  const genderOptions = [
-    { value: 1, label: '男' },
-    { value: 2, label: '女' },
-    { value: 3, label: '不愿透露' },
-  ];
-
-  const identityOptions = [
-    { value: 1, label: '普通用户' },
-    { value: 2, label: '房东' },
-  ];
-
   return (
     <Modal open={!!state}>
       <div className="relative flex w-full max-w-140 flex-col overflow-hidden bg-card rounded-lg shadow-lg animate-in zoom-in-95 duration-200">
@@ -411,30 +411,24 @@ export default function UserFormModal({ state, onClose, onSaved }: Props) {
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-1.5">
                 <label className={labelCls}>省份</label>
-                <select
+                <FilterSelect
                   value={form.province}
-                  onChange={(e) => setForm({ ...form, province: e.target.value, city: '', district: '' })}
-                  className={`${inputCls()} cursor-pointer`}
-                >
-                  <option value="">请选择省份</option>
-                  {provinces.map((p) => (
-                    <option key={p.value} value={p.value}>{p.label}</option>
-                  ))}
-                </select>
+                  onChange={(v) => setForm({ ...form, province: v, city: '', district: '' })}
+                  options={provinces}
+                  placeholder="请选择省份"
+                  className="w-full"
+                />
               </div>
               <div className="space-y-1.5">
                 <label className={labelCls}>城市</label>
-                <select
+                <FilterSelect
                   value={form.city}
-                  onChange={(e) => setForm({ ...form, city: e.target.value, district: '' })}
+                  onChange={(v) => setForm({ ...form, city: v, district: '' })}
                   disabled={!form.province}
-                  className={`${inputCls()} cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed`}
-                >
-                  <option value="">请选择城市</option>
-                  {cities.map((c) => (
-                    <option key={c.value} value={c.value}>{c.label}</option>
-                  ))}
-                </select>
+                  options={cities}
+                  placeholder="请选择城市"
+                  className="w-full"
+                />
               </div>
             </div>
 
@@ -442,17 +436,14 @@ export default function UserFormModal({ state, onClose, onSaved }: Props) {
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-1.5">
                 <label className={labelCls}>区/县</label>
-                <select
+                <FilterSelect
                   value={form.district}
-                  onChange={(e) => setForm({ ...form, district: e.target.value })}
+                  onChange={(v) => setForm({ ...form, district: v })}
                   disabled={!form.city}
-                  className={`${inputCls()} cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed`}
-                >
-                  <option value="">请选择区/县</option>
-                  {districts.map((d) => (
-                    <option key={d.value} value={d.value}>{d.label}</option>
-                  ))}
-                </select>
+                  options={districts}
+                  placeholder="请选择区/县"
+                  className="w-full"
+                />
               </div>
               <div className="space-y-1.5">
                 <label className={labelCls}>详细地址</label>
@@ -470,27 +461,25 @@ export default function UserFormModal({ state, onClose, onSaved }: Props) {
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-1.5">
                 <label className={labelCls}>性别</label>
-                <select
-                  value={form.gender}
-                  onChange={(e) => setForm({ ...form, gender: Number(e.target.value) })}
-                  className={`${inputCls()} cursor-pointer`}
-                >
-                  {genderOptions.map((o) => (
-                    <option key={o.value} value={o.value}>{o.label}</option>
-                  ))}
-                </select>
+                <FilterSelect
+                  value={String(form.gender)}
+                  onChange={(v) => setForm({ ...form, gender: Number(v) })}
+                  clearable={false}
+                  options={GENDER_OPTIONS}
+                  placeholder="请选择性别"
+                  className="w-full"
+                />
               </div>
               <div className="space-y-1.5">
                 <label className={labelCls}>身份</label>
-                <select
-                  value={form.identity}
-                  onChange={(e) => setForm({ ...form, identity: Number(e.target.value) })}
-                  className={`${inputCls()} cursor-pointer`}
-                >
-                  {identityOptions.map((o) => (
-                    <option key={o.value} value={o.value}>{o.label}</option>
-                  ))}
-                </select>
+                <FilterSelect
+                  value={String(form.identity)}
+                  onChange={(v) => setForm({ ...form, identity: Number(v) })}
+                  clearable={false}
+                  options={IDENTITY_OPTIONS}
+                  placeholder="请选择身份"
+                  className="w-full"
+                />
               </div>
             </div>
 
