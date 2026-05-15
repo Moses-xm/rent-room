@@ -775,6 +775,22 @@ import AppLoading from '@/components/AppLoading';
 - API：`GET /api/manage/appointment`（支持 `page`、`limit`、`search`、`status` 参数）
 - 序列化：`lib/appointment.ts`，列表响应含关联的 `user`（租客 id/username/nickname）、`landlord`（房东 id/username/nickname）、`room`（id/name/roomCode）
 
+#### 通知管理 (`/manage/notification`)
+
+- 页面功能：查看系统生成的通知记录，支持编辑已读状态和删除；**不可新建**（通知由预约等业务动作自动写入）
+- 列表列：接收用户（头像+用户名+昵称，可跳转用户详情）、类型、标题+内容（截断展示）、关联记录（relatedType + relatedId）、已读状态、创建时间、操作
+- 类型枚举：`1=新预约` `2=预约取消` `3=预约完成`
+- 操作列：
+  - **快捷已读切换**：`BookOpenCheck`（未读→已读）/ `BookOpen`（已读→未读）图标按钮，单击即时生效，无需打开弹窗
+  - **编辑弹窗**：铅笔图标打开，弹窗内展示通知完整信息（类型、标题、正文、接收用户、关联记录，均只读），仅 `isRead` 字段可通过下拉修改
+  - **删除**：二次确认后硬删除
+- 筛选支持：关键词搜索（标题/内容/接收用户名/昵称）、类型下拉（全部/新预约/预约取消/预约完成）、已读状态下拉（全部/已读/未读）；任一筛选激活时显示"重置"按钮
+- API：
+  - `GET /api/manage/notification`（支持 `page`、`limit`、`search`、`type`、`isRead`、`userId` 参数）
+  - `PUT /api/manage/notification/[id]`（请求体：`{ isRead: boolean }`，仅允许更新 `isRead` 字段）
+  - `DELETE /api/manage/notification/[id]`
+- 序列化：`lib/notification.ts`，列表响应含关联的 `user`（id/username/nickname/avatar）
+
 #### 合同管理 (`/manage/contract`)
 
 - 页面功能：合同列表（只读）、按状态筛选（在租/已退房）
