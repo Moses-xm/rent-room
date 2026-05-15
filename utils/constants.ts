@@ -36,3 +36,11 @@ export const LIFT_OPTIONS = [
   { value: 1, label: '无电梯' },
   { value: 2, label: '有电梯' },
 ];
+
+// ── Appointment ───────────────────────────────────────────────────────────────
+export const APPOINTMENT_STATUS_OPTIONS = [
+  { value: 1, label: '待看房' },
+  { value: 2, label: '已完成' },
+  { value: 3, label: '已取消' },
+  { value: 4, label: '已过期' },
+];

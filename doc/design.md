@@ -1040,7 +1040,7 @@ API Key 存放在环境变量 `NEXT_PUBLIC_BAIDU_MAP_AK`（客户端可访问）
 | 房屋设施管理 | ✅ 已实现 | `/manage/facility` | |
 | 轮播图管理 | ✅ 已实现 | `/manage/carousel` | 卡片展示，含图片上传 |
 | 收藏管理 | ✅ 已实现 | `/manage/collection` | |
-| 预约管理 | ⬜ 待实现 | `/manage/appointment` | 只读列表 |
+| 预约管理 | ✅ 已实现 | `/manage/appointment` | 含新增/编辑/删除/快捷取消完成，懒过期 |
 | 合同管理 | ⬜ 待实现 | `/manage/contract` | 只读列表 |
 | 订单管理 | ⬜ 待实现 | `/manage/order` | 只读列表 |
 
@@ -1071,7 +1071,7 @@ API Key 存放在环境变量 `NEXT_PUBLIC_BAIDU_MAP_AK`（客户端可访问）
 | `room` | ✅ 已建 | |
 | `carousel` | ✅ 已建 | |
 | `collection` | ✅ 已建 | |
-| `appointment` | ⬜ 待建 | 含 status/cancelledBy/completedBy/remark 字段 |
+| `appointment` | ✅ 已建 | 含 status/cancelledBy/completedBy/remark 字段 |
 | `notification` | ⬜ 待建 | 通知中心，支持预约相关通知类型 |
 | `contract` | ⬜ 待建 | |
 | `order` | ⬜ 待建 | |
