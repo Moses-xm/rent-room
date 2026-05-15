@@ -814,14 +814,35 @@ import AppLoading from '@/components/AppLoading';
   - `DELETE /api/manage/notification/[id]`
 - 序列化：`lib/notification.ts`，列表响应含关联的 `user`（id/username/nickname/avatar）
 
-#### 合同管理 (`/manage/contract`)
+#### 合同管理 (`/manage/contract`) ✅
 
-- 页面功能：合同记录列表（只读，管理员不可增删改），支持多维筛选
-- 列表列：合同 ID、房源（名称+编号）、租客（用户名）、房东（用户名）、开始时间、结束时间、押金、月租、续租次数、合同状态、是否退房、退房时间
-- 合同状态枚举：`1=进行中` `2=已完成`
-- 筛选支持：关键词搜索（租客用户名/昵称/房源名/编号）、合同状态下拉（全部/进行中/已完成）、是否退房下拉（全部/已退房/未退房）；任一筛选激活时显示"重置"按钮
-- API：`GET /api/manage/contract`（支持 `page`、`limit`、`search`、`status`、`isCheckout` 参数）
-- 序列化：`lib/contract.ts`，列表响应含关联的 `user`（租客 id/username/nickname）、`landlord`（房东 id/username/nickname）、`room`（id/name/roomCode）
+- 页面功能：合同列表 + 新建（独立页面）+ 详情（独立页面）+ 编辑（与新建共用表单组件）
+- **合同列表**：分页、多维筛选（关键词/状态/是否退房）；操作列含编辑、交房租、续租、退房、查看详情、删除
+- **新建合同**（`/manage/contract/new`）：
+  - 搜索选择租客（展示余额）
+  - 搜索选择房源（仅已发布且未租出）→ 自动预览房源信息和房东信息
+  - 填写租期（≥ minTenancy、必须是 pay 的整数倍，提供快捷按钮）
+  - 填写开始日期 → 自动计算结束日期（置灰不可编辑）
+  - 右侧实时预览合同全文（当事人、日期、费用明细、期限明细）
+  - 创建前弹出付款确认框：输入租客 6 位支付密码 → 原子事务（扣租客余额、加房东余额、建合同/订单/钱包记录/通知）
+- **合同详情**（`/manage/contract/[id]`）：展示当事人、房源、租期、费用、已付/待付期限、退房信息；操作面板含修改开始时间/交房租/续租/退房/删除
+- **编辑合同**（`/manage/contract/[id]/edit`，表单回显）：进行中合同仅允许修改 onlineTime（结束时间和期限自动重算）；已完成合同只读
+- **交房租弹窗**：显示下一期时段和金额，输入支付密码确认；若最后一期且已到期则触发合法退房流程
+- **续租弹窗**：显示当前合同截止时间，选择续租月数（必须是 pay 的整数倍），实时预览新截止时间，输入支付密码；成功后通知房东
+- **退房弹窗**：二次确认，选择合法退房（退押金）或提前退房（不退押金）；更新合同状态、钱包、通知、房源 isRented
+- **删除合同**：仅允许 `isCheckout=true` 的合同删除；二次确认后硬删除（管理员直接完全删除，无需区分租客/房东侧）
+- API：
+  - `GET /api/manage/contract` — 列表（`page`、`limit`、`search`、`status`、`isCheckout`）
+  - `POST /api/manage/contract` — 创建合同（含事务付款）
+  - `GET /api/manage/contract/[id]` — 详情
+  - `PUT /api/manage/contract/[id]` — 编辑（仅 onlineTime）
+  - `DELETE /api/manage/contract/[id]` — 删除（需 isCheckout=true）
+  - `POST /api/manage/contract/[id]/pay` — 交房租
+  - `POST /api/manage/contract/[id]/renew` — 续租
+  - `POST /api/manage/contract/[id]/checkout` — 退房（`{ legal: boolean }`）
+  - `GET /api/manage/contract/options/users` — 用户选项（含余额）
+  - `GET /api/manage/contract/options/rooms` — 可用房源选项（已发布+未租出）
+- 序列化：`lib/contract.ts`，含 `serializeContract`、`generatePeriods`、`addMonths` 工具函数
 
 #### 订单管理 (`/manage/order`)
 
@@ -1201,7 +1222,7 @@ API Key 存放在环境变量 `NEXT_PUBLIC_BAIDU_MAP_AK`（客户端可访问）
 | 收藏管理 | ✅ 已实现 | `/manage/collection` | |
 | 预约管理 | ✅ 已实现 | `/manage/appointment` | 含新增/编辑/删除/快捷取消完成，懒过期 |
 | 通知管理 | ✅ 已实现 | `/manage/notification` | 只读查看+编辑已读状态+删除，无新增 |
-| 合同管理 | ⬜ 待实现 | `/manage/contract` | 只读列表，含状态/退房筛选 |
+| 合同管理 | ✅ 已实现 | `/manage/contract` | 含新建/详情/编辑独立页面，交房租/续租/退房/删除操作 |
 | 订单管理 | ⬜ 待实现 | `/manage/order` | 只读列表，含类型筛选 |
 
 ### 用户平台
@@ -1236,9 +1257,9 @@ API Key 存放在环境变量 `NEXT_PUBLIC_BAIDU_MAP_AK`（客户端可访问）
 | `collection` | ✅ 已建 | |
 | `appointment` | ✅ 已建 | 含 status/cancelledBy/completedBy/remark 字段 |
 | `notification` | ✅ 已建 | 通知中心，type 扩展至 9 种 |
-| `contract` | ⬜ 待建 | 含 status/isCheckout/refund/renewTimes 字段 |
-| `order` | ⬜ 待建 | 含 contractId/type 字段 |
-| `wallet_record` | ⬜ 待建 | 钱包消费记录，含 type/amount/orderId 字段 |
+| `contract` | ✅ 已建 | 含 status/isCheckout/refund/renewTimes/renewMonths 字段 |
+| `order` | ✅ 已建 | 含 contractId/type 字段 |
+| `wallet_record` | ✅ 已建 | 钱包消费记录，含 type/amount/orderId 字段 |
 
 ---
 

@@ -80,6 +80,16 @@ rent-room/
 │   │   ├── notification/
 │   │   │   ├── page.tsx              # 通知记录列表
 │   │   │   └── notification-form-modal.tsx
+│   │   ├── contract/
+│   │   │   ├── page.tsx              # 合同列表页
+│   │   │   ├── contract-form.tsx     # 新建/编辑共享表单（含合同预览、期限计算）
+│   │   │   ├── pay-modal.tsx         # 交房租弹窗
+│   │   │   ├── renew-modal.tsx       # 续租弹窗
+│   │   │   ├── checkout-modal.tsx    # 退房弹窗（合法/非法）
+│   │   │   ├── new/page.tsx          # 新建合同页
+│   │   │   └── [id]/
+│   │   │       ├── page.tsx          # 合同详情页
+│   │   │       └── edit/page.tsx     # 编辑合同页
 │   │   ├── room/
 │   │   │   ├── page.tsx              # 房源列表页
 │   │   │   ├── room-form.tsx         # 新建/编辑共享表单（含 MD 编辑器、多图上传）
@@ -117,6 +127,7 @@ rent-room/
 │   ├── community.ts                  # community 序列化
 │   ├── facility.ts                   # facility 序列化
 │   ├── notification.ts               # notification 序列化
+│   ├── contract.ts                   # contract 序列化（含 generatePeriods/addMonths 工具函数）
 │   ├── user.ts                       # user 序列化
 │   ├── manage-auth.ts                # JWT 签发 / 验证 / 鉴权
 │   ├── prisma.ts                     # Prisma 客户端单例
@@ -145,7 +156,7 @@ rent-room/
 ```
 
 ## 实现状态
-管理平台：登录 ✅、个人资料 ✅、管理员管理 ✅、用户管理 ✅、小区管理 ✅、轮播图管理 ✅、房屋设施管理 ✅、房源管理 ✅、收藏管理 ✅、预约管理 ✅、通知管理 ✅、其余模块 ⬜。用户平台：全部 ⬜。数据库：`admin` 表 ✅、`user` 表 ✅、`community` 表 ✅、`carousel` 表 ✅、`facility` 表 ✅、`room` 表 ✅、`collection` 表 ✅、`appointment` 表 ✅、`notification` 表 ✅、`contract` 表 ⬜、`order` 表 ⬜。
+管理平台：登录 ✅、个人资料 ✅、管理员管理 ✅、用户管理 ✅、小区管理 ✅、轮播图管理 ✅、房屋设施管理 ✅、房源管理 ✅、收藏管理 ✅、预约管理 ✅、通知管理 ✅、合同管理 ✅、其余模块 ⬜。用户平台：全部 ⬜。数据库：`admin` 表 ✅、`user` 表 ✅、`community` 表 ✅、`carousel` 表 ✅、`facility` 表 ✅、`room` 表 ✅、`collection` 表 ✅、`appointment` 表 ✅、`notification` 表 ✅、`contract` 表 ✅、`order` 表 ✅、`wallet_record` 表 ✅。
 
 ## 顶栏面包屑（必须）
 每新增一个管理平台模块，**必须**同步在 `components/Topbar.tsx` 的 `resolveCrumbs` 函数中注册面包屑：

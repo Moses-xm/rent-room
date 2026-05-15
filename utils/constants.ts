@@ -56,3 +56,29 @@ export const NOTIFICATION_READ_OPTIONS = [
   { value: 'true',  label: '已读' },
   { value: 'false', label: '未读' },
 ];
+
+// ── Contract ──────────────────────────────────────────────────────────────────
+export const CONTRACT_STATUS_OPTIONS = [
+  { value: 1, label: '进行中' },
+  { value: 2, label: '已完成' },
+];
+
+export const CHECKOUT_OPTIONS = [
+  { value: 'true',  label: '已退房' },
+  { value: 'false', label: '未退房' },
+];
+
+// ── Order ──────────────────────────────────────────────────────────────────────
+export const ORDER_TYPE_OPTIONS = [
+  { value: 1, label: '首期款' },
+  { value: 2, label: '续期房租' },
+  { value: 3, label: '押金退款' },
+];
+
+// ── Wallet ────────────────────────────────────────────────────────────────────
+export const WALLET_RECORD_TYPE_OPTIONS = [
+  { value: 1, label: '充值' },
+  { value: 2, label: '支付租房' },
+  { value: 3, label: '收款（房东）' },
+  { value: 4, label: '退押金' },
+];

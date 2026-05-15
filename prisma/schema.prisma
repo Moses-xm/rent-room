@@ -40,9 +40,14 @@ model user {
 
   rooms                  room[]
   collections            collection[]
-  appointmentsAsUser     appointment[] @relation("appointmentUser")
-  appointmentsAsLandlord appointment[] @relation("appointmentLandlord")
+  appointmentsAsUser     appointment[]  @relation("appointmentUser")
+  appointmentsAsLandlord appointment[]  @relation("appointmentLandlord")
   notifications          notification[]
+  contractsAsUser        contract[]     @relation("contractUser")
+  contractsAsLandlord    contract[]     @relation("contractLandlord")
+  paidOrders             order[]        @relation("payer")
+  receivedOrders         order[]        @relation("payee")
+  walletRecords          walletRecord[]
 }
 
 model community {
@@ -119,6 +124,8 @@ model room {
   publisher    user          @relation(fields: [publisherId], references: [id])
   collections  collection[]
   appointments appointment[]
+  contracts    contract[]
+  orders       order[]
 }
 
 model collection {
@@ -157,14 +164,86 @@ model appointment {
 model notification {
   id          Int      @id @default(autoincrement())
   userId      Int                              // 通知接收者
-  type        Int                              // 1=新预约 2=预约取消 3=预约完成
+  type        Int                              // 1=新预约 2=预约取消 3=预约完成 4=签约/续租 5=付款成功 6=收款成功 7=即将到期 8=合法退房 9=逾期强退 10=提前退房 11=房东退房通知
   title       String   @db.VarChar(200)
   content     String   @db.VarChar(500)
-  relatedType String?  @db.VarChar(50)         // 关联业务类型，如 "appointment"
+  relatedType String?  @db.VarChar(50)         // 关联业务类型，如 "appointment"、"contract"、"order"
   relatedId   Int?                             // 关联记录 ID
   isRead      Boolean  @default(false)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
   user user @relation(fields: [userId], references: [id])
+}
+
+// ─── 合同 ──────────────────────────────────────────────────────────────────────
+model contract {
+  id              Int       @id @default(autoincrement())
+  userId          Int                        // 租客
+  roomId          Int
+  landlordId      Int                        // 房东
+  tenancy         Int                        // 租期（月）
+  onlineTime      DateTime                   // 开始时间
+  offlineTime     DateTime                   // 结束时间
+  pledge          Float                      // 已付押金金额
+  fee             Float                      // 每期应付房租金额（= 月租 × pay）
+  paidPeriod      String    @db.Text         // JSON，已付期限数组 [{start,end}, ...]
+  payingPeriod    String    @db.Text         // JSON，待付期限数组 [{start,end}, ...]
+  renewTimes      Int       @default(0)      // 续租次数
+  renewMonths     Int       @default(0)      // 累计续租月数
+  status          Int       @default(1)      // 1=进行中 2=已完成
+  isCheckout      Boolean   @default(false)  // 是否已退房
+  checkoutTime    DateTime?                  // 退房时间
+  refund          Boolean?                   // true=合法退房(退押金) false=非法退房(不退押金) null=未退房
+  landlordDeleted Boolean   @default(false)  // 房东侧隐藏
+  userDeleted     Boolean   @default(false)  // 租客侧隐藏
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  user     user    @relation("contractUser",     fields: [userId],     references: [id])
+  room     room    @relation(fields: [roomId],   references: [id])
+  landlord user    @relation("contractLandlord", fields: [landlordId], references: [id])
+  orders   order[]
+
+  @@map("contract")
+}
+
+// ─── 订单 ──────────────────────────────────────────────────────────────────────
+model order {
+  id         Int      @id @default(autoincrement())
+  contractId Int                              // 关联合同
+  payerId    Int                              // 付款人（租客；押金退款时角色反转为房东）
+  roomId     Int
+  payeeId    Int                              // 收款人（房东；押金退款时为租客）
+  type       Int      @default(1)             // 1=首期款(押金+首期房租) 2=续期房租 3=押金退款
+  fee        Float?                           // 本次房租金额
+  pledge     Float?                           // 本次押金金额
+  paidPeriod String?  @db.VarChar(200)        // 本次覆盖的房租时间段
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  contract      contract       @relation(fields: [contractId], references: [id])
+  payer         user           @relation("payer", fields: [payerId],  references: [id])
+  payee         user           @relation("payee", fields: [payeeId],  references: [id])
+  room          room           @relation(fields: [roomId], references: [id])
+  walletRecords walletRecord[]
+
+  @@map("order")
+}
+
+// ─── 钱包消费记录 ──────────────────────────────────────────────────────────────
+model walletRecord {
+  id        Int      @id @default(autoincrement())
+  userId    Int                                // 记录归属用户
+  amount    Float                              // 金额（正数=收入，负数=支出）
+  type      Int                                // 1=充值 2=支付租房 3=收款(房东) 4=退押金
+  remark    String?  @db.VarChar(200)          // 备注说明
+  orderId   Int?                               // 关联订单
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user  user   @relation(fields: [userId],  references: [id])
+  order order? @relation(fields: [orderId], references: [id])
+
+  @@map("wallet_record")
 }
