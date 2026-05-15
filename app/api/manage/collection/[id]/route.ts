@@ -49,8 +49,8 @@ export async function PUT(req: Request, props: { params: Promise<{ id: string }>
       where: { id: collectionId },
       data: { userId, roomId },
       include: {
-        user: { select: { id: true, username: true, nickname: true } },
-        room: { select: { id: true, name: true, roomCode: true } },
+        user: { select: { id: true, username: true, nickname: true, avatar: true } },
+        room: { select: { id: true, name: true, roomCode: true, cover: true } },
       },
     });
 
