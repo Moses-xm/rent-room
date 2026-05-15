@@ -1,7 +1,8 @@
 'use client';
 
+import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
-import { Plus, Search, Pencil, Trash2, Heart } from 'lucide-react';
+import { Plus, Search, Pencil, Trash2, Heart, Home } from 'lucide-react';
 import { toast } from 'sonner';
 import { request } from '@/utils/request';
 import DataTable, { type Column } from '@/components/DataTable';
@@ -13,6 +14,7 @@ import CollectionFormModal, {
   type CollectionFormData,
 } from './collection-form-modal';
 import { fmtDateTime } from '@/utils/format';
+import { resolveUploadedFileUrl } from '@/lib/upload-path';
 
 /* ─── Types ───────────────────────────────────────────────────────────────── */
 type CollectionItem = {
@@ -21,8 +23,8 @@ type CollectionItem = {
   roomId: number;
   createdAt: string;
   updatedAt: string;
-  user: { id: number; username: string; nickname: string | null } | null;
-  room: { id: number; name: string; roomCode: string } | null;
+  user: { id: number; username: string; nickname: string | null; avatar: string | null } | null;
+  room: { id: number; name: string; roomCode: string; cover: string } | null;
 };
 
 type CollectionsResponse = {
@@ -41,6 +43,40 @@ async function fetchCollections(params: { page: number; limit: number; search?: 
   qs.set('limit', String(params.limit));
   if (params.search) qs.set('search', params.search);
   return request<CollectionsResponse>(`/manage/collection?${qs.toString()}`);
+}
+
+/* ─── Sub-components ──────────────────────────────────────────────────────── */
+function UserAvatar({ user }: { user: NonNullable<CollectionItem['user']> }) {
+  const url = resolveUploadedFileUrl(user.avatar);
+  return (
+    <div className="w-8 h-8 rounded-full overflow-hidden shrink-0 bg-surface border border-border">
+      {url ? (
+        <img src={url} alt={user.username} className="w-full h-full object-cover" />
+      ) : (
+        <div className="w-full h-full flex items-center justify-center text-tiny font-medium text-text-muted select-none">
+          {user.username[0]?.toUpperCase()}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function RoomCover({ room, size = 'md' }: { room: NonNullable<CollectionItem['room']>; size?: 'sm' | 'md' }) {
+  const url = resolveUploadedFileUrl(room.cover);
+  const cls = size === 'sm'
+    ? 'w-14 h-10 rounded overflow-hidden shrink-0 bg-surface border border-border'
+    : 'w-14 h-14 rounded overflow-hidden shrink-0 bg-surface border border-border';
+  return (
+    <div className={cls}>
+      {url ? (
+        <img src={url} alt={room.name} className="w-full h-full object-cover" />
+      ) : (
+        <div className="w-full h-full flex items-center justify-center text-text-muted">
+          <Home size={14} />
+        </div>
+      )}
+    </div>
+  );
 }
 
 /* ─── Page ────────────────────────────────────────────────────────────────── */
@@ -130,13 +166,21 @@ export default function CollectionPage() {
       key: 'user',
       label: '用户',
       render: (item) => item.user ? (
-        <div>
-          <p className="text-body font-emphasis text-text leading-none">{item.user.username}</p>
-          {item.user.nickname && (
-            <p className="text-tiny text-text-muted mt-0.5">{item.user.nickname}</p>
-          )}
-          <p className="text-tiny text-text-muted font-mono mt-0.5">ID:{item.user.id}</p>
-        </div>
+        <Link
+          href={`/manage/user/${item.user.id}`}
+          className="flex items-center gap-2.5 group/user w-fit"
+        >
+          <UserAvatar user={item.user} />
+          <div>
+            <p className="text-body font-emphasis text-text group-hover/user:text-primary leading-none transition-colors">
+              {item.user.username}
+            </p>
+            {item.user.nickname && (
+              <p className="text-tiny text-text-muted mt-0.5">{item.user.nickname}</p>
+            )}
+            <p className="text-tiny text-text-muted font-mono mt-0.5">ID:{item.user.id}</p>
+          </div>
+        </Link>
       ) : (
         <span className="text-body-sm text-text-muted">—</span>
       ),
@@ -145,10 +189,18 @@ export default function CollectionPage() {
       key: 'room',
       label: '房源',
       render: (item) => item.room ? (
-        <div>
-          <p className="text-body font-emphasis text-text leading-none line-clamp-1">{item.room.name}</p>
-          <p className="text-tiny text-text-muted font-mono mt-0.5">{item.room.roomCode}</p>
-        </div>
+        <Link
+          href={`/manage/room/${item.room.id}`}
+          className="flex items-center gap-2.5 group/room w-fit"
+        >
+          <RoomCover room={item.room} size="sm" />
+          <div>
+            <p className="text-body font-emphasis text-text group-hover/room:text-primary leading-none line-clamp-1 transition-colors">
+              {item.room.name}
+            </p>
+            <p className="text-tiny text-text-muted font-mono mt-0.5">{item.room.roomCode}</p>
+          </div>
+        </Link>
       ) : (
         <span className="text-body-sm text-text-muted">—</span>
       ),
@@ -254,47 +306,67 @@ export default function CollectionPage() {
           list.map((item) => (
             <div
               key={item.id}
-              className="bg-card border border-border rounded shadow-sm p-4"
+              className="bg-card border border-border rounded shadow-sm overflow-hidden"
             >
-              <div className="flex items-start gap-3">
-                <div className="w-8 h-8 rounded-sm grid place-items-center bg-surface border border-border shrink-0 mt-0.5">
-                  <Heart size={15} className="text-text-muted" />
-                </div>
-
+              {/* 房源区域 */}
+              <Link
+                href={item.room ? `/manage/room/${item.room.id}` : '#'}
+                className="flex items-center gap-3 px-4 pt-4 pb-3 group/room"
+              >
+                <RoomCover room={item.room ?? { id: 0, name: '', roomCode: '', cover: '' }} />
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-1.5 flex-wrap">
-                    <span className="text-body font-emphasis text-text">
-                      {item.user?.username ?? '—'}
-                    </span>
-                    {item.user?.nickname && (
-                      <span className="text-body-sm text-text-muted">（{item.user.nickname}）</span>
-                    )}
-                  </div>
-                  <p className="text-body-sm text-text-muted mt-0.5 line-clamp-1">
+                  <p className="text-body font-emphasis text-text group-hover/room:text-primary transition-colors leading-none line-clamp-1">
                     {item.room?.name ?? '—'}
                   </p>
                   <p className="text-tiny text-text-muted font-mono mt-0.5">
-                    {item.room?.roomCode ?? ''} · 收藏于 {fmtDateTime(item.createdAt)}
+                    {item.room?.roomCode ?? ''}
                   </p>
                 </div>
-
                 <div className="flex items-center gap-0.5 shrink-0">
                   <button
-                    onClick={() => setModalState({ mode: 'edit', collection: item })}
+                    onClick={(e) => { e.preventDefault(); setModalState({ mode: 'edit', collection: item }); }}
                     title="编辑收藏"
                     className={`${cardActionBtnCls} hover:bg-surface-2 hover:text-text`}
                   >
                     <Pencil size={16} />
                   </button>
                   <button
-                    onClick={() => setDeleteTarget(item)}
+                    onClick={(e) => { e.preventDefault(); setDeleteTarget(item); }}
                     title="删除收藏"
                     className={`${cardActionBtnCls} hover:text-danger hover:bg-danger-bg`}
                   >
                     <Trash2 size={16} />
                   </button>
                 </div>
-              </div>
+              </Link>
+
+              {/* 分割线 */}
+              <div className="mx-4 border-t border-border" />
+
+              {/* 用户区域 */}
+              <Link
+                href={item.user ? `/manage/user/${item.user.id}` : '#'}
+                className="flex items-center gap-2.5 px-4 py-3 group/user"
+              >
+                {item.user ? (
+                  <UserAvatar user={item.user} />
+                ) : (
+                  <div className="w-8 h-8 rounded-full bg-surface border border-border flex items-center justify-center shrink-0">
+                    <span className="text-tiny text-text-muted">?</span>
+                  </div>
+                )}
+                <div className="flex-1 min-w-0">
+                  <span className="text-body font-emphasis text-text group-hover/user:text-primary transition-colors">
+                    {item.user?.username ?? '—'}
+                  </span>
+                  {item.user?.nickname && (
+                    <span className="text-body-sm text-text-muted ml-1.5">（{item.user.nickname}）</span>
+                  )}
+                </div>
+                <p className="text-tiny text-text-muted font-mono shrink-0">
+                  收藏于 {fmtDateTime(item.createdAt)}
+                </p>
+              </Link>
             </div>
           ))
         )}

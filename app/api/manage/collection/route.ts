@@ -33,8 +33,8 @@ export async function GET(req: NextRequest) {
         skip,
         orderBy: { createdAt: 'desc' },
         include: {
-          user: { select: { id: true, username: true, nickname: true } },
-          room: { select: { id: true, name: true, roomCode: true } },
+          user: { select: { id: true, username: true, nickname: true, avatar: true } },
+          room: { select: { id: true, name: true, roomCode: true, cover: true } },
         },
       }),
     ]);
@@ -91,8 +91,8 @@ export async function POST(req: Request) {
     const item = await prisma.collection.create({
       data: { userId, roomId },
       include: {
-        user: { select: { id: true, username: true, nickname: true } },
-        room: { select: { id: true, name: true, roomCode: true } },
+        user: { select: { id: true, username: true, nickname: true, avatar: true } },
+        room: { select: { id: true, name: true, roomCode: true, cover: true } },
       },
     });
 
