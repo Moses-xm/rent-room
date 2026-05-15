@@ -114,8 +114,6 @@ export async function requireManageAuth(request: Request): Promise<
 
 ### Schema 总览
 
-以下为完整的 `prisma/schema.prisma` 设计（`admin` 表已实现，其余待补充）：
-
 ```prisma
 generator client {
   provider = "prisma-client-js"
@@ -165,10 +163,12 @@ model User {
   collections            Collection[]
   appointmentsAsUser     Appointment[]  @relation("appointmentUser")     // 作为租客的预约
   appointmentsAsLandlord Appointment[]  @relation("appointmentLandlord") // 作为房东收到的预约
-  contracts              Contract[]     @relation("contractUser")
+  contractsAsUser        Contract[]     @relation("contractUser")        // 作为租客的合同
+  contractsAsLandlord    Contract[]     @relation("contractLandlord")    // 作为房东收到的合同
   paidOrders             Order[]        @relation("payer")
   receivedOrders         Order[]        @relation("payee")
   notifications          Notification[]
+  walletRecords          WalletRecord[]
 
   @@map("user")
 }
@@ -306,11 +306,11 @@ model Appointment {
 model Notification {
   id          Int      @id @default(autoincrement())
   userId      Int                              // 通知接收者
-  type        Int                              // 1=新预约 2=预约取消 3=预约完成
+  type        Int                              // 见"通知类型枚举"章节
   title       String   @db.VarChar(200)
   content     String   @db.VarChar(500)
-  relatedType String?  @db.VarChar(50)         // 关联业务类型，如 "appointment"
-  relatedId   Int?                             // 关联记录 ID（如 appointmentId）
+  relatedType String?  @db.VarChar(50)         // 关联业务类型，如 "appointment"、"contract"、"order"
+  relatedId   Int?                             // 关联记录 ID
   isRead      Boolean  @default(false)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
@@ -323,28 +323,30 @@ model Notification {
 // ─── 合同 ──────────────────────────────────────────────────────────────────────
 model Contract {
   id               Int      @id @default(autoincrement())
-  userId           Int
+  userId           Int                        // 租客
   roomId           Int
-  landlordId       Int
+  landlordId       Int                        // 房东
   tenancy          Int                        // 租期（月）
   onlineTime       DateTime                   // 开始时间
   offlineTime      DateTime                   // 结束时间
-  pledge           Float                      // 已付押金
-  fee              Float                      // 每次房租金额
-  paidPeriod       String   @db.Text          // JSON 字符串，已付期限数组
-  payingPeriod     String   @db.Text          // JSON 字符串，待付期限数组
-  renewTimes       Int      @default(0)
-  isCheckout       Boolean  @default(false)
-  checkoutTime     DateTime?
-  refund           Boolean?
-  landlordDeleted  Boolean  @default(false)
-  userDeleted      Boolean  @default(false)
+  pledge           Float                      // 已付押金金额
+  fee              Float                      // 每期应付房租金额（= 月租 × pay 期数，例如押一付三则 fee = price × 3）
+  paidPeriod       String   @db.Text          // JSON，已付期限数组 [{start,end}, ...]
+  payingPeriod     String   @db.Text          // JSON，待付期限数组 [{start,end}, ...]
+  renewTimes       Int      @default(0)       // 续租次数
+  status           Int      @default(1)       // 1=进行中 2=已完成
+  isCheckout       Boolean  @default(false)   // 是否已退房（合法或非法）
+  checkoutTime     DateTime?                  // 退房时间
+  refund           Boolean?                   // true=合法退房(退押金) false=非法退房(不退押金) null=未退房
+  landlordDeleted  Boolean  @default(false)   // 房东侧隐藏该记录
+  userDeleted      Boolean  @default(false)   // 租客侧隐藏该记录（仅 status=2 后允许）
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
 
-  user     User @relation("contractUser", fields: [userId], references: [id])
-  room     Room @relation(fields: [roomId], references: [id])
-  landlord User @relation("contractLandlord", fields: [landlordId], references: [id])
+  user     User    @relation("contractUser",     fields: [userId],     references: [id])
+  room     Room    @relation(fields: [roomId],   references: [id])
+  landlord User    @relation("contractLandlord", fields: [landlordId], references: [id])
+  orders   Order[]
 
   @@map("contract")
 }
@@ -352,24 +354,45 @@ model Contract {
 // ─── 订单 ──────────────────────────────────────────────────────────────────────
 model Order {
   id          Int      @id @default(autoincrement())
-  payerId     Int
+  contractId  Int                              // 关联合同
+  payerId     Int                              // 付款人（租客；押金退款时角色反转为房东）
   roomId      Int
-  payeeId     Int
-  fee         Float?
-  pledge      Float?
-  paidPeriod  String?  @db.VarChar(100)   // 单个期限字符串，如 "2021.05.08-2021.08.08"
+  payeeId     Int                              // 收款人（房东；押金退款时为租客）
+  type        Int      @default(1)             // 1=首期款(押金+首期房租) 2=续期房租 3=押金退款
+  fee         Float?                           // 本次房租金额（退款订单为 null）
+  pledge      Float?                           // 本次押金金额（首期及退款订单有值）
+  paidPeriod  String?  @db.VarChar(200)        // 本次覆盖的房租时间段，如 "2025-05-01~2025-08-01"
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  payer User @relation("payer", fields: [payerId], references: [id])
-  payee User @relation("payee", fields: [payeeId], references: [id])
-  room  Room @relation(fields: [roomId], references: [id])
+  contract      Contract       @relation(fields: [contractId], references: [id])
+  payer         User           @relation("payer", fields: [payerId],  references: [id])
+  payee         User           @relation("payee", fields: [payeeId],  references: [id])
+  room          Room           @relation(fields: [roomId], references: [id])
+  walletRecords WalletRecord[]
 
   @@map("order")
 }
+
+// ─── 钱包消费记录 ──────────────────────────────────────────────────────────────
+model WalletRecord {
+  id        Int      @id @default(autoincrement())
+  userId    Int                                // 记录归属用户
+  amount    Float                              // 金额（正数=收入，负数=支出）
+  type      Int                                // 1=充值 2=支付租房 3=收款(房东) 4=退押金
+  remark    String?  @db.VarChar(200)          // 备注说明
+  orderId   Int?                               // 关联订单（充值类型无关联）
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user  User   @relation(fields: [userId],  references: [id])
+  order Order? @relation(fields: [orderId], references: [id])
+
+  @@map("wallet_record")
+}
 ```
 
-> **注意**：`Contract` 中 `landlord` 关系需要在 `User` 模型中添加对应的反向关系字段 `contractsAsLandlord`，以满足 Prisma 要求。`Appointment` 的双向关系已在 `User` 模型中通过 `appointmentsAsUser` / `appointmentsAsLandlord` 显式声明。
+> **关系说明**：`Contract` 通过 `"contractUser"` / `"contractLandlord"` 两个命名关系绑定到 `User`，对应 `User` 侧的 `contractsAsUser` / `contractsAsLandlord`。`Order` 通过 `contractId` 与 `Contract` 关联，每次付款产生一条订单。`WalletRecord` 通过 `orderId` 与 `Order` 可选关联（充值无关联）。
 
 ---
 
@@ -779,12 +802,12 @@ import AppLoading from '@/components/AppLoading';
 
 - 页面功能：查看系统生成的通知记录，支持编辑已读状态和删除；**不可新建**（通知由预约等业务动作自动写入）
 - 列表列：接收用户（头像+用户名+昵称，可跳转用户详情）、类型、标题+内容（截断展示）、关联记录（relatedType + relatedId）、已读状态、创建时间、操作
-- 类型枚举：`1=新预约` `2=预约取消` `3=预约完成`
+- 类型枚举：见"通知类型枚举"章节
 - 操作列：
   - **快捷已读切换**：`BookOpenCheck`（未读→已读）/ `BookOpen`（已读→未读）图标按钮，单击即时生效，无需打开弹窗
   - **编辑弹窗**：铅笔图标打开，弹窗内展示通知完整信息（类型、标题、正文、接收用户、关联记录，均只读），仅 `isRead` 字段可通过下拉修改
   - **删除**：二次确认后硬删除
-- 筛选支持：关键词搜索（标题/内容/接收用户名/昵称）、类型下拉（全部/新预约/预约取消/预约完成）、已读状态下拉（全部/已读/未读）；任一筛选激活时显示"重置"按钮
+- 筛选支持：关键词搜索（标题/内容/接收用户名/昵称）、类型下拉（全部/各通知类型）、已读状态下拉（全部/已读/未读）；任一筛选激活时显示"重置"按钮
 - API：
   - `GET /api/manage/notification`（支持 `page`、`limit`、`search`、`type`、`isRead`、`userId` 参数）
   - `PUT /api/manage/notification/[id]`（请求体：`{ isRead: boolean }`，仅允许更新 `isRead` 字段）
@@ -793,13 +816,21 @@ import AppLoading from '@/components/AppLoading';
 
 #### 合同管理 (`/manage/contract`)
 
-- 页面功能：合同列表（只读）、按状态筛选（在租/已退房）
-- API：`GET /api/manage/contract`
+- 页面功能：合同记录列表（只读，管理员不可增删改），支持多维筛选
+- 列表列：合同 ID、房源（名称+编号）、租客（用户名）、房东（用户名）、开始时间、结束时间、押金、月租、续租次数、合同状态、是否退房、退房时间
+- 合同状态枚举：`1=进行中` `2=已完成`
+- 筛选支持：关键词搜索（租客用户名/昵称/房源名/编号）、合同状态下拉（全部/进行中/已完成）、是否退房下拉（全部/已退房/未退房）；任一筛选激活时显示"重置"按钮
+- API：`GET /api/manage/contract`（支持 `page`、`limit`、`search`、`status`、`isCheckout` 参数）
+- 序列化：`lib/contract.ts`，列表响应含关联的 `user`（租客 id/username/nickname）、`landlord`（房东 id/username/nickname）、`room`（id/name/roomCode）
 
 #### 订单管理 (`/manage/order`)
 
-- 页面功能：订单列表（只读）、按时间/用户/房源筛选
-- API：`GET /api/manage/order`
+- 页面功能：订单记录列表（只读），支持多维筛选
+- 列表列：订单 ID、关联合同 ID、房源（名称+编号）、付款人（用户名）、收款人（用户名）、订单类型、月租金额、押金金额、时间段、创建时间
+- 订单类型枚举：`1=首期款` `2=续期房租` `3=押金退款`
+- 筛选支持：关键词搜索（付款人用户名/房源名/编号）、类型下拉（全部/首期款/续期房租/押金退款）；任一筛选激活时显示"重置"按钮
+- API：`GET /api/manage/order`（支持 `page`、`limit`、`search`、`type` 参数）
+- 序列化：`lib/order.ts`，列表响应含关联的 `payer`（付款人 id/username/nickname）、`payee`（收款人 id/username/nickname）、`room`（id/name/roomCode）
 
 #### Dashboard 数据统计
 
@@ -826,12 +857,13 @@ import AppLoading from '@/components/AppLoading';
 /portal/map                      # 地图找房
 /portal/profile                  # 个人中心（需登录）
   /portal/profile/info           # 个人资料
-  /portal/profile/rooms          # 我发布的房源
+  /portal/profile/rooms          # 我发布的房源（房东可见）
   /portal/profile/collection     # 我的收藏
   /portal/profile/appointment    # 我的预约（含两个 Tab：我预约的 / 收到的预约）
   /portal/profile/notification   # 我的消息（通知中心）
   /portal/profile/contract       # 我的合同
   /portal/profile/order          # 我的订单
+  /portal/profile/wallet         # 我的钱包（余额、充值、消费记录）
 ```
 
 ### 认证
@@ -900,6 +932,87 @@ import AppLoading from '@/components/AppLoading';
 - 取消/完成操作：校验操作者必须是该预约的 `userId` 或 `landlordId`；完成后同步向对方创建通知（`type=3`）；取消后同步向对方创建通知（`type=2`）
 - **互相完成**：任一方调用 `/complete` 均写入 `status=2`，`completedBy=当前userId`，对方会收到通知
 
+### 租房交易
+
+#### 下单流程
+
+1. 点击"立即租房" → 弹出租房确认弹窗（需登录）
+2. 选择租期（月数，须 ≥ `room.minTenancy` 且为 `room.pay` 的整数倍）和开始日期
+3. 系统自动计算：
+   - 结束日期（`offlineTime = onlineTime + tenancy 月`）
+   - 首次付款金额：`押金 = price × pledge`，`首期房租 = price × pay`，合计 `= 押金 + 首期房租`
+   - 生成 `payingPeriod`：按 `pay` 个月为一个周期，切分出所有待付时间段
+   - 将首期时间段放入 `paidPeriod`，其余放入 `payingPeriod`
+4. 展示账单明细，要求输入 6 位支付密码（`payCode`）
+5. 校验：余额充足 + 支付密码正确
+6. 提交 → `POST /api/portal/contract`
+7. 后端原子操作（事务）：
+   - 验证房源 `isRented=1`（未租出，防并发重复租）
+   - 扣减租客 `wallet`（首次付款金额）
+   - 增加房东 `wallet`（首次付款金额）
+   - 创建 `Contract`（`status=1`）
+   - 更新房源 `isRented=2`，`times+1`，`income += 首次付款金额`
+   - 创建 `Order`（`type=1`，含 `pledge` 和 `fee`）
+   - 创建租客 `WalletRecord`（`type=2`，`amount=-首次付款金额`）
+   - 创建房东 `WalletRecord`（`type=3`，`amount=+首次付款金额`）
+   - 为房东创建通知（`type=4`，"有新租客签约入住"）
+   - 为租客创建通知（`type=5`，"付款成功"）
+   - 为房东创建通知（`type=6`，"收款成功"）
+8. 成功后跳转合同详情页
+
+#### Portal API — 合同
+
+| 方法 | 路径 | 说明 | 鉴权 |
+|------|------|------|------|
+| `POST` | `/api/portal/contract` | 创建合同（含首次支付） | 登录用户 |
+| `GET` | `/api/portal/contract?role=tenant\|landlord&status=&page=&limit=` | 查询合同列表 | 登录用户 |
+| `GET` | `/api/portal/contract/[id]` | 合同详情 | 合同当事人 |
+| `POST` | `/api/portal/contract/[id]/pay` | 支付下一期房租 | 租客 |
+| `POST` | `/api/portal/contract/[id]/renew` | 续租 | 租客 |
+| `POST` | `/api/portal/contract/[id]/checkout` | 提前退房（非法退房） | 租客 |
+| `DELETE` | `/api/portal/contract/[id]` | 删除合同（仅 status=2 后可删，各删各自一侧） | 合同当事人 |
+
+**支付下一期（`POST /pay`）**：
+- 取 `payingPeriod[0]` 作为本期时间段
+- 校验余额充足 + 支付密码正确（需在请求体传入支付密码）
+- 事务：扣减租客 wallet、增加房东 wallet、将 `payingPeriod[0]` 移入 `paidPeriod`、创建 `Order`（`type=2`）、创建双方 `WalletRecord`、创建双方通知（`type=5/6`）
+- 若支付后 `payingPeriod` 变空，且当前时间已到 `offlineTime` 附近（≤ 7 天内），自动触发合法退房流程
+
+**续租（`POST /renew`）**：
+- 请求体包含续租月数（须为 `pay` 的整数倍）和支付密码
+- 扩展 `offlineTime`，重新计算并追加 `payingPeriod`
+- `renewTimes + 1`
+- 创建通知告知房东（`type=4`，"租客已续租"）
+
+**提前退房（`POST /checkout`）**：
+- 非法退房：`refund=false`，不退押金
+- 设置 `isCheckout=true`、`checkoutTime=now()`、`status=2`
+- 更新房源 `isRented=1`（重新可租）
+- 为租客创建通知（`type=10`，"提前退房操作已确认，押金不予退还"）
+- 为房东创建通知（`type=11`，"租客已提前退房，押金无需退还"）
+
+**合法退房（系统自动触发，无独立 API）**：
+- 触发时机（懒检测）：API 查询合同时，检测 `payingPeriod` 为空 且 `offlineTime <= now()` 且 `isCheckout=false`
+- 事务：`isCheckout=true`、`checkoutTime=now()`、`refund=true`、`status=2`
+- 退押金：从房东 wallet 扣除 `pledge`，加入租客 wallet
+- 创建 `Order`（`type=3`，`pledge=合同押金`）
+- 创建双方 `WalletRecord`（租客收入 `type=4`，房东支出 `type=2`）
+- 为租客创建通知（`type=8`，"租约已到期，押金已退回至您的钱包"）
+- 为房东创建通知（`type=11`，"租客租约到期已退房，押金已从您的钱包扣除"）
+- 更新房源 `isRented=1`
+
+**逾期强制退房（懒检测）**：
+- 触发时机：API 查询合同时，检测 `payingPeriod[0]` 的开始时间已超过 15 天且未付款
+- 事务：`isCheckout=true`、`checkoutTime=now()`、`refund=false`、`status=2`
+- 更新房源 `isRented=1`
+- 为租客创建通知（`type=9`，"逾期未缴房租，已强制退房，押金不予退还"）
+- 为房东创建通知（`type=11`，"租客逾期未缴房租，已被强制退房"）
+
+**删除合同**：
+- 租客只能在 `status=2`（已完成）后将 `userDeleted=true`
+- 房东任意时候可将 `landlordDeleted=true`
+- 双方删除相互独立，不影响对方查看
+
 #### Portal API — 通知
 
 | 方法 | 路径 | 说明 |
@@ -911,13 +1024,50 @@ import AppLoading from '@/components/AppLoading';
 | `DELETE` | `/api/portal/notification/[id]` | 删除单条通知 |
 | `DELETE` | `/api/portal/notification` | 清空所有通知（当前用户） |
 
+#### Portal API — 订单
+
+| 方法 | 路径 | 说明 | 鉴权 |
+|------|------|------|------|
+| `GET` | `/api/portal/order?role=payer\|payee&type=&page=&limit=` | 查询订单列表 | 登录用户 |
+| `GET` | `/api/portal/order/[id]` | 订单详情 | 订单当事人 |
+
+- `role=payer`：查当前用户作为付款方的订单（租客视角：租房支出）
+- `role=payee`：查当前用户作为收款方的订单（房东视角：收款记录）
+- 响应含关联的 `room`（name/roomCode）、`payer`（username/nickname）、`payee`（username/nickname）、`contract`（id/onlineTime/offlineTime）
+
+#### Portal API — 钱包
+
+| 方法 | 路径 | 说明 | 鉴权 |
+|------|------|------|------|
+| `GET` | `/api/portal/wallet` | 查询当前用户钱包余额 | 登录用户 |
+| `POST` | `/api/portal/wallet/recharge` | 充值 | 登录用户 |
+| `GET` | `/api/portal/wallet/records?page=&limit=&type=` | 钱包消费记录（分页） | 登录用户 |
+| `PUT` | `/api/portal/wallet/paycode` | 修改支付密码 | 登录用户 |
+
+**充值规则**：
+- 请求体：`{ amount: number, payCode: string }`
+- 充值金额 > 0，无上限（虚拟充值，不接入真实支付）
+- 验证支付密码后：更新 `user.wallet`，创建 `WalletRecord`（`type=1`，`amount=+充值金额`）
+
+**修改支付密码**：
+- 请求体：`{ oldPayCode: string, newPayCode: string }`（6 位数字）
+- 验证旧密码后更新 `user.payCode`
+
 #### 通知类型枚举
 
 | type | 触发时机 | 接收方 | 标题示例 |
 |------|----------|--------|----------|
 | `1` | 用户提交预约 | 房东 | "有用户预约看房" |
 | `2` | 一方取消预约 | 对方 | "预约已被取消" |
-| `3` | 一方标记完成 | 对方 | "看房已标记完成" |
+| `3` | 一方标记预约完成 | 对方 | "看房已标记完成" |
+| `4` | 合同创建成功 / 租客续租 | 房东 | "有新租客签约入住" / "租客已续租" |
+| `5` | 租客完成付款（首期/续期） | 租客 | "付款成功" |
+| `6` | 租客付款，房东收款 | 房东 | "收款成功" |
+| `7` | 下一期房租到期前 7 天（定时/懒触发） | 租客 | "房租即将到期，请准备缴费" |
+| `8` | 合法退房（租期到期），押金自动退回 | 租客 | "租约已到期，押金已退回至您的钱包" |
+| `9` | 逾期 15 天未缴房租，强制退房 | 租客 | "逾期未缴房租，已强制退房，押金不予退还" |
+| `10` | 租客主动提前退房（非法退房） | 租客 | "提前退房操作已确认，押金不予退还" |
+| `11` | 任意退房事件（合法/提前/逾期） | 房东 | "租客已退房"（content 注明具体类型及押金处理结果） |
 
 ### 发布房源
 
@@ -925,14 +1075,6 @@ import AppLoading from '@/components/AppLoading';
 1. 选择小区（搜索已有小区，或点击"创建小区"）
 2. 填写房源信息（基础信息 + 设施 + 图片 + 描述）
 3. 提交："保存并发布"（`isPublished=2`）或"存为草稿"（`isPublished=1`）
-
-### 租房交易
-
-1. 点击"立即租房" → 选择租期（月数，≥ 最短租期且为 pay 的整数倍）、选择开始日期
-2. 系统计算结束日期、首次付款金额（押金 + 首期房租）
-3. 输入支付密码确认 → 扣减钱包余额
-4. 创建合同记录、创建订单记录、更新房源状态为已租出
-5. 跳转合同详情页
 
 ### 个人中心
 
@@ -943,8 +1085,9 @@ import AppLoading from '@/components/AppLoading';
 | 我的房源 | `/profile/rooms` | 已发布房源列表，支持编辑、发布/撤回、删除（仅房东可见）|
 | 我的预约 | `/profile/appointment` | 两个 Tab：**我预约的**（作为租客）/ **收到的预约**（作为房东）；状态分组显示（待看房/已完成/已取消/已过期）；操作：取消、标记完成、隐藏 |
 | 我的消息 | `/profile/notification` | 通知中心：列表展示所有通知，支持单条已读、全部已读、单条删除、清空全部；顶栏显示未读 badge |
-| 我的合同 | `/profile/contract` | 合同列表，展示续租、付款按钮，退房操作 |
-| 我的订单 | `/profile/order` | 付款记录/收款记录分类展示 |
+| 我的合同 | `/profile/contract` | 合同列表，两个 Tab：**我租的**（租客视角）/ **收到的合同**（房东视角）；合同详情内支持续租、支付下一期、提前退房；status=2 后可删除 |
+| 我的订单 | `/profile/order` | 两个 Tab：**付款记录**（payer 视角）/ **收款记录**（payee 视角）；每条展示类型、金额、时间段、房源信息 |
+| 我的钱包 | `/profile/wallet` | 当前余额大字展示、充值按钮（输入金额+支付密码）、修改支付密码入口、消费记录列表（支持按类型筛选）；金额正数绿色+号、负数红色-号 |
 
 ---
 
@@ -1058,8 +1201,8 @@ API Key 存放在环境变量 `NEXT_PUBLIC_BAIDU_MAP_AK`（客户端可访问）
 | 收藏管理 | ✅ 已实现 | `/manage/collection` | |
 | 预约管理 | ✅ 已实现 | `/manage/appointment` | 含新增/编辑/删除/快捷取消完成，懒过期 |
 | 通知管理 | ✅ 已实现 | `/manage/notification` | 只读查看+编辑已读状态+删除，无新增 |
-| 合同管理 | ⬜ 待实现 | `/manage/contract` | 只读列表 |
-| 订单管理 | ⬜ 待实现 | `/manage/order` | 只读列表 |
+| 合同管理 | ⬜ 待实现 | `/manage/contract` | 只读列表，含状态/退房筛选 |
+| 订单管理 | ⬜ 待实现 | `/manage/order` | 只读列表，含类型筛选 |
 
 ### 用户平台
 
@@ -1074,25 +1217,29 @@ API Key 存放在环境变量 `NEXT_PUBLIC_BAIDU_MAP_AK`（客户端可访问）
 | 个人中心 - 基础 | ⬜ 待实现 | `/portal/profile/info`, `/portal/profile/collection`, `/portal/profile/rooms` |
 | 个人中心 - 预约 | ⬜ 待实现 | `/portal/profile/appointment` | 含"我预约的"和"收到的预约"双 Tab |
 | 个人中心 - 消息 | ⬜ 待实现 | `/portal/profile/notification` | 通知中心，含未读 badge |
+| 个人中心 - 合同 | ⬜ 待实现 | `/portal/profile/contract` | 含续租/付款/退房操作 |
+| 个人中心 - 订单 | ⬜ 待实现 | `/portal/profile/order` | 付款/收款双 Tab |
+| 个人中心 - 钱包 | ⬜ 待实现 | `/portal/profile/wallet` | 余额、充值、消费记录 |
 | 发布房源 | ⬜ 待实现 | `/portal/publish` |
-| 租房交易 | ⬜ 待实现 | `/portal/rent/[roomId]` |
+| 租房交易 | ⬜ 待实现 | 在房源详情页弹窗发起 |
 
 ### 数据库
 
 | 表 | 状态 | 说明 |
 |----|------|------|
 | `admin` | ✅ 已建 | |
-| `user` | ✅ 已建 | 含 isActive 字段 |
+| `user` | ✅ 已建 | 含 wallet/payCode 字段 |
 | `community` | ✅ 已建 | |
 | `facility` | ✅ 已建 | |
 | `room` | ✅ 已建 | |
 | `carousel` | ✅ 已建 | |
 | `collection` | ✅ 已建 | |
 | `appointment` | ✅ 已建 | 含 status/cancelledBy/completedBy/remark 字段 |
-| `notification` | ✅ 已建 | 通知中心，支持预约相关通知类型 |
-| `contract` | ⬜ 待建 | |
-| `order` | ⬜ 待建 | |
+| `notification` | ✅ 已建 | 通知中心，type 扩展至 9 种 |
+| `contract` | ⬜ 待建 | 含 status/isCheckout/refund/renewTimes 字段 |
+| `order` | ⬜ 待建 | 含 contractId/type 字段 |
+| `wallet_record` | ⬜ 待建 | 钱包消费记录，含 type/amount/orderId 字段 |
 
 ---
 
-*文档版本：2026-05-14 | 项目：雅阁租房系统*
+*文档版本：2026-05-15 | 项目：雅阁租房系统*
