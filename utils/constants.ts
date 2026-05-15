@@ -44,3 +44,15 @@ export const APPOINTMENT_STATUS_OPTIONS = [
   { value: 3, label: '已取消' },
   { value: 4, label: '已过期' },
 ];
+
+// ── Notification ──────────────────────────────────────────────────────────────
+export const NOTIFICATION_TYPE_OPTIONS = [
+  { value: 1, label: '新预约' },
+  { value: 2, label: '预约取消' },
+  { value: 3, label: '预约完成' },
+];
+
+export const NOTIFICATION_READ_OPTIONS = [
+  { value: 'true',  label: '已读' },
+  { value: 'false', label: '未读' },
+];

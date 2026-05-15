@@ -74,6 +74,12 @@ rent-room/
 │   │   ├── collection/
 │   │   │   ├── page.tsx              # 收藏记录列表
 │   │   │   └── collection-form-modal.tsx
+│   │   ├── appointment/
+│   │   │   ├── page.tsx              # 预约记录列表
+│   │   │   └── appointment-form-modal.tsx
+│   │   ├── notification/
+│   │   │   ├── page.tsx              # 通知记录列表
+│   │   │   └── notification-form-modal.tsx
 │   │   ├── room/
 │   │   │   ├── page.tsx              # 房源列表页
 │   │   │   ├── room-form.tsx         # 新建/编辑共享表单（含 MD 编辑器、多图上传）
@@ -106,9 +112,11 @@ rent-room/
 ├── lib/                              # 服务端工具
 │   ├── admin.ts                      # admin 序列化
 │   ├── carousel.ts                   # carousel 序列化
+│   ├── appointment.ts                # appointment 序列化
 │   ├── collection.ts                 # collection 序列化
 │   ├── community.ts                  # community 序列化
 │   ├── facility.ts                   # facility 序列化
+│   ├── notification.ts               # notification 序列化
 │   ├── user.ts                       # user 序列化
 │   ├── manage-auth.ts                # JWT 签发 / 验证 / 鉴权
 │   ├── prisma.ts                     # Prisma 客户端单例
@@ -137,7 +145,7 @@ rent-room/
 ```
 
 ## 实现状态
-管理平台：登录 ✅、个人资料 ✅、管理员管理 ✅、用户管理 ✅、小区管理 ✅、轮播图管理 ✅、房屋设施管理 ✅、房源管理 ✅、收藏管理 ✅、预约管理 ✅、其余模块 ⬜。用户平台：全部 ⬜。数据库：`admin` 表 ✅、`user` 表 ✅、`community` 表 ✅、`carousel` 表 ✅、`facility` 表 ✅、`room` 表 ✅、`collection` 表 ✅、`appointment` 表 ✅、`notification` 表 ⬜（schema 已定义）、`contract` 表 ⬜、`order` 表 ⬜。
+管理平台：登录 ✅、个人资料 ✅、管理员管理 ✅、用户管理 ✅、小区管理 ✅、轮播图管理 ✅、房屋设施管理 ✅、房源管理 ✅、收藏管理 ✅、预约管理 ✅、通知管理 ✅、其余模块 ⬜。用户平台：全部 ⬜。数据库：`admin` 表 ✅、`user` 表 ✅、`community` 表 ✅、`carousel` 表 ✅、`facility` 表 ✅、`room` 表 ✅、`collection` 表 ✅、`appointment` 表 ✅、`notification` 表 ✅、`contract` 表 ⬜、`order` 表 ⬜。
 
 ## 顶栏面包屑（必须）
 每新增一个管理平台模块，**必须**同步在 `components/Topbar.tsx` 的 `resolveCrumbs` 函数中注册面包屑：

@@ -54,8 +54,9 @@ function resolveCrumbs(pathname: string): CrumbItem[] {
     "/manage/facility":   "房屋设施",
     "/manage/carousel":   "轮播图管理",
     "/manage/collection":  "收藏管理",
-    "/manage/appointment": "预约管理",
-    "/manage/profile":     "个人资料",
+    "/manage/appointment":   "预约管理",
+    "/manage/notification": "通知管理",
+    "/manage/profile":      "个人资料",
   };
   const entry = Object.entries(flat).find(([p]) => pathname.startsWith(p));
   return entry ? [{ label: entry[1] }] : [];
