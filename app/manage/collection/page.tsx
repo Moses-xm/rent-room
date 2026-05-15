@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
-import { Plus, Search, Pencil, Trash2, Heart, Home } from 'lucide-react';
+import { Plus, Search, Pencil, Trash2, Heart, Home, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { request } from '@/utils/request';
 import DataTable, { type Column } from '@/components/DataTable';
@@ -152,6 +152,15 @@ export default function CollectionPage() {
 
   const handlePageChange = (p: number) => setPage(Math.max(1, Math.min(p, totalPages)));
   const handlePageSizeChange = (s: number) => { setPageSize(s); setPage(1); };
+
+  const hasFilters = !!(debouncedQuery.trim() || userIdFilter || roomIdFilter);
+
+  const clearFilters = () => {
+    setQuery('');
+    setUserIdFilter(undefined);
+    setRoomIdFilter(undefined);
+    setPage(1);
+  };
 
   const handleSaved = async (data: CollectionFormData, editingId?: number) => {
     if (editingId) {
@@ -334,6 +343,17 @@ export default function CollectionPage() {
             label: `${r.name}（${r.roomCode}）`,
           }))}
         />
+
+        {hasFilters && (
+          <button
+            onClick={clearFilters}
+            className="flex items-center gap-1.5 h-8.5 px-3 rounded-sm text-body-sm transition-all active:scale-95 whitespace-nowrap cursor-pointer"
+            style={{ background: 'rgba(239,68,68,0.08)', color: '#ef4444', border: '1px solid rgba(239,68,68,0.2)' }}
+          >
+            <X size={13} />
+            重置
+          </button>
+        )}
       </div>
 
       {/* ── 移动端卡片列表（< md）── */}

@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import { Plus, Search, Pencil, Trash2, Wrench } from 'lucide-react';
+import { Plus, Search, Pencil, Trash2, Wrench, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { request } from '@/utils/request';
 import DataTable, { type Column } from '@/components/DataTable';
@@ -233,6 +233,17 @@ export default function FacilityPage() {
                        placeholder:text-text-muted"
           />
         </div>
+
+        {debouncedQuery.trim() && (
+          <button
+            onClick={() => { setQuery(''); setPage(1); }}
+            className="flex items-center gap-1.5 h-8.5 px-3 rounded-sm text-body-sm transition-all active:scale-95 whitespace-nowrap cursor-pointer"
+            style={{ background: 'rgba(239,68,68,0.08)', color: '#ef4444', border: '1px solid rgba(239,68,68,0.2)' }}
+          >
+            <X size={13} />
+            重置
+          </button>
+        )}
       </div>
 
       {/* ── 移动端卡片列表（< md）── */}

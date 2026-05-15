@@ -159,6 +159,12 @@ export default function AppointmentPage() {
 
   const hasFilter = !!(debouncedQuery.trim() || statusFilter);
 
+  const clearFilters = () => {
+    setQuery('');
+    setStatusFilter('');
+    setPage(1);
+  };
+
   /* ─── Column definitions ──────────────────────────────────────────────── */
   const columns = useMemo<Column<AppointmentItem>[]>(() => [
     {
@@ -335,6 +341,17 @@ export default function AppointmentPage() {
           className="w-full sm:w-36"
           options={APPOINTMENT_STATUS_OPTIONS.map((o) => ({ value: String(o.value), label: o.label }))}
         />
+
+        {hasFilter && (
+          <button
+            onClick={clearFilters}
+            className="flex items-center gap-1.5 h-8.5 px-3 rounded-sm text-body-sm transition-all active:scale-95 whitespace-nowrap cursor-pointer"
+            style={{ background: 'rgba(239,68,68,0.08)', color: '#ef4444', border: '1px solid rgba(239,68,68,0.2)' }}
+          >
+            <X size={13} />
+            重置
+          </button>
+        )}
       </div>
 
       {/* ── 移动端卡片列表（< md）── */}
