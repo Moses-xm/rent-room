@@ -38,8 +38,11 @@ model user {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  rooms       room[]
-  collections collection[]
+  rooms                  room[]
+  collections            collection[]
+  appointmentsAsUser     appointment[] @relation("appointmentUser")
+  appointmentsAsLandlord appointment[] @relation("appointmentLandlord")
+  notifications          notification[]
 }
 
 model community {
@@ -112,9 +115,10 @@ model room {
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
 
-  community   community    @relation(fields: [cmyId], references: [id])
-  publisher   user         @relation(fields: [publisherId], references: [id])
-  collections collection[]
+  community    community     @relation(fields: [cmyId], references: [id])
+  publisher    user          @relation(fields: [publisherId], references: [id])
+  collections  collection[]
+  appointments appointment[]
 }
 
 model collection {
@@ -128,4 +132,39 @@ model collection {
   room room @relation(fields: [roomId], references: [id])
 
   @@unique([userId, roomId])
+}
+
+model appointment {
+  id              Int      @id @default(autoincrement())
+  userId          Int                          // 预约者（租客）
+  roomId          Int
+  landlordId      Int                          // 房东
+  appointmentTime DateTime                     // 预约看房时间
+  status          Int      @default(1)         // 1=待看房 2=已完成 3=已取消 4=已过期
+  cancelledBy     Int?                         // 取消操作者 userId（status=3 时记录）
+  completedBy     Int?                         // 完成标记者 userId（status=2 时记录）
+  remark          String?  @db.VarChar(500)    // 预约备注（可选）
+  userDeleted     Boolean  @default(false)     // 租客侧隐藏
+  landlordDeleted Boolean  @default(false)     // 房东侧隐藏
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  user     user @relation("appointmentUser",     fields: [userId],     references: [id])
+  room     room @relation(fields: [roomId], references: [id])
+  landlord user @relation("appointmentLandlord", fields: [landlordId], references: [id])
+}
+
+model notification {
+  id          Int      @id @default(autoincrement())
+  userId      Int                              // 通知接收者
+  type        Int                              // 1=新预约 2=预约取消 3=预约完成
+  title       String   @db.VarChar(200)
+  content     String   @db.VarChar(500)
+  relatedType String?  @db.VarChar(50)         // 关联业务类型，如 "appointment"
+  relatedId   Int?                             // 关联记录 ID
+  isRead      Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user user @relation(fields: [userId], references: [id])
 }

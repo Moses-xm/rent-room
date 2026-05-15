@@ -161,12 +161,14 @@ model User {
   updatedAt DateTime @updatedAt
 
   // Relations
-  rooms        Room[]        @relation("publisher")
-  collections  Collection[]
-  appointments Appointment[] @relation("appointmentUser")
-  contracts    Contract[]    @relation("contractUser")
-  paidOrders   Order[]       @relation("payer")
-  receivedOrders Order[]     @relation("payee")
+  rooms                  Room[]         @relation("publisher")
+  collections            Collection[]
+  appointmentsAsUser     Appointment[]  @relation("appointmentUser")     // 作为租客的预约
+  appointmentsAsLandlord Appointment[]  @relation("appointmentLandlord") // 作为房东收到的预约
+  contracts              Contract[]     @relation("contractUser")
+  paidOrders             Order[]        @relation("payer")
+  receivedOrders         Order[]        @relation("payee")
+  notifications          Notification[]
 
   @@map("user")
 }
@@ -280,20 +282,42 @@ model Collection {
 // ─── 预约看房 ──────────────────────────────────────────────────────────────────
 model Appointment {
   id              Int      @id @default(autoincrement())
-  userId          Int
+  userId          Int                          // 预约者（租客）
   roomId          Int
-  landlordId      Int
-  appointmentTime DateTime
-  landlordDeleted Boolean  @default(false)
-  userDeleted     Boolean  @default(false)
+  landlordId      Int                          // 房东（来自 room.publisherId）
+  appointmentTime DateTime                     // 预约看房时间
+  status          Int      @default(1)         // 1=待看房 2=已完成 3=已取消 4=已过期
+  cancelledBy     Int?                         // 取消操作者 userId（status=3 时记录）
+  completedBy     Int?                         // 完成标记者 userId（status=2 时记录，任一方触发）
+  remark          String?  @db.VarChar(500)    // 预约备注（可选，用户填写）
+  userDeleted     Boolean  @default(false)     // 租客侧隐藏该记录（对房东无影响）
+  landlordDeleted Boolean  @default(false)     // 房东侧隐藏该记录（对租客无影响）
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 
-  user     User @relation("appointmentUser", fields: [userId], references: [id])
+  user     User @relation("appointmentUser",     fields: [userId],     references: [id])
   room     Room @relation(fields: [roomId], references: [id])
   landlord User @relation("appointmentLandlord", fields: [landlordId], references: [id])
 
   @@map("appointment")
+}
+
+// ─── 通知 ──────────────────────────────────────────────────────────────────────
+model Notification {
+  id          Int      @id @default(autoincrement())
+  userId      Int                              // 通知接收者
+  type        Int                              // 1=新预约 2=预约取消 3=预约完成
+  title       String   @db.VarChar(200)
+  content     String   @db.VarChar(500)
+  relatedType String?  @db.VarChar(50)         // 关联业务类型，如 "appointment"
+  relatedId   Int?                             // 关联记录 ID（如 appointmentId）
+  isRead      Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@map("notification")
 }
 
 // ─── 合同 ──────────────────────────────────────────────────────────────────────
@@ -345,7 +369,7 @@ model Order {
 }
 ```
 
-> **注意**：`Appointment` 和 `Contract` 中 `landlord` 关系需要在 `User` 模型中添加对应的反向关系字段 `appointmentsAsLandlord` 和 `contractsAsLandlord`，以满足 Prisma 要求。
+> **注意**：`Contract` 中 `landlord` 关系需要在 `User` 模型中添加对应的反向关系字段 `contractsAsLandlord`，以满足 Prisma 要求。`Appointment` 的双向关系已在 `User` 模型中通过 `appointmentsAsUser` / `appointmentsAsLandlord` 显式声明。
 
 ---
 
@@ -744,8 +768,12 @@ import AppLoading from '@/components/AppLoading';
 
 #### 预约看房管理 (`/manage/appointment`)
 
-- 页面功能：预约记录列表（只读）、按状态筛选（待看房/已看房）
-- API：`GET /api/manage/appointment`
+- 页面功能：预约记录列表（只读，管理员不可增删改），支持按状态筛选和关键词搜索
+- 列表列：房源名称（+编号）、租客（用户名）、房东（用户名）、预约时间、状态、创建时间
+- 状态枚举：`1=待看房` `2=已完成` `3=已取消` `4=已过期`
+- 筛选支持：按状态下拉（全部/待看房/已完成/已取消/已过期）、关键词搜索（租客用户名/房源名/房源编号）
+- API：`GET /api/manage/appointment`（支持 `page`、`limit`、`search`、`status` 参数）
+- 序列化：`lib/appointment.ts`，列表响应含关联的 `user`（租客 id/username/nickname）、`landlord`（房东 id/username/nickname）、`room`（id/name/roomCode）
 
 #### 合同管理 (`/manage/contract`)
 
@@ -773,20 +801,21 @@ import AppLoading from '@/components/AppLoading';
 ### 整体架构
 
 ```
-/portal                     # 首页（轮播图 + 热门推荐 + 搜索）
-/portal/login               # 用户登录
-/portal/register            # 用户注册
-/portal/room/[id]           # 房源详情
-/portal/search              # 搜索结果页
-/portal/community/[id]      # 小区详情
-/portal/map                 # 地图找房
-/portal/profile             # 个人中心（需登录）
-  /portal/profile/info      # 个人资料
-  /portal/profile/rooms     # 我发布的房源
-  /portal/profile/collection # 我的收藏
-  /portal/profile/appointment # 我的预约
-  /portal/profile/contract  # 我的合同
-  /portal/profile/order     # 我的订单
+/portal                          # 首页（轮播图 + 热门推荐 + 搜索）
+/portal/login                    # 用户登录
+/portal/register                 # 用户注册
+/portal/room/[id]                # 房源详情
+/portal/search                   # 搜索结果页
+/portal/community/[id]           # 小区详情
+/portal/map                      # 地图找房
+/portal/profile                  # 个人中心（需登录）
+  /portal/profile/info           # 个人资料
+  /portal/profile/rooms          # 我发布的房源
+  /portal/profile/collection     # 我的收藏
+  /portal/profile/appointment    # 我的预约（含两个 Tab：我预约的 / 收到的预约）
+  /portal/profile/notification   # 我的消息（通知中心）
+  /portal/profile/contract       # 我的合同
+  /portal/profile/order          # 我的订单
 ```
 
 ### 认证
@@ -822,6 +851,58 @@ import AppLoading from '@/components/AppLoading';
 - 房东信息
 - 操作按钮：收藏、预约看房、立即租房（需登录）
 
+### 预约看房
+
+#### 发起预约（用户在房源详情页操作）
+
+1. 点击"预约看房" → 弹出预约表单（需登录）
+2. 填写预约时间（日期+时间段）和备注（可选）
+3. 提交 → `POST /api/portal/appointment`
+   - 自动从 token 获取 `userId`，从 `room.publisherId` 取 `landlordId`
+   - 创建 `appointment`（`status=1`）
+   - 同步为房东创建通知（`type=1`，"有人预约看房"）
+4. 成功后提示"预约成功，等待房东确认"
+
+#### 过期自动处理（懒过期）
+
+不依赖定时任务，而是**在 API 查询时**批量更新：查询前先执行  
+`UPDATE appointment SET status=4 WHERE status=1 AND appointmentTime < NOW()`  
+确保客户端看到的数据始终是最新状态。
+
+#### Portal API — 预约看房
+
+| 方法 | 路径 | 说明 | 鉴权 |
+|------|------|------|------|
+| `POST` | `/api/portal/appointment` | 创建预约 | 登录用户 |
+| `GET` | `/api/portal/appointment?role=tenant\|landlord&status=&page=&limit=` | 查询预约列表（按角色） | 登录用户 |
+| `PATCH` | `/api/portal/appointment/[id]/cancel` | 取消预约 | 租客或房东 |
+| `PATCH` | `/api/portal/appointment/[id]/complete` | 标记完成 | 租客或房东 |
+| `DELETE` | `/api/portal/appointment/[id]` | 隐藏记录（软删除，仅对自己） | 租客或房东 |
+
+- `role=tenant`：查当前用户作为租客的预约（过滤 `userDeleted=false`）
+- `role=landlord`：查当前用户作为房东收到的预约（过滤 `landlordDeleted=false`）
+- 取消/完成操作：校验操作者必须是该预约的 `userId` 或 `landlordId`；完成后同步向对方创建通知（`type=3`）；取消后同步向对方创建通知（`type=2`）
+- **互相完成**：任一方调用 `/complete` 均写入 `status=2`，`completedBy=当前userId`，对方会收到通知
+
+#### Portal API — 通知
+
+| 方法 | 路径 | 说明 |
+|------|------|------|
+| `GET` | `/api/portal/notification?page=&limit=` | 获取通知列表（分页） |
+| `GET` | `/api/portal/notification/unread-count` | 获取未读数量（用于顶栏 badge） |
+| `PATCH` | `/api/portal/notification/[id]` | 标记单条已读（`{ isRead: true }`） |
+| `PATCH` | `/api/portal/notification` | 全部标记已读（批量） |
+| `DELETE` | `/api/portal/notification/[id]` | 删除单条通知 |
+| `DELETE` | `/api/portal/notification` | 清空所有通知（当前用户） |
+
+#### 通知类型枚举
+
+| type | 触发时机 | 接收方 | 标题示例 |
+|------|----------|--------|----------|
+| `1` | 用户提交预约 | 房东 | "有用户预约看房" |
+| `2` | 一方取消预约 | 对方 | "预约已被取消" |
+| `3` | 一方标记完成 | 对方 | "看房已标记完成" |
+
 ### 发布房源
 
 房东流程（两步）：
@@ -839,14 +920,15 @@ import AppLoading from '@/components/AppLoading';
 
 ### 个人中心
 
-| 子模块 | 说明 |
-|--------|------|
-| 个人资料 | 修改昵称、头像、联系方式，实名认证（成为房东前置条件）|
-| 我的收藏 | 已收藏房源列表，支持取消收藏 |
-| 我的房源 | 已发布房源列表，支持编辑、发布/撤回、删除 |
-| 我的预约 | 预约记录，待看房/已看房分类 |
-| 我的合同 | 合同列表，展示续租、付款按钮，退房操作 |
-| 我的订单 | 付款记录/收款记录分类展示 |
+| 子模块 | 路由 | 说明 |
+|--------|------|------|
+| 个人资料 | `/profile/info` | 修改昵称、头像、联系方式，实名认证（成为房东前置条件）|
+| 我的收藏 | `/profile/collection` | 已收藏房源列表，支持取消收藏 |
+| 我的房源 | `/profile/rooms` | 已发布房源列表，支持编辑、发布/撤回、删除（仅房东可见）|
+| 我的预约 | `/profile/appointment` | 两个 Tab：**我预约的**（作为租客）/ **收到的预约**（作为房东）；状态分组显示（待看房/已完成/已取消/已过期）；操作：取消、标记完成、隐藏 |
+| 我的消息 | `/profile/notification` | 通知中心：列表展示所有通知，支持单条已读、全部已读、单条删除、清空全部；顶栏显示未读 badge |
+| 我的合同 | `/profile/contract` | 合同列表，展示续租、付款按钮，退房操作 |
+| 我的订单 | `/profile/order` | 付款记录/收款记录分类展示 |
 
 ---
 
@@ -972,7 +1054,9 @@ API Key 存放在环境变量 `NEXT_PUBLIC_BAIDU_MAP_AK`（客户端可访问）
 | 房源详情 | ⬜ 待实现 | `/portal/room/[id]` |
 | 小区详情 | ⬜ 待实现 | `/portal/community/[id]` |
 | 地图找房 | ⬜ 待实现 | `/portal/map` |
-| 个人中心 | ⬜ 待实现 | `/portal/profile/*` |
+| 个人中心 - 基础 | ⬜ 待实现 | `/portal/profile/info`, `/portal/profile/collection`, `/portal/profile/rooms` |
+| 个人中心 - 预约 | ⬜ 待实现 | `/portal/profile/appointment` | 含"我预约的"和"收到的预约"双 Tab |
+| 个人中心 - 消息 | ⬜ 待实现 | `/portal/profile/notification` | 通知中心，含未读 badge |
 | 发布房源 | ⬜ 待实现 | `/portal/publish` |
 | 租房交易 | ⬜ 待实现 | `/portal/rent/[roomId]` |
 
@@ -987,10 +1071,11 @@ API Key 存放在环境变量 `NEXT_PUBLIC_BAIDU_MAP_AK`（客户端可访问）
 | `room` | ✅ 已建 | |
 | `carousel` | ✅ 已建 | |
 | `collection` | ✅ 已建 | |
-| `appointment` | ⬜ 待建 | |
+| `appointment` | ⬜ 待建 | 含 status/cancelledBy/completedBy/remark 字段 |
+| `notification` | ⬜ 待建 | 通知中心，支持预约相关通知类型 |
 | `contract` | ⬜ 待建 | |
 | `order` | ⬜ 待建 | |
 
 ---
 
-*文档版本：2026-04-24 | 项目：雅阁租房系统*
+*文档版本：2026-05-14 | 项目：雅阁租房系统*
