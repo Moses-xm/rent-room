@@ -15,6 +15,7 @@ import CollectionFormModal, {
 } from './collection-form-modal';
 import { fmtDateTime } from '@/utils/format';
 import { resolveUploadedFileUrl } from '@/lib/upload-path';
+import FilterSelect from '@/components/FilterSelect';
 
 /* ─── Types ───────────────────────────────────────────────────────────────── */
 type CollectionItem = {
@@ -37,25 +38,35 @@ type CollectionsResponse = {
 };
 
 /* ─── Helpers ─────────────────────────────────────────────────────────────── */
-async function fetchCollections(params: { page: number; limit: number; search?: string }) {
+type OptionsResponse = {
+  success: boolean;
+  users: { id: number; username: string; nickname: string | null }[];
+  rooms: { id: number; name: string; roomCode: string }[];
+};
+
+async function fetchCollections(params: { page: number; limit: number; search?: string; userId?: number; roomId?: number }) {
   const qs = new URLSearchParams();
   qs.set('page', String(params.page));
   qs.set('limit', String(params.limit));
   if (params.search) qs.set('search', params.search);
+  if (params.userId) qs.set('userId', String(params.userId));
+  if (params.roomId) qs.set('roomId', String(params.roomId));
   return request<CollectionsResponse>(`/manage/collection?${qs.toString()}`);
+}
+
+async function fetchOptions() {
+  return request<OptionsResponse>('/manage/collection/options');
 }
 
 /* ─── Sub-components ──────────────────────────────────────────────────────── */
 function UserAvatar({ user }: { user: NonNullable<CollectionItem['user']> }) {
   const url = resolveUploadedFileUrl(user.avatar);
   return (
-    <div className="w-8 h-8 rounded-full overflow-hidden shrink-0 bg-surface border border-border">
+    <div className="w-8 h-8 rounded-full grid place-items-center overflow-hidden shrink-0 bg-primary-tint text-primary-dark text-xs font-semibold border border-border">
       {url ? (
         <img src={url} alt={user.username} className="w-full h-full object-cover" />
       ) : (
-        <div className="w-full h-full flex items-center justify-center text-tiny font-medium text-text-muted select-none">
-          {user.username[0]?.toUpperCase()}
-        </div>
+        (user.nickname || user.username).trim().charAt(0).toUpperCase()
       )}
     </div>
   );
@@ -94,6 +105,20 @@ export default function CollectionPage() {
   const [page, setPage] = useState(1);
   const [refreshKey, setRefreshKey] = useState(0);
 
+  const [userIdFilter, setUserIdFilter] = useState<number | undefined>(undefined);
+  const [roomIdFilter, setRoomIdFilter] = useState<number | undefined>(undefined);
+  const [userOptions, setUserOptions] = useState<OptionsResponse['users']>([]);
+  const [roomOptions, setRoomOptions] = useState<OptionsResponse['rooms']>([]);
+
+  useEffect(() => {
+    fetchOptions().then((res) => {
+      if (res.success) {
+        setUserOptions(res.users);
+        setRoomOptions(res.rooms);
+      }
+    }).catch(console.error);
+  }, [refreshKey]);
+
   useEffect(() => {
     const t = setTimeout(() => setDebouncedQuery(query), 300);
     return () => clearTimeout(t);
@@ -103,7 +128,7 @@ export default function CollectionPage() {
     let cancelled = false;
     setLoading(true);
 
-    fetchCollections({ page, limit: pageSize, search: debouncedQuery || undefined })
+    fetchCollections({ page, limit: pageSize, search: debouncedQuery || undefined, userId: userIdFilter, roomId: roomIdFilter })
       .then((res) => {
         if (cancelled) return;
         if (res.success) {
@@ -123,7 +148,7 @@ export default function CollectionPage() {
 
     return () => { cancelled = true; };
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [page, pageSize, debouncedQuery, refreshKey]);
+  }, [page, pageSize, debouncedQuery, userIdFilter, roomIdFilter, refreshKey]);
 
   const handlePageChange = (p: number) => setPage(Math.max(1, Math.min(p, totalPages)));
   const handlePageSizeChange = (s: number) => { setPageSize(s); setPage(1); };
@@ -289,6 +314,26 @@ export default function CollectionPage() {
                        placeholder:text-text-muted"
           />
         </div>
+        <FilterSelect
+          value={userIdFilter ? String(userIdFilter) : ''}
+          onChange={(v) => { setUserIdFilter(v ? Number(v) : undefined); setPage(1); }}
+          placeholder="全部收藏人"
+          className="w-full sm:w-40"
+          options={userOptions.map((u) => ({
+            value: String(u.id),
+            label: u.nickname ? `${u.nickname}（${u.username}）` : u.username,
+          }))}
+        />
+        <FilterSelect
+          value={roomIdFilter ? String(roomIdFilter) : ''}
+          onChange={(v) => { setRoomIdFilter(v ? Number(v) : undefined); setPage(1); }}
+          placeholder="全部房源"
+          className="w-full sm:w-48"
+          options={roomOptions.map((r) => ({
+            value: String(r.id),
+            label: `${r.name}（${r.roomCode}）`,
+          }))}
+        />
       </div>
 
       {/* ── 移动端卡片列表（< md）── */}
@@ -299,7 +344,7 @@ export default function CollectionPage() {
           <div className="bg-card border border-border rounded shadow-sm py-20 flex flex-col items-center gap-3 opacity-40">
             <Heart size={36} className="text-text-disabled" />
             <p className="text-body text-text-muted">
-              {debouncedQuery.trim() ? '未找到符合条件的收藏记录' : '暂无收藏记录'}
+              {(debouncedQuery.trim() || userIdFilter || roomIdFilter) ? '未找到符合条件的收藏记录' : '暂无收藏记录'}
             </p>
           </div>
         ) : (
@@ -395,7 +440,7 @@ export default function CollectionPage() {
           hasLoaded={hasLoadedOnce}
           skeletonRows={5}
           emptyIcon={<Heart size={36} className="text-text-disabled" />}
-          emptyText={debouncedQuery.trim() ? '未找到符合条件的收藏记录' : '暂无收藏记录'}
+          emptyText={(debouncedQuery.trim() || userIdFilter || roomIdFilter) ? '未找到符合条件的收藏记录' : '暂无收藏记录'}
           pagination={{
             page,
             pageSize,

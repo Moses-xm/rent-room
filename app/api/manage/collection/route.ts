@@ -12,18 +12,21 @@ export async function GET(req: NextRequest) {
     const page = parseInt(searchParams.get('page') || '1');
     const limit = parseInt(searchParams.get('limit') || '10');
     const search = searchParams.get('search') || '';
+    const userIdParam = searchParams.get('userId');
+    const roomIdParam = searchParams.get('roomId');
     const skip = (page - 1) * limit;
 
-    const where = search
-      ? {
-          OR: [
-            { user: { username: { contains: search, mode: 'insensitive' as const } } },
-            { user: { nickname: { contains: search, mode: 'insensitive' as const } } },
-            { room: { name: { contains: search, mode: 'insensitive' as const } } },
-            { room: { roomCode: { contains: search, mode: 'insensitive' as const } } },
-          ],
-        }
-      : {};
+    const where: Record<string, unknown> = {};
+    if (userIdParam) where.userId = parseInt(userIdParam);
+    if (roomIdParam) where.roomId = parseInt(roomIdParam);
+    if (search) {
+      where.OR = [
+        { user: { username: { contains: search, mode: 'insensitive' as const } } },
+        { user: { nickname: { contains: search, mode: 'insensitive' as const } } },
+        { room: { name: { contains: search, mode: 'insensitive' as const } } },
+        { room: { roomCode: { contains: search, mode: 'insensitive' as const } } },
+      ];
+    }
 
     const [total, items] = await Promise.all([
       prisma.collection.count({ where }),

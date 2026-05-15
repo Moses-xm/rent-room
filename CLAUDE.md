@@ -96,6 +96,7 @@ rent-room/
 │   ├── CitySelector.tsx
 │   ├── ConfirmDialog.tsx
 │   ├── DataTable.tsx                 # 通用泛型表格（列定义+数据+分页+空态+骨架屏）
+│   ├── FilterSelect.tsx              # 自定义下拉筛选（fixed 定位，防移动端溢出）
 │   ├── LoadingDimmer.tsx
 │   ├── ManageLayoutShell.tsx
 │   ├── Modal.tsx                     # 所有弹窗的基础容器（遮罩+滚动锁定）
