@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import {
-  ArrowLeft, Search, Home, User, Building2, Calendar,
+  ArrowLeft, ChevronRight, Search, Home, User, Building2, Calendar,
   FileText, ChevronDown, X, Eye, CreditCard, CheckCircle2,
 } from 'lucide-react';
 import { resolveUploadedFileUrl } from '@/lib/upload-path';
@@ -462,10 +462,12 @@ export default function ContractForm({ title, subtitle, backHref, isEdit = false
 
   if (loadingOpts) {
     return (
-      <div className="max-w-6xl mx-auto space-y-6">
-        <div className="flex items-center gap-3">
-          <div className="w-24 h-8 skeleton-shimmer rounded" />
+      <div className="space-y-5">
+        <div className="flex items-center gap-1.5">
+          <div className="w-7 h-7 skeleton-shimmer rounded-sm" />
+          <div className="w-40 h-4 skeleton-shimmer rounded" />
         </div>
+        <div className="w-32 h-7 skeleton-shimmer rounded" />
         <div className="grid lg:grid-cols-2 gap-6">
           <div className="bg-card border border-border rounded-2xl p-6 space-y-4">
             {[1, 2, 3, 4].map((i) => (
@@ -484,16 +486,28 @@ export default function ContractForm({ title, subtitle, backHref, isEdit = false
   }
 
   return (
-    <div className="max-w-6xl mx-auto space-y-6">
-      {/* Header */}
-      <div className="flex items-center gap-4">
-        <Link href={backHref} className="w-8 h-8 rounded-sm grid place-items-center text-text-muted hover:text-text hover:bg-surface-2 transition-colors shrink-0">
-          <ArrowLeft size={18} />
+    <div className="space-y-5">
+      {/* ── 面包屑 ── */}
+      <div className="flex items-center gap-1.5 text-body-sm min-w-0">
+        <button
+          onClick={() => router.back()}
+          title="返回"
+          className="w-7 h-7 rounded-sm grid place-items-center text-text-muted hover:bg-surface-2 hover:text-text transition-colors shrink-0 cursor-pointer"
+        >
+          <ArrowLeft size={17} />
+        </button>
+        <span className="text-text-disabled shrink-0">/</span>
+        <Link href={backHref} className="text-text-muted hover:text-text transition-colors shrink-0">
+          合同管理
         </Link>
-        <div>
-          <h1 className="font-(family-name:--typeface-display) text-h1 font-heading tracking-tight text-text leading-[1.1] m-0">{title}</h1>
-          <p className="text-body text-text-muted mt-1">{subtitle}</p>
-        </div>
+        <ChevronRight size={13} className="text-text-disabled shrink-0" />
+        <span className="text-text font-emphasis truncate">{title}</span>
+      </div>
+
+      {/* ── 标题 ── */}
+      <div>
+        <h1 className="font-(family-name:--typeface-display) text-h1 font-heading tracking-tight text-text leading-[1.1] m-0">{title}</h1>
+        <p className="text-body text-text-muted mt-1.5">{subtitle}</p>
       </div>
 
       <div className="grid lg:grid-cols-[1fr_1fr] gap-6 items-start">

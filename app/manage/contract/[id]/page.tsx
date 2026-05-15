@@ -4,7 +4,7 @@ import { use, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import {
-  ArrowLeft, Home, User, Building2, Calendar, CreditCard,
+  ArrowLeft, ChevronRight, Home, User, Building2, Calendar, CreditCard,
   RefreshCw, LogOut, Trash2, Pencil, CheckCircle2, Clock,
   FileText, AlertTriangle, CheckCircle, XCircle,
 } from 'lucide-react';
@@ -145,12 +145,13 @@ export default function ContractDetailPage({ params }: { params: Promise<{ id: s
   /* ── Skeleton ── */
   if (loading) {
     return (
-      <div className="max-w-5xl mx-auto space-y-6">
-        <div className="flex items-center gap-3">
-          <div className="w-8 h-8 skeleton-shimmer rounded-sm" />
-          <div className="w-40 h-7 skeleton-shimmer rounded" />
+      <div className="space-y-5">
+        <div className="flex items-center gap-1.5">
+          <div className="w-7 h-7 skeleton-shimmer rounded-sm" />
+          <div className="w-44 h-4 skeleton-shimmer rounded" />
         </div>
-        <div className="grid lg:grid-cols-[2fr_1fr] gap-6">
+        <div className="w-32 h-7 skeleton-shimmer rounded" />
+        <div className="grid lg:grid-cols-[1fr_320px] gap-5">
           <div className="space-y-4">
             {[1, 2, 3].map((i) => (
               <div key={i} className="bg-card border border-border rounded-2xl p-6">
@@ -185,20 +186,32 @@ export default function ContractDetailPage({ params }: { params: Promise<{ id: s
   const canDelete   = contract.isCheckout;
 
   return (
-    <div className="max-w-5xl mx-auto space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between gap-4 flex-wrap">
-        <div className="flex items-center gap-3">
-          <Link href="/manage/contract" className="w-8 h-8 rounded-sm grid place-items-center text-text-muted hover:text-text hover:bg-surface-2 transition-colors shrink-0">
-            <ArrowLeft size={18} />
-          </Link>
-          <div>
-            <div className="flex items-center gap-2.5">
-              <h1 className="font-(family-name:--typeface-display) text-h1 font-heading tracking-tight text-text leading-[1.1] m-0">合同详情</h1>
-              <span className="text-body-sm text-text-muted font-mono">#{contract.id}</span>
-            </div>
-            <p className="text-body text-text-muted mt-1">创建于 {fmtDateTime(contract.createdAt)}</p>
+    <div className="space-y-5">
+      {/* ── 面包屑 ── */}
+      <div className="flex items-center gap-1.5 text-body-sm min-w-0">
+        <button
+          onClick={() => router.back()}
+          title="返回"
+          className="w-7 h-7 rounded-sm grid place-items-center text-text-muted hover:bg-surface-2 hover:text-text transition-colors shrink-0 cursor-pointer"
+        >
+          <ArrowLeft size={17} />
+        </button>
+        <span className="text-text-disabled shrink-0">/</span>
+        <Link href="/manage/contract" className="text-text-muted hover:text-text transition-colors shrink-0">
+          合同管理
+        </Link>
+        <ChevronRight size={13} className="text-text-disabled shrink-0" />
+        <span className="text-text font-emphasis truncate">合同详情</span>
+      </div>
+
+      {/* ── 标题 ── */}
+      <div className="flex items-start justify-between gap-4 flex-wrap">
+        <div>
+          <div className="flex items-center gap-2.5">
+            <h1 className="font-(family-name:--typeface-display) text-h1 font-heading tracking-tight text-text leading-[1.1] m-0">合同详情</h1>
+            <span className="text-body-sm text-text-muted font-mono">#{contract.id}</span>
           </div>
+          <p className="text-body text-text-muted mt-1">创建于 {fmtDateTime(contract.createdAt)}</p>
         </div>
         <div className="flex items-center gap-2 flex-wrap">
           <StatusBadge status={contract.status} />
@@ -206,7 +219,7 @@ export default function ContractDetailPage({ params }: { params: Promise<{ id: s
         </div>
       </div>
 
-      <div className="grid lg:grid-cols-[1fr_320px] gap-6 items-start">
+      <div className="grid lg:grid-cols-[1fr_320px] gap-5 items-start">
 
         {/* ── Left: Detail cards ── */}
         <div className="space-y-4">

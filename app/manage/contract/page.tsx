@@ -183,11 +183,6 @@ export default function ContractPage() {
   /* ─── Columns ─────────────────────────────────────────────────────────── */
   const columns = useMemo<Column<ContractItem>[]>(() => [
     {
-      key: 'id',
-      label: '合同 ID',
-      render: (item) => <span className="font-mono text-body-sm text-text-muted">#{item.id}</span>,
-    },
-    {
       key: 'room',
       label: '房源',
       render: (item) => item.room ? (
@@ -254,6 +249,7 @@ export default function ContractPage() {
       key: 'actions',
       label: '操作',
       align: 'right',
+      sticky: 'right',
       render: (item) => <ActionButtons item={item} />,
     },
   // eslint-disable-next-line react-hooks/exhaustive-deps
