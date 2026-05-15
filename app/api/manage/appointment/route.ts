@@ -15,10 +15,13 @@ export async function GET(req: NextRequest) {
     if (!auth.ok) return auth.response;
 
     const { searchParams } = new URL(req.url);
-    const page   = parseInt(searchParams.get('page')   || '1');
-    const limit  = parseInt(searchParams.get('limit')  || '10');
-    const search = searchParams.get('search') || '';
-    const statusParam = searchParams.get('status');
+    const page          = parseInt(searchParams.get('page')       || '1');
+    const limit         = parseInt(searchParams.get('limit')      || '10');
+    const search        = searchParams.get('search') || '';
+    const statusParam   = searchParams.get('status');
+    const userIdParam   = searchParams.get('userId');
+    const landlordParam = searchParams.get('landlordId');
+    const roomIdParam   = searchParams.get('roomId');
     const skip = (page - 1) * limit;
 
     // 懒过期：将已过预约时间的「待看房」记录自动标记为「已过期」
@@ -28,7 +31,10 @@ export async function GET(req: NextRequest) {
     });
 
     const where: Record<string, unknown> = {};
-    if (statusParam) where.status = parseInt(statusParam);
+    if (statusParam)   where.status     = parseInt(statusParam);
+    if (userIdParam)   where.userId     = parseInt(userIdParam);
+    if (landlordParam) where.landlordId = parseInt(landlordParam);
+    if (roomIdParam)   where.roomId     = parseInt(roomIdParam);
     if (search) {
       where.OR = [
         { user:     { username: { contains: search, mode: 'insensitive' as const } } },

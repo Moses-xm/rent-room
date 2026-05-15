@@ -59,16 +59,32 @@ function StatusPill({ status }: { status: number }) {
   );
 }
 
-/* ─── Fetch helper ────────────────────────────────────────────────────────── */
+/* ─── Options types ───────────────────────────────────────────────────────── */
+type OptionsResponse = {
+  success: boolean;
+  users:     { id: number; username: string; nickname: string | null }[];
+  landlords: { id: number; username: string; nickname: string | null }[];
+  rooms:     { id: number; name: string; roomCode: string }[];
+};
+
+/* ─── Fetch helpers ───────────────────────────────────────────────────────── */
 async function fetchAppointments(params: {
   page: number; limit: number; search?: string; status?: string;
+  userId?: number; landlordId?: number; roomId?: number;
 }) {
   const qs = new URLSearchParams();
   qs.set('page', String(params.page));
   qs.set('limit', String(params.limit));
-  if (params.search) qs.set('search', params.search);
-  if (params.status) qs.set('status', params.status);
+  if (params.search)     qs.set('search',     params.search);
+  if (params.status)     qs.set('status',     params.status);
+  if (params.userId)     qs.set('userId',     String(params.userId));
+  if (params.landlordId) qs.set('landlordId', String(params.landlordId));
+  if (params.roomId)     qs.set('roomId',     String(params.roomId));
   return request<AppointmentsResponse>(`/manage/appointment?${qs.toString()}`);
+}
+
+async function fetchOptions() {
+  return request<OptionsResponse>('/manage/appointment/options');
 }
 
 /* ─── Page ────────────────────────────────────────────────────────────────── */
@@ -86,9 +102,25 @@ export default function AppointmentPage() {
   const [page, setPage] = useState(1);
   const [refreshKey, setRefreshKey] = useState(0);
   const [statusFilter, setStatusFilter] = useState('');
+  const [userIdFilter, setUserIdFilter] = useState<number | undefined>(undefined);
+  const [landlordIdFilter, setLandlordIdFilter] = useState<number | undefined>(undefined);
+  const [roomIdFilter, setRoomIdFilter] = useState<number | undefined>(undefined);
+  const [userOptions, setUserOptions] = useState<OptionsResponse['users']>([]);
+  const [landlordOptions, setLandlordOptions] = useState<OptionsResponse['landlords']>([]);
+  const [roomOptions, setRoomOptions] = useState<OptionsResponse['rooms']>([]);
 
   const [deleteTarget, setDeleteTarget] = useState<AppointmentItem | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+
+  useEffect(() => {
+    fetchOptions().then((res) => {
+      if (res.success) {
+        setUserOptions(res.users);
+        setLandlordOptions(res.landlords);
+        setRoomOptions(res.rooms);
+      }
+    }).catch(console.error);
+  }, [refreshKey]);
 
   useEffect(() => {
     const t = setTimeout(() => setDebouncedQuery(query), 300);
@@ -99,7 +131,14 @@ export default function AppointmentPage() {
     let cancelled = false;
     setLoading(true);
 
-    fetchAppointments({ page, limit: pageSize, search: debouncedQuery || undefined, status: statusFilter || undefined })
+    fetchAppointments({
+      page, limit: pageSize,
+      search: debouncedQuery || undefined,
+      status: statusFilter || undefined,
+      userId: userIdFilter,
+      landlordId: landlordIdFilter,
+      roomId: roomIdFilter,
+    })
       .then((res) => {
         if (cancelled) return;
         if (res.success) {
@@ -115,7 +154,7 @@ export default function AppointmentPage() {
       });
 
     return () => { cancelled = true; };
-  }, [page, pageSize, debouncedQuery, statusFilter, refreshKey]);
+  }, [page, pageSize, debouncedQuery, statusFilter, userIdFilter, landlordIdFilter, roomIdFilter, refreshKey]);
 
   const handlePageChange = (p: number) => setPage(Math.max(1, Math.min(p, totalPages)));
   const handlePageSizeChange = (s: number) => { setPageSize(s); setPage(1); };
@@ -157,11 +196,14 @@ export default function AppointmentPage() {
     }
   };
 
-  const hasFilter = !!(debouncedQuery.trim() || statusFilter);
+  const hasFilter = !!(debouncedQuery.trim() || statusFilter || userIdFilter || landlordIdFilter || roomIdFilter);
 
   const clearFilters = () => {
     setQuery('');
     setStatusFilter('');
+    setUserIdFilter(undefined);
+    setLandlordIdFilter(undefined);
+    setRoomIdFilter(undefined);
     setPage(1);
   };
 
@@ -340,6 +382,36 @@ export default function AppointmentPage() {
           placeholder="全部状态"
           className="w-full sm:w-36"
           options={APPOINTMENT_STATUS_OPTIONS.map((o) => ({ value: String(o.value), label: o.label }))}
+        />
+        <FilterSelect
+          value={userIdFilter ? String(userIdFilter) : ''}
+          onChange={(v) => { setUserIdFilter(v ? Number(v) : undefined); setPage(1); }}
+          placeholder="全部租客"
+          className="w-full sm:w-40"
+          options={userOptions.map((u) => ({
+            value: String(u.id),
+            label: u.nickname ? `${u.nickname}（${u.username}）` : u.username,
+          }))}
+        />
+        <FilterSelect
+          value={landlordIdFilter ? String(landlordIdFilter) : ''}
+          onChange={(v) => { setLandlordIdFilter(v ? Number(v) : undefined); setPage(1); }}
+          placeholder="全部房东"
+          className="w-full sm:w-40"
+          options={landlordOptions.map((u) => ({
+            value: String(u.id),
+            label: u.nickname ? `${u.nickname}（${u.username}）` : u.username,
+          }))}
+        />
+        <FilterSelect
+          value={roomIdFilter ? String(roomIdFilter) : ''}
+          onChange={(v) => { setRoomIdFilter(v ? Number(v) : undefined); setPage(1); }}
+          placeholder="全部房源"
+          className="w-full sm:w-48"
+          options={roomOptions.map((r) => ({
+            value: String(r.id),
+            label: `${r.name}（${r.roomCode}）`,
+          }))}
         />
 
         {hasFilter && (
