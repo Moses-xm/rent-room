@@ -208,10 +208,16 @@ export default function NotificationPage() {
       key: 'title',
       label: '标题 / 内容',
       render: (item) => (
-        <div className="max-w-64">
-          <p className="text-body font-emphasis text-text leading-none truncate">{item.title}</p>
+        <button
+          type="button"
+          onClick={() => setModalState({ mode: 'edit', item })}
+          className="max-w-64 text-left group/title cursor-pointer"
+        >
+          <p className="text-body font-emphasis text-text leading-none truncate group-hover/title:text-primary transition-colors">
+            {item.title}
+          </p>
           <p className="text-tiny text-text-muted mt-0.5 truncate">{item.content}</p>
-        </div>
+        </button>
       ),
     },
     {
@@ -377,11 +383,15 @@ export default function NotificationPage() {
 
               <div className="mx-4 border-t border-border" />
 
-              {/* 标题 + 内容 */}
-              <div className="px-4 py-3">
+              {/* 标题 + 内容（可点击展开详情） */}
+              <button
+                type="button"
+                onClick={() => setModalState({ mode: 'edit', item })}
+                className="w-full text-left px-4 py-3 hover:bg-surface transition-colors cursor-pointer"
+              >
                 <p className="text-body font-emphasis text-text leading-none">{item.title}</p>
                 <p className="text-body-sm text-text-muted mt-1 line-clamp-2 leading-relaxed">{item.content}</p>
-              </div>
+              </button>
 
               <div className="mx-4 border-t border-border" />
 
