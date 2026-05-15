@@ -69,6 +69,23 @@ export async function PUT(req: Request, props: RouteProps) {
       include: INCLUDE,
     });
 
+    // 状态发生变更且为终态时，通知房东
+    if (status !== undefined && status !== existing.status && (status === 2 || status === 3)) {
+      const userName = item.user.nickname || item.user.username;
+      await prisma.notification.create({
+        data: {
+          userId: item.landlord.id,
+          type: status === 3 ? 2 : 3,
+          title: status === 3 ? '看房预约已取消' : '看房预约已完成',
+          content: status === 3
+            ? `用户 ${userName} 的房源「${item.room.name}」看房预约已取消`
+            : `用户 ${userName} 的房源「${item.room.name}」看房预约已标记为完成`,
+          relatedType: 'appointment',
+          relatedId: appointmentId,
+        },
+      });
+    }
+
     return NextResponse.json({ success: true, data: serializeAppointment(item) });
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : '服务器内部错误';

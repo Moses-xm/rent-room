@@ -87,7 +87,7 @@ export async function POST(req: Request) {
 
     const [userExists, room] = await Promise.all([
       prisma.user.findUnique({ where: { id: userId } }),
-      prisma.room.findUnique({ where: { id: roomId }, select: { id: true, publisherId: true } }),
+      prisma.room.findUnique({ where: { id: roomId }, select: { id: true, name: true, publisherId: true } }),
     ]);
 
     if (!userExists) {
@@ -103,6 +103,18 @@ export async function POST(req: Request) {
     const item = await prisma.appointment.create({
       data: { userId, roomId, landlordId: room.publisherId, appointmentTime, remark, status: 1 },
       include: INCLUDE,
+    });
+
+    const userName = userExists.nickname || userExists.username;
+    await prisma.notification.create({
+      data: {
+        userId: room.publisherId,
+        type: 1,
+        title: '您有新的看房预约',
+        content: `用户 ${userName} 预约了您发布的房源「${room.name}」，预约时间为 ${appointmentTime.toLocaleString('zh-CN')}`,
+        relatedType: 'appointment',
+        relatedId: item.id,
+      },
     });
 
     return NextResponse.json({ success: true, data: serializeAppointment(item) });
