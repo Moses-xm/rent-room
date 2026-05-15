@@ -139,6 +139,11 @@ rent-room/
 ## 实现状态
 管理平台：登录 ✅、个人资料 ✅、管理员管理 ✅、用户管理 ✅、小区管理 ✅、轮播图管理 ✅、房屋设施管理 ✅、房源管理 ✅、收藏管理 ✅、其余模块 ⬜。用户平台：全部 ⬜。数据库：`admin` 表 ✅、`user` 表 ✅、`community` 表 ✅、`carousel` 表 ✅、`facility` 表 ✅、`room` 表 ✅、`collection` 表 ✅，其余 ⬜。
 
+## 顶栏面包屑（必须）
+每新增一个管理平台模块，**必须**同步在 `components/Topbar.tsx` 的 `resolveCrumbs` 函数中注册面包屑：
+- 纯列表页（无子路由）：在 `flat` 对象里加一条 `"/manage/<module>": "模块名称"`
+- 含子路由（详情/新建/编辑）：在 `flat` 之前用正则分支返回多级面包屑，参照 `room`/`community` 的写法
+
 ## 协作约定
 - 回复用中文，以 **My lord** 开头
 - 代码改动完成后同步更新 [doc/design.md](doc/design.md)，并告知修改了哪些部分；无需修改也须说明
