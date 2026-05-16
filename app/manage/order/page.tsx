@@ -536,7 +536,7 @@ export default function OrderPage() {
             <>
               订单{' '}
               <span className="font-semibold text-text">#{deleteTarget.id}</span>{' '}
-              将被永久删除，同时删除关联的钱包记录，此操作不可撤销。
+              将被永久移除，相关钱包流水记录不受影响，此操作不可撤销。
             </>
           ) : undefined
         }

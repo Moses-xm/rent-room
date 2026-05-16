@@ -4,7 +4,8 @@ import { use, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import {
-  ArrowLeft, ShoppingCart, Trash2, User, Building2, FileText, CreditCard, Calendar,
+  ArrowLeft, ChevronRight, ShoppingCart, Trash2, User, Calendar,
+  AlertTriangle,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { request } from '@/utils/request';
@@ -37,7 +38,7 @@ function InfoRow({ label, value, mono = false }: { label: string; value: React.R
   return (
     <div className="flex items-start justify-between gap-4 py-2.5 border-b border-border last:border-0">
       <span className="text-body-sm text-text-muted shrink-0 w-28">{label}</span>
-      <span className={`text-body-sm text-text text-right flex-1 ${mono ? 'font-mono' : ''}`}>{value}</span>
+      <span className={`text-body-sm text-text text-right flex-1 ${mono ? 'font-mono' : 'font-emphasis'}`}>{value}</span>
     </div>
   );
 }
@@ -50,7 +51,7 @@ function UserCard({ user, role }: { user: OrderItem['payer']; role: string }) {
       href={`/manage/user/${user.id}`}
       className="flex items-center gap-3 p-3 rounded-xl border border-border hover:border-primary hover:bg-primary-tint/30 transition-all group"
     >
-      <div className="w-9 h-9 rounded-full grid place-items-center bg-primary-tint text-primary-dark text-sm font-semibold border border-border shrink-0">
+      <div className="w-10 h-10 rounded-full grid place-items-center bg-primary-tint text-primary-dark text-sm font-semibold border border-border shrink-0">
         {(user.nickname || user.username).charAt(0).toUpperCase()}
       </div>
       <div className="flex-1 min-w-0">
@@ -67,8 +68,8 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
   const { id } = use(params);
   const router  = useRouter();
 
-  const [order, setOrder]         = useState<OrderItem | null>(null);
-  const [loading, setLoading]     = useState(true);
+  const [order, setOrder]           = useState<OrderItem | null>(null);
+  const [loading, setLoading]       = useState(true);
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
@@ -97,24 +98,31 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
   /* ── 骨架屏 ── */
   if (loading) {
     return (
-      <div className="max-w-3xl mx-auto space-y-5">
-        <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-sm skeleton-shimmer" />
-          <div className="h-7 w-40 rounded skeleton-shimmer" />
+      <div className="space-y-5">
+        <div className="flex items-center gap-1.5">
+          <div className="w-7 h-7 skeleton-shimmer rounded-sm" />
+          <div className="w-44 h-4 skeleton-shimmer rounded" />
         </div>
-        <div className="bg-card border border-border rounded-2xl shadow-sm p-6 space-y-4">
-          <div className="h-5 w-32 rounded skeleton-shimmer" />
-          {[...Array(6)].map((_, i) => (
-            <div key={i} className="flex justify-between py-2.5 border-b border-border">
-              <div className="h-4 w-24 rounded skeleton-shimmer" />
-              <div className="h-4 w-32 rounded skeleton-shimmer" />
+        <div className="w-32 h-7 skeleton-shimmer rounded" />
+        <div className="grid lg:grid-cols-[1fr_320px] gap-5">
+          <div className="space-y-4">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="bg-card border border-border rounded-2xl p-6">
+                <div className="w-32 h-5 skeleton-shimmer rounded mb-4" />
+                {[1, 2, 3, 4].map((j) => (
+                  <div key={j} className="flex justify-between py-2.5 border-b border-border last:border-0">
+                    <div className="w-24 h-4 skeleton-shimmer rounded" />
+                    <div className="w-32 h-4 skeleton-shimmer rounded" />
+                  </div>
+                ))}
+              </div>
+            ))}
+          </div>
+          <div className="space-y-4">
+            <div className="bg-card border border-border rounded-2xl p-6 space-y-3">
+              {[1, 2, 3].map((i) => <div key={i} className="w-full h-10 skeleton-shimmer rounded-xl" />)}
             </div>
-          ))}
-        </div>
-        <div className="bg-card border border-border rounded-2xl shadow-sm p-6 space-y-3">
-          <div className="h-5 w-20 rounded skeleton-shimmer" />
-          <div className="h-14 rounded-xl skeleton-shimmer" />
-          <div className="h-14 rounded-xl skeleton-shimmer" />
+          </div>
         </div>
       </div>
     );
@@ -122,7 +130,7 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
 
   if (!order) {
     return (
-      <div className="max-w-3xl mx-auto py-20 flex flex-col items-center gap-4 opacity-50">
+      <div className="py-20 flex flex-col items-center gap-4 opacity-50">
         <ShoppingCart size={48} className="text-text-disabled" />
         <p className="text-body text-text-muted">订单不存在</p>
         <Link href="/manage/order" className="text-body-sm text-primary hover:underline">返回订单列表</Link>
@@ -133,107 +141,158 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
   const totalAmount = (order.fee ?? 0) + (order.pledge ?? 0);
 
   return (
-    <div className="max-w-3xl mx-auto space-y-5">
+    <div className="space-y-5">
 
-      {/* ── 顶部导航 ── */}
-      <div className="flex items-center justify-between gap-4">
-        <div className="flex items-center gap-3">
-          <Link
-            href="/manage/order"
-            className="w-8 h-8 rounded-sm grid place-items-center text-text-muted hover:bg-surface-2 hover:text-text transition-colors"
-          >
-            <ArrowLeft size={16} />
-          </Link>
-          <h1 className="font-(family-name:--typeface-display) text-h2 font-heading text-text leading-none m-0">
-            订单 <span className="font-mono text-primary">#{order.id}</span>
-          </h1>
-          <TypeBadge type={order.type} />
-        </div>
+      {/* ── 面包屑 ── */}
+      <div className="flex items-center gap-1.5 text-body-sm min-w-0">
         <button
-          onClick={() => setDeleteOpen(true)}
-          className="flex items-center gap-1.5 h-8.5 px-3.5 rounded-sm text-body-sm text-danger
-                     border border-danger/30 hover:bg-danger-bg transition-all active:scale-95 cursor-pointer"
+          onClick={() => router.back()}
+          title="返回"
+          className="w-7 h-7 rounded-sm grid place-items-center text-text-muted hover:bg-surface-2 hover:text-text transition-colors shrink-0 cursor-pointer"
         >
-          <Trash2 size={13} />
-          删除订单
+          <ArrowLeft size={17} />
         </button>
+        <span className="text-text-disabled shrink-0">/</span>
+        <Link href="/manage/order" className="text-text-muted hover:text-text transition-colors shrink-0">
+          订单管理
+        </Link>
+        <ChevronRight size={13} className="text-text-disabled shrink-0" />
+        <span className="text-text font-emphasis truncate">订单详情</span>
       </div>
 
-      {/* ── 订单基本信息 ── */}
-      <div className="bg-card border border-border rounded-2xl shadow-sm p-6">
-        <div className="flex items-center gap-2 mb-4">
-          <ShoppingCart size={15} className="text-primary" />
-          <h2 className="text-h4 font-heading text-text m-0">订单信息</h2>
-        </div>
-        <InfoRow label="订单 ID" value={`#${order.id}`} mono />
-        <InfoRow
-          label="关联合同"
-          value={
-            <Link href={`/manage/contract/${order.contractId}`} className="text-primary hover:underline font-mono">
-              #{order.contractId}
-            </Link>
-          }
-        />
-        <InfoRow
-          label="房源"
-          value={
-            order.room ? (
-              <Link href={`/manage/room/${order.room.id}`} className="text-primary hover:underline">
-                {order.room.name}
-                <span className="text-text-muted ml-1 font-mono text-tiny">{order.room.roomCode}</span>
-              </Link>
-            ) : '—'
-          }
-        />
-        {order.fee != null && (
-          <InfoRow label="月租金额" value={`¥${order.fee.toFixed(2)}`} mono />
-        )}
-        {order.pledge != null && (
-          <InfoRow label="押金金额" value={`¥${order.pledge.toFixed(2)}`} mono />
-        )}
-        {totalAmount > 0 && (
-          <InfoRow
-            label="合计金额"
-            value={<span className="font-semibold text-primary">¥{totalAmount.toFixed(2)}</span>}
-          />
-        )}
-        {order.paidPeriod && (
-          <InfoRow label="覆盖时间段" value={order.paidPeriod} mono />
-        )}
-        <InfoRow label="创建时间" value={fmtDateTime(order.createdAt)} mono />
-      </div>
-
-      {/* ── 当事人信息 ── */}
-      <div className="bg-card border border-border rounded-2xl shadow-sm p-6">
-        <div className="flex items-center gap-2 mb-4">
-          <User size={15} className="text-primary" />
-          <h2 className="text-h4 font-heading text-text m-0">当事人</h2>
-        </div>
-        <div className="space-y-3">
-          <UserCard user={order.payer} role="付款人" />
-          <UserCard user={order.payee} role="收款人" />
-        </div>
-      </div>
-
-      {/* ── 合同时间段 ── */}
-      {order.contract && (
-        <div className="bg-card border border-border rounded-2xl shadow-sm p-6">
-          <div className="flex items-center gap-2 mb-4">
-            <Calendar size={15} className="text-primary" />
-            <h2 className="text-h4 font-heading text-text m-0">所属合同租期</h2>
+      {/* ── 标题 ── */}
+      <div className="flex items-start justify-between gap-4 flex-wrap">
+        <div>
+          <div className="flex items-center gap-2.5">
+            <h1 className="font-(family-name:--typeface-display) text-h1 font-heading tracking-tight text-text leading-[1.1] m-0">订单详情</h1>
+            <span className="text-body-sm text-text-muted font-mono">#{order.id}</span>
           </div>
-          <InfoRow label="开始日期" value={fmtDate(order.contract.onlineTime)} mono />
-          <InfoRow label="结束日期" value={fmtDate(order.contract.offlineTime)} mono />
+          <p className="text-body text-text-muted mt-1">创建于 {fmtDateTime(order.createdAt)}</p>
         </div>
-      )}
+        <TypeBadge type={order.type} />
+      </div>
+
+      <div className="grid lg:grid-cols-[1fr_320px] gap-5 items-start">
+
+        {/* ── Left: detail cards ── */}
+        <div className="space-y-4">
+
+          {/* 订单基本信息 */}
+          <div className="bg-card border border-border rounded-2xl shadow-sm p-5">
+            <div className="flex items-center gap-2 mb-4">
+              <ShoppingCart size={16} className="text-text-muted" />
+              <h2 className="text-body font-semibold text-text">订单信息</h2>
+            </div>
+            <InfoRow
+              label="关联合同"
+              value={
+                <Link href={`/manage/contract/${order.contractId}`} className="text-primary hover:underline font-mono">
+                  #{order.contractId}
+                </Link>
+              }
+            />
+            <InfoRow
+              label="房源"
+              value={
+                order.room ? (
+                  <Link href={`/manage/room/${order.room.id}`} className="text-primary hover:underline">
+                    {order.room.name}
+                    <span className="text-text-muted ml-1 font-mono text-tiny">{order.room.roomCode}</span>
+                  </Link>
+                ) : '—'
+              }
+            />
+            {order.fee != null && (
+              <InfoRow label="月租金额" value={`¥${order.fee.toFixed(2)}`} mono />
+            )}
+            {order.pledge != null && (
+              <InfoRow label="押金金额" value={`¥${order.pledge.toFixed(2)}`} mono />
+            )}
+            {totalAmount > 0 && (
+              <InfoRow
+                label="合计金额"
+                value={<span className="font-semibold text-primary">¥{totalAmount.toFixed(2)}</span>}
+              />
+            )}
+            {order.paidPeriod && (
+              <InfoRow label="覆盖时间段" value={order.paidPeriod} mono />
+            )}
+          </div>
+
+          {/* 当事人信息 */}
+          <div className="bg-card border border-border rounded-2xl shadow-sm p-5">
+            <div className="flex items-center gap-2 mb-4">
+              <User size={16} className="text-text-muted" />
+              <h2 className="text-body font-semibold text-text">当事人</h2>
+            </div>
+            <div className="grid sm:grid-cols-2 gap-3">
+              <UserCard user={order.payer} role="付款人" />
+              <UserCard user={order.payee} role="收款人" />
+            </div>
+          </div>
+
+          {/* 合同租期 */}
+          {order.contract && (
+            <div className="bg-card border border-border rounded-2xl shadow-sm p-5">
+              <div className="flex items-center gap-2 mb-4">
+                <Calendar size={16} className="text-text-muted" />
+                <h2 className="text-body font-semibold text-text">所属合同租期</h2>
+              </div>
+              <InfoRow label="开始日期" value={fmtDate(order.contract.onlineTime)} mono />
+              <InfoRow label="结束日期" value={fmtDate(order.contract.offlineTime)} mono />
+            </div>
+          )}
+        </div>
+
+        {/* ── Right: sidebar ── */}
+        <div className="space-y-4 lg:sticky lg:top-6">
+
+          {/* 危险操作 */}
+          <div className="bg-card border border-rose-200 rounded-2xl shadow-sm p-5">
+            <div className="flex items-center gap-2 mb-3">
+              <AlertTriangle size={15} className="text-rose-500" />
+              <h2 className="text-body font-semibold text-rose-700">危险操作</h2>
+            </div>
+            <p className="text-caption text-text-muted mb-3">
+              删除后该订单将被永久移除，相关钱包流水记录不受影响，操作不可撤销。
+            </p>
+            <button
+              onClick={() => setDeleteOpen(true)}
+              className="flex items-center justify-center gap-2 w-full h-10 px-4 rounded-xl border border-rose-300 bg-rose-50 text-body text-rose-700 hover:bg-rose-100 transition-all cursor-pointer"
+            >
+              <Trash2 size={15} />
+              删除订单
+            </button>
+          </div>
+
+          {/* 元信息 */}
+          <div className="bg-card border border-border rounded-2xl shadow-sm p-5">
+            <h2 className="text-body font-semibold text-text mb-3">元信息</h2>
+            <div className="space-y-2 text-body-sm">
+              <div className="flex justify-between">
+                <span className="text-text-muted">订单 ID</span>
+                <span className="font-mono text-text">#{order.id}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-text-muted">订单类型</span>
+                <span className="text-text">{ORDER_TYPE_LABEL[order.type] ?? '未知'}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-text-muted">创建时间</span>
+                <span className="font-mono text-text">{fmtDate(order.createdAt)}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
 
       <ConfirmDialog
         open={deleteOpen}
         title="确认删除订单？"
         description={
           <>
-            订单 <span className="font-semibold text-text">#{order.id}</span> 将被永久删除，
-            同时删除关联的钱包记录，此操作不可撤销。
+            订单 <span className="font-semibold text-text">#{order.id}</span> 将被永久移除，
+            相关钱包流水记录不受影响，此操作不可撤销。
           </>
         }
         confirmText="确认删除"

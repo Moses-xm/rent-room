@@ -55,9 +55,9 @@ export async function DELETE(
       return NextResponse.json({ success: false, message: '订单不存在' }, { status: 404 });
     }
 
-    // 删除关联钱包记录后再删除订单
+    // 先将关联钱包记录的 orderId 置空，再删除订单（保留用户的钱包流水）
     await prisma.$transaction([
-      prisma.walletRecord.deleteMany({ where: { orderId } }),
+      prisma.walletRecord.updateMany({ where: { orderId }, data: { orderId: null } }),
       prisma.order.delete({ where: { id: orderId } }),
     ]);
 
