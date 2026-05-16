@@ -152,6 +152,7 @@ export default function NotificationFormModal({ state, onClose, onSaved }: Props
                 value={String(isRead)}
                 onChange={(v) => setIsRead(v === 'true')}
                 clearable={false}
+                placeholder="请选择"
                 className="w-full"
                 options={[
                   { value: 'true',  label: '已读' },

@@ -9,7 +9,7 @@ interface FilterSelectProps {
   value: string;
   onChange: (v: string) => void;
   options: FilterSelectOption[];
-  placeholder: string;
+  placeholder?: string;
   className?: string;
   disabled?: boolean;
   clearable?: boolean;
@@ -20,7 +20,7 @@ export default function FilterSelect({
   value,
   onChange,
   options,
-  placeholder,
+  placeholder = '请选择',
   className,
   disabled,
   clearable = true,
