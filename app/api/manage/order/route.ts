@@ -16,14 +16,20 @@ export async function GET(req: NextRequest) {
     if (!auth.ok) return auth.response;
 
     const { searchParams } = new URL(req.url);
-    const page       = parseInt(searchParams.get('page')  || '1');
-    const limit      = parseInt(searchParams.get('limit') || '10');
-    const search     = searchParams.get('search') || '';
-    const typeParam  = searchParams.get('type');
+    const page        = parseInt(searchParams.get('page')  || '1');
+    const limit       = parseInt(searchParams.get('limit') || '10');
+    const search      = searchParams.get('search') || '';
+    const typeParam   = searchParams.get('type');
+    const payerIdParam  = searchParams.get('payerId');
+    const payeeIdParam  = searchParams.get('payeeId');
+    const roomIdParam   = searchParams.get('roomId');
     const skip = (page - 1) * limit;
 
     const where: Record<string, unknown> = {};
-    if (typeParam) where.type = parseInt(typeParam);
+    if (typeParam)    where.type    = parseInt(typeParam);
+    if (payerIdParam) where.payerId = parseInt(payerIdParam);
+    if (payeeIdParam) where.payeeId = parseInt(payeeIdParam);
+    if (roomIdParam)  where.roomId  = parseInt(roomIdParam);
     if (search) {
       where.OR = [
         { payer: { username: { contains: search, mode: 'insensitive' as const } } },

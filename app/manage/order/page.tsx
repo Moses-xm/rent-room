@@ -88,14 +88,47 @@ function RoomThumb({ room }: { room: OrderItem['room'] }) {
   );
 }
 
-/* ─── Fetch helper ────────────────────────────────────────────────────────── */
-async function fetchOrders(params: { page: number; limit: number; search?: string; type?: string }) {
+/* ─── Fetch helpers ───────────────────────────────────────────────────────── */
+async function fetchOrders(params: {
+  page: number; limit: number; search?: string; type?: string;
+  payerId?: string; payeeId?: string; roomId?: string;
+}) {
   const qs = new URLSearchParams();
   qs.set('page', String(params.page));
   qs.set('limit', String(params.limit));
-  if (params.search) qs.set('search', params.search);
-  if (params.type)   qs.set('type',   params.type);
+  if (params.search)  qs.set('search',  params.search);
+  if (params.type)    qs.set('type',    params.type);
+  if (params.payerId) qs.set('payerId', params.payerId);
+  if (params.payeeId) qs.set('payeeId', params.payeeId);
+  if (params.roomId)  qs.set('roomId',  params.roomId);
   return request<OrdersResponse>(`/manage/order?${qs.toString()}`);
+}
+
+type UserOption = { value: string; label: string };
+type RoomOption = { value: string; label: string };
+
+async function fetchUserOptions(): Promise<UserOption[]> {
+  const res = await request<{ success: boolean; data: { id: number; username: string; nickname: string | null }[] }>(
+    '/manage/user?page=1&limit=1000',
+    { silent: true },
+  );
+  if (!res.success) return [];
+  return res.data.map((u) => ({
+    value: String(u.id),
+    label: u.nickname ? `${u.username}（${u.nickname}）` : u.username,
+  }));
+}
+
+async function fetchRoomOptions(): Promise<RoomOption[]> {
+  const res = await request<{ success: boolean; data: { id: number; name: string; roomCode: string }[] }>(
+    '/manage/room?page=1&limit=1000',
+    { silent: true },
+  );
+  if (!res.success) return [];
+  return res.data.map((r) => ({
+    value: String(r.id),
+    label: `${r.name}（${r.roomCode}）`,
+  }));
 }
 
 /* ─── Page ────────────────────────────────────────────────────────────────── */
@@ -111,10 +144,24 @@ export default function OrderPage() {
   const [pageSize, setPageSize]       = useState(10);
   const [page, setPage]               = useState(1);
   const [refreshKey, setRefreshKey]   = useState(0);
-  const [typeFilter, setTypeFilter]   = useState('');
+  const [typeFilter, setTypeFilter]     = useState('');
+  const [payerIdFilter, setPayerIdFilter] = useState('');
+  const [payeeIdFilter, setPayeeIdFilter] = useState('');
+  const [roomIdFilter, setRoomIdFilter]   = useState('');
+
+  const [userOptions, setUserOptions] = useState<UserOption[]>([]);
+  const [roomOptions, setRoomOptions] = useState<RoomOption[]>([]);
 
   const [deleteTarget, setDeleteTarget] = useState<OrderItem | null>(null);
   const [isDeleting, setIsDeleting]     = useState(false);
+
+  useEffect(() => {
+    Promise.all([fetchUserOptions(), fetchRoomOptions()]).then(([users, rooms]) => {
+      setUserOptions(users);
+      setRoomOptions(rooms);
+    });
+  }, []);
+
   useEffect(() => {
     const t = setTimeout(() => setDebouncedQuery(query), 300);
     return () => clearTimeout(t);
@@ -124,7 +171,14 @@ export default function OrderPage() {
     let cancelled = false;
     setLoading(true);
 
-    fetchOrders({ page, limit: pageSize, search: debouncedQuery || undefined, type: typeFilter || undefined })
+    fetchOrders({
+      page, limit: pageSize,
+      search:  debouncedQuery || undefined,
+      type:    typeFilter     || undefined,
+      payerId: payerIdFilter  || undefined,
+      payeeId: payeeIdFilter  || undefined,
+      roomId:  roomIdFilter   || undefined,
+    })
       .then((res) => {
         if (cancelled) return;
         if (res.success) {
@@ -140,7 +194,7 @@ export default function OrderPage() {
       });
 
     return () => { cancelled = true; };
-  }, [page, pageSize, debouncedQuery, typeFilter, refreshKey]);
+  }, [page, pageSize, debouncedQuery, typeFilter, payerIdFilter, payeeIdFilter, roomIdFilter, refreshKey]);
 
   const handlePageChange     = (p: number) => setPage(Math.max(1, Math.min(p, totalPages)));
   const handlePageSizeChange = (s: number) => { setPageSize(s); setPage(1); };
@@ -159,8 +213,12 @@ export default function OrderPage() {
     }
   };
 
-  const hasFilter = !!(debouncedQuery.trim() || typeFilter);
-  const clearFilters = () => { setQuery(''); setTypeFilter(''); setPage(1); };
+  const hasFilter = !!(debouncedQuery.trim() || typeFilter || payerIdFilter || payeeIdFilter || roomIdFilter);
+  const clearFilters = () => {
+    setQuery(''); setTypeFilter('');
+    setPayerIdFilter(''); setPayeeIdFilter(''); setRoomIdFilter('');
+    setPage(1);
+  };
 
   /* ─── Column definitions ──────────────────────────────────────────────── */
   const columns = useMemo<Column<OrderItem>[]>(() => [
@@ -299,6 +357,27 @@ export default function OrderPage() {
                        placeholder:text-text-muted"
           />
         </div>
+        <FilterSelect
+          value={payerIdFilter}
+          onChange={(v) => { setPayerIdFilter(v); setPage(1); }}
+          placeholder="全部付款人"
+          className="w-full sm:w-36"
+          options={userOptions}
+        />
+        <FilterSelect
+          value={payeeIdFilter}
+          onChange={(v) => { setPayeeIdFilter(v); setPage(1); }}
+          placeholder="全部收款人"
+          className="w-full sm:w-36"
+          options={userOptions}
+        />
+        <FilterSelect
+          value={roomIdFilter}
+          onChange={(v) => { setRoomIdFilter(v); setPage(1); }}
+          placeholder="全部房源"
+          className="w-full sm:w-48"
+          options={roomOptions}
+        />
         <FilterSelect
           value={typeFilter}
           onChange={(v) => { setTypeFilter(v); setPage(1); }}
