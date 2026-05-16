@@ -52,6 +52,8 @@ function resolveCrumbs(pathname: string): CrumbItem[] {
     return [{ label: "合同管理", href: "/manage/contract" }, { label: "编辑合同" }];
   if (/^\/manage\/contract\/\d+/.test(pathname))
     return [{ label: "合同管理", href: "/manage/contract" }, { label: "合同详情" }];
+  if (/^\/manage\/order\/\d+/.test(pathname))
+    return [{ label: "订单管理", href: "/manage/order" }, { label: "订单详情" }];
   const flat: Record<string, string> = {
     "/manage/community": "小区管理",
     "/manage/user":      "用户管理",
@@ -63,6 +65,7 @@ function resolveCrumbs(pathname: string): CrumbItem[] {
     "/manage/appointment":   "预约管理",
     "/manage/notification": "通知管理",
     "/manage/contract":     "合同管理",
+    "/manage/order":        "订单管理",
     "/manage/profile":      "个人资料",
   };
   const entry = Object.entries(flat).find(([p]) => pathname.startsWith(p));

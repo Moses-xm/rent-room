@@ -3,7 +3,7 @@
 import Link from "next/link";
 import AppLogo from "@/components/AppLogo";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, Building2, Users, UserRound, MapPin, ChevronsLeft, ChevronsRight, X, GalleryHorizontal, Wrench, Heart, CalendarCheck, Bell, FileText } from "lucide-react";
+import { LayoutDashboard, Building2, Users, UserRound, MapPin, ChevronsLeft, ChevronsRight, X, GalleryHorizontal, Wrench, Heart, CalendarCheck, Bell, FileText, ShoppingCart } from "lucide-react";
 
 const NAV_GROUPS = [
   {
@@ -25,6 +25,7 @@ const NAV_GROUPS = [
       { key: "appointment",   label: "预约管理",   icon: CalendarCheck,     path: "/manage/appointment" },
       { key: "notification", label: "通知管理",   icon: Bell,              path: "/manage/notification" },
       { key: "contract",    label: "合同管理",   icon: FileText,          path: "/manage/contract" },
+      { key: "order",       label: "订单管理",   icon: ShoppingCart,      path: "/manage/order" },
     ],
   },
 ];
