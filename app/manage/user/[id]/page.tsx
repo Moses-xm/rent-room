@@ -409,7 +409,7 @@ function WalletRecordsSection({ userId }: { userId: number }) {
                     <span className={`text-body font-semibold font-mono tabular-nums ${amountColor(rec.amount)}`}>
                       {amountPrefix(rec.amount)}¥{Math.abs(rec.amount).toFixed(2)}
                     </span>
-                    {rec.balanceAfter !== null && (
+                    {rec.balanceAfter != null && (
                       <span className="text-caption text-text-disabled font-mono tabular-nums mt-0.5">
                         余额 ¥{rec.balanceAfter.toFixed(2)}
                       </span>
