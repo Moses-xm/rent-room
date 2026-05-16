@@ -427,6 +427,9 @@ export default function RoomForm({ title, subtitle, initialData, onSubmit, backH
     if (!form.cover.trim()) e.cover = '请上传房源封面';
     if (form.images.length === 0) e.images = '请至少上传一张房源图片';
     if (form.facilityIds.length === 0) e.facilityIds = '请至少选择一项设施';
+    const pay = Math.max(1, parseInt(form.pay) || 1);
+    const tenancy = parseInt(form.minTenancy) || 0;
+    if (tenancy <= 0 || tenancy % pay !== 0) e.minTenancy = `最短租期须为 ${pay} 个月的整数倍`;
     setErrors(e);
     return Object.keys(e).length === 0;
   };
@@ -726,7 +729,9 @@ export default function RoomForm({ title, subtitle, initialData, onSubmit, backH
                 <span className="text-body text-text-muted shrink-0">押</span>
                 <input type="number" min="1" max="12" value={form.pledge} onChange={(e) => setField('pledge', e.target.value)} className={numInputCls()} />
                 <span className="text-body text-text-muted shrink-0">付</span>
-                <input type="number" min="1" max="12" value={form.pay} onChange={(e) => setField('pay', e.target.value)} className={numInputCls()} />
+                <input type="number" min="1" max="12" value={form.pay} onChange={(e) => {
+                  setForm((f) => ({ ...f, pay: e.target.value, minTenancy: e.target.value }));
+                }} className={numInputCls()} />
               </div>
             </div>
             {errors.price && <p className={errCls}>{errors.price}</p>}
@@ -770,9 +775,29 @@ export default function RoomForm({ title, subtitle, initialData, onSubmit, backH
             <div>
               <label className={labelCls}>最短租期（月）</label>
               <div className="flex items-center gap-2">
-                <input type="number" min="1" max="120" value={form.minTenancy} onChange={(e) => setField('minTenancy', e.target.value)} className={`${inputCls()} flex-1`} placeholder="例：3" />
+                <input
+                  type="number"
+                  min={form.pay}
+                  step={form.pay}
+                  value={form.minTenancy}
+                  onChange={(e) => {
+                    setField('minTenancy', e.target.value);
+                    const pay = Math.max(1, parseInt(form.pay) || 1);
+                    const val = parseInt(e.target.value) || 0;
+                    setErrors((prev) => ({
+                      ...prev,
+                      minTenancy: val > 0 && val % pay === 0 ? undefined : `最短租期须为 ${pay} 个月的整数倍`,
+                    }));
+                  }}
+                  className={`${inputCls(errors.minTenancy)} flex-1`}
+                  placeholder={`例：${form.pay}`}
+                />
                 <span className="text-body text-text-muted shrink-0">月</span>
               </div>
+              {errors.minTenancy
+                ? <p className={errCls}>{errors.minTenancy}</p>
+                : <p className="text-caption text-text-muted mt-1">须为「付」数（{form.pay} 个月）的整数倍</p>
+              }
             </div>
           </div>
         </Section>
