@@ -27,6 +27,7 @@ Next.js 15 App Router · shadcn/ui + Tailwind CSS v4 · Neon Postgres + Prisma �
 - **日期格式化**：统一使用 `utils/format.ts` 的 `fmtDate`（年月日）和 `fmtDateTime`（年月日时分），禁止在页面内就地定义同类函数
 - **iconfont 图标**：字体族名不是 `iconfont`，必须用 `utils/constants.ts` 的 `FONT_FAMILY` 常量作为类名；图标类名直接使用 `facility.icon` 字段值（已含 `icon-` 前缀），写法为 `<i className={`${FONT_FAMILY} ${item.icon}`} />`，禁止拼接 `icon-${item.icon}`
 - **下拉选择（必须）**：所有下拉选择一律使用 `components/FilterSelect.tsx` 的 `<FilterSelect />`，禁止使用原生 `<select>`。支持的 props：`value`、`onChange`、`options`（`{ value: string; label: string }[]`）、`placeholder`、`disabled`（级联禁用）、`clearable`（`false` 用于无空选项的必选字段，如性别、租房类型）、`error`（表单校验错误时传入，显示红色边框）、`className`（控制宽度，列表筛选传 `min-w-*`，表单内传 `w-full`）。例外：`<Pagination />` 内部的每页条数 select 和 `<CitySelector />` 不适用
+- **按钮鼠标样式（必须）**：所有可点击的 `<button>` 必须加 `cursor-pointer`；若按钮有禁用态，同时加 `disabled:cursor-not-allowed`。浏览器默认不为 `<button>` 显示手形光标，必须显式声明，禁止遗漏
 
 ## 文件上传
 1. `POST /api/upload/avatar`（FormData）→ `{ path: string }`
