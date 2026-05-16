@@ -82,3 +82,10 @@ export const WALLET_RECORD_TYPE_OPTIONS = [
   { value: 3, label: '收款（房东）' },
   { value: 4, label: '退押金' },
 ];
+
+export const WALLET_DATE_RANGE_OPTIONS = [
+  { value: 'week',    label: '近一周' },
+  { value: 'month',   label: '近一个月' },
+  { value: '4months', label: '近四个月' },
+  { value: 'all',     label: '全部记录' },
+];

@@ -747,6 +747,24 @@ import AppLoading from '@/components/AppLoading';
 - 特殊字段：`identity`（用户/房东），`gender`，`wallet`，`isActive`（等效于管理员的 isActive）
 - 新建时 `username`/`password` 必填；编辑时密码留空则保持不变；用户名唯一冲突返回 409
 
+**用户详情页** (`/manage/user/[id]`)
+
+- 展示用户完整信息：基本资料、联系方式、账户（钱包余额+支付密码）、时间记录
+- **钱包充值**：顶部操作栏和账户卡余额旁均提供充值入口，弹出 `RechargeModal`
+  - 提供 100 / 500 / 1000 / 2000 / 5000 快捷金额按钮，支持手动输入
+  - 可填备注（选填，最长 100 字）
+  - 提交后调用 `POST /api/manage/user/[id]/recharge`，Prisma 事务：创建 `walletRecord`（type=1）并原子累加 `user.wallet`
+  - 成功后即时刷新页面余额显示并重新加载流水列表
+- **钱包流水**：位于详情页底部全宽区域，展示该用户所有 `walletRecord`
+  - 时间范围筛选（pill 切换，默认「近一个月」）：近一周 / 近一个月 / 近四个月 / 全部记录
+  - 分页展示（`page`/`limit`），支持每页条数切换
+  - 每条记录含类型徽标（充值=绿/支付租房=红/收款=黄/退押金=蓝）、备注、操作时间、金额（正数绿色 + 前缀，负数红色）
+  - 流水只读，不提供修改或删除入口
+- 新增 API：
+  - `GET /api/manage/user/[id]/wallet-records?page=&limit=&dateRange=week|month|4months|all` — 分页查询流水，按 `createdAt` 降序
+  - `POST /api/manage/user/[id]/recharge` — 充值，请求体 `{ amount: number, remark?: string }`，返回 `{ walletRecord, newBalance }`
+- 序列化：`lib/wallet-record.ts`（`serializeWalletRecord`，所有 Date 字段转 `.toISOString()`）
+
 #### 小区管理 (`/manage/community`)
 
 - 页面功能：小区列表（分页、按城市/区搜索）、新建（含百度地图定位）、编辑、删除
@@ -1263,4 +1281,4 @@ API Key 存放在环境变量 `NEXT_PUBLIC_BAIDU_MAP_AK`（客户端可访问）
 
 ---
 
-*文档版本：2026-05-15 | 项目：雅阁租房系统*
+*文档版本：2026-05-16 | 项目：雅阁租房系统*
