@@ -572,7 +572,7 @@ export default function UserDetailPage() {
         <p className="text-body">用户不存在或已被删除</p>
         <button
           onClick={() => router.push('/manage/user')}
-          className="h-8.5 px-3.5 text-body rounded-sm font-medium bg-card border border-border text-text-2 hover:bg-surface-2 transition-colors"
+          className="h-8.5 px-3.5 text-body rounded-sm font-medium bg-card border border-border text-text-2 hover:bg-surface-2 transition-colors cursor-pointer"
         >
           返回用户管理
         </button>
@@ -609,7 +609,7 @@ export default function UserDetailPage() {
             onClick={() => setRechargeOpen(true)}
             className="h-8 px-3 text-body-sm rounded-sm font-medium
                        bg-success text-white hover:bg-success-dark transition-colors
-                       flex items-center gap-1.5"
+                       flex items-center gap-1.5 cursor-pointer"
           >
             <Plus size={12} strokeWidth={2.5} />
             钱包充值
@@ -618,7 +618,7 @@ export default function UserDetailPage() {
             onClick={() => setModalState({ mode: 'edit', user })}
             className="h-8 px-3 text-body-sm rounded-sm font-medium
                        bg-primary text-white hover:bg-primary-dark transition-colors
-                       flex items-center gap-1.5"
+                       flex items-center gap-1.5 cursor-pointer"
           >
             <Pencil size={12} strokeWidth={2.5} />
             编辑信息
@@ -740,7 +740,7 @@ export default function UserDetailPage() {
                 </span>
                 <button
                   onClick={() => setShowPayCode((v) => !v)}
-                  className="text-text-disabled hover:text-text-muted transition-colors"
+                  className="text-text-disabled hover:text-text-muted transition-colors cursor-pointer"
                   title={showPayCode ? '隐藏' : '查看'}
                 >
                   {showPayCode ? <EyeOff size={13} /> : <Eye size={13} />}

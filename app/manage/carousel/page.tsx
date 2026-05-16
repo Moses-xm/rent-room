@@ -145,7 +145,7 @@ export default function CarouselPage() {
             onClick={() => setSortMode((m) => m === 'createdAt' ? 'order' : 'createdAt')}
             title={sortMode === 'createdAt' ? '当前：按创建时间降序，点击切换为自定义顺序' : '当前：按自定义顺序升序，点击切换为创建时间'}
             className={`h-8.5 px-3 text-body rounded-sm font-medium border transition-colors
-                        flex items-center gap-1.5
+                        flex items-center gap-1.5 cursor-pointer
                         ${sortMode === 'order'
                           ? 'bg-primary/10 border-primary text-primary hover:bg-primary/20'
                           : 'bg-card border-border text-text-2 hover:bg-surface-2'}`}
@@ -157,7 +157,7 @@ export default function CarouselPage() {
             onClick={() => setModalState({ mode: 'add' })}
             className="h-8.5 px-3.5 text-body rounded-sm font-medium
                        bg-primary text-white hover:bg-primary-dark transition-colors
-                       flex items-center justify-center gap-2"
+                       flex items-center justify-center gap-2 cursor-pointer"
           >
             <Plus size={14} strokeWidth={2.5} />
             新增轮播图
@@ -244,7 +244,7 @@ export default function CarouselPage() {
                         title={item.published ? '点击取消发布' : '点击发布'}
                         className="flex items-center gap-1.5 px-1 h-7 rounded-sm
                                    hover:bg-surface-2 transition-colors
-                                   disabled:opacity-50 disabled:cursor-not-allowed"
+                                   cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         <span
                           className={`relative inline-flex h-4 w-7 shrink-0 rounded-full border-2 border-transparent
@@ -264,21 +264,21 @@ export default function CarouselPage() {
                       <button
                         onClick={() => imageUrl && setPreviewUrl(imageUrl)}
                         title="预览"
-                        className="w-7 h-7 rounded-sm grid place-items-center text-text-muted hover:text-text hover:bg-surface-2 transition-colors"
+                        className="w-7 h-7 rounded-sm grid place-items-center text-text-muted hover:text-text hover:bg-surface-2 transition-colors cursor-pointer"
                       >
                         <Eye size={13} />
                       </button>
                       <button
                         onClick={() => setModalState({ mode: 'edit', item })}
                         title="编辑"
-                        className="w-7 h-7 rounded-sm grid place-items-center text-text-muted hover:text-text hover:bg-surface-2 transition-colors"
+                        className="w-7 h-7 rounded-sm grid place-items-center text-text-muted hover:text-text hover:bg-surface-2 transition-colors cursor-pointer"
                       >
                         <Pencil size={13} />
                       </button>
                       <button
                         onClick={() => setDeleteTarget(item)}
                         title="删除"
-                        className="w-7 h-7 rounded-sm grid place-items-center text-text-muted hover:text-danger hover:bg-danger-bg transition-colors"
+                        className="w-7 h-7 rounded-sm grid place-items-center text-text-muted hover:text-danger hover:bg-danger-bg transition-colors cursor-pointer"
                       >
                         <Trash2 size={13} />
                       </button>
@@ -300,7 +300,7 @@ export default function CarouselPage() {
           <button
             onClick={() => setPreviewUrl(null)}
             className="absolute top-4 right-4 w-9 h-9 rounded-sm bg-white/10 hover:bg-white/20
-                       grid place-items-center text-white transition-colors"
+                       grid place-items-center text-white transition-colors cursor-pointer"
           >
             <X size={18} />
           </button>

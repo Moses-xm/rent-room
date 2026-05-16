@@ -203,7 +203,7 @@ export default function CommunityDetailPage() {
         <p className="text-body">小区不存在或已被删除</p>
         <button
           onClick={() => router.push('/manage/community')}
-          className="h-8.5 px-3.5 text-body rounded-sm font-medium bg-card border border-border text-text-2 hover:bg-surface-2 transition-colors"
+          className="h-8.5 px-3.5 text-body rounded-sm font-medium bg-card border border-border text-text-2 hover:bg-surface-2 transition-colors cursor-pointer"
         >
           返回小区管理
         </button>

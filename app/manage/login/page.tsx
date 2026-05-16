@@ -209,7 +209,7 @@ export default function ManageLoginPage() {
             type="submit"
             disabled={submitting}
             className="mt-1 h-9.5 w-full rounded-sm bg-primary text-[13.5px] font-medium text-white
-                       transition-colors hover:bg-primary-dark disabled:cursor-not-allowed disabled:opacity-60"
+                       transition-colors hover:bg-primary-dark cursor-pointer disabled:cursor-not-allowed disabled:opacity-60"
           >
             {submitting ? "登录中..." : "登录"}
           </button>

@@ -184,7 +184,7 @@ export default function CarouselFormModal({ state, onClose, onSaved }: Props) {
             disabled={busy}
             className="w-7.5 h-7.5 rounded-sm grid place-items-center
                        text-text-muted hover:bg-surface-2 hover:text-text
-                       transition-colors disabled:opacity-40 disabled:cursor-not-allowed shrink-0"
+                       transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed shrink-0"
           >
             <X size={16} />
           </button>
@@ -213,7 +213,7 @@ export default function CarouselFormModal({ state, onClose, onSaved }: Props) {
                     disabled={isUploading || isCleaningImage}
                     className="absolute top-2 right-2 w-7 h-7 rounded-sm bg-black/50 hover:bg-black/70
                                grid place-items-center text-white transition-colors
-                               disabled:opacity-40 disabled:cursor-not-allowed"
+                               cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
                   >
                     <X size={13} />
                   </button>
@@ -347,7 +347,7 @@ export default function CarouselFormModal({ state, onClose, onSaved }: Props) {
               className="h-8.5 px-3.5 text-body rounded-sm font-medium
                          bg-card border border-border text-text-2
                          hover:bg-surface-2 transition-colors
-                         disabled:opacity-50 disabled:cursor-not-allowed"
+                         cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
             >
               取消
             </button>
@@ -357,7 +357,7 @@ export default function CarouselFormModal({ state, onClose, onSaved }: Props) {
               className="h-8.5 px-3.5 text-body rounded-sm font-medium
                          bg-primary text-white hover:bg-primary-dark transition-colors
                          flex items-center gap-2
-                         disabled:opacity-50 disabled:cursor-not-allowed"
+                         cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isSubmitting && <Loader2 size={13} className="animate-spin" />}
               {editingId ? '保存修改' : '创建轮播图'}

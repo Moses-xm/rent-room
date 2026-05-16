@@ -388,7 +388,7 @@ export default function CommunityForm({
                             type="button"
                             onClick={handleClearCover}
                             disabled={isUploading || isCleaningCover}
-                            className="text-body-sm text-text-muted hover:text-text transition-colors disabled:opacity-40"
+                            className="text-body-sm text-text-muted hover:text-text transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
                           >
                             清空
                           </button>
@@ -586,7 +586,7 @@ export default function CommunityForm({
                   className="h-8.5 px-4 text-body rounded-sm font-medium
                              bg-card border border-border text-text-muted
                              hover:bg-surface-2 hover:text-text transition-colors
-                             disabled:opacity-50 disabled:cursor-not-allowed"
+                             cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   重置表单
                 </button>
@@ -599,7 +599,7 @@ export default function CommunityForm({
                 className="h-8.5 px-4 text-body rounded-sm font-medium
                            bg-card border border-border text-text-2
                            hover:bg-surface-2 transition-colors
-                           disabled:opacity-50 disabled:cursor-not-allowed"
+                           cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 取消
               </button>
@@ -609,7 +609,7 @@ export default function CommunityForm({
                 className="h-8.5 px-4 text-body rounded-sm font-medium
                            bg-primary text-white hover:bg-primary-dark transition-colors
                            flex items-center gap-2
-                           disabled:opacity-50 disabled:cursor-not-allowed"
+                           cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isSubmitting && <Loader2 size={13} className="animate-spin" />}
                 {submitLabel}

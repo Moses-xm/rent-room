@@ -293,7 +293,7 @@ export default function ManageProfilePage() {
                       className="h-7 px-3 text-body-sm rounded-sm font-medium
                                  bg-card border border-border text-text-2
                                  hover:bg-surface-2 transition-colors
-                                 disabled:opacity-50 disabled:cursor-not-allowed
+                                 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed
                                  flex items-center gap-1.5"
                     >
                       {isUploading ? <Loader2 size={13} className="animate-spin" /> : <Upload size={13} />}
@@ -304,7 +304,7 @@ export default function ManageProfilePage() {
                         type="button"
                         disabled={isUploading || isCleaningAvatar}
                         onClick={handleClearAvatar}
-                        className="text-body-sm text-text-muted hover:text-text transition-colors disabled:opacity-40"
+                        className="text-body-sm text-text-muted hover:text-text transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
                       >
                         {isCleaningAvatar ? '清理中…' : '清空头像'}
                       </button>
@@ -409,7 +409,7 @@ export default function ManageProfilePage() {
             className="h-8.5 px-3.5 text-body rounded-sm font-medium
                        bg-card border border-border text-text-2
                        hover:bg-surface-2 transition-colors
-                       disabled:opacity-50 disabled:cursor-not-allowed"
+                       cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
           >
             取消
           </button>
@@ -419,7 +419,7 @@ export default function ManageProfilePage() {
             className="h-8.5 px-3.5 text-body rounded-sm font-medium
                        bg-primary text-white hover:bg-primary-dark transition-colors
                        flex items-center gap-2
-                       disabled:opacity-50 disabled:cursor-not-allowed"
+                       cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {saving ? <Loader2 size={13} className="animate-spin" /> : <Save size={13} />}
             {saving ? '保存中…' : '保存更改'}

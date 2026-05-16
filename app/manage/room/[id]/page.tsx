@@ -354,7 +354,7 @@ export default function RoomDetailPage() {
                   <button
                     key={i}
                     onClick={() => setActiveImage(i)}
-                    className={`shrink-0 w-16 h-12 rounded-md overflow-hidden border-2 transition-colors ${i === activeImage ? 'border-primary' : 'border-transparent'}`}
+                    className={`shrink-0 w-16 h-12 rounded-md overflow-hidden border-2 transition-colors cursor-pointer ${i === activeImage ? 'border-primary' : 'border-transparent'}`}
                   >
                     <img src={url} alt="" draggable={false} className="w-full h-full object-cover" />
                   </button>
