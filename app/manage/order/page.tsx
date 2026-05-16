@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
-import { Search, Trash2, ShoppingCart, X, Eye } from 'lucide-react';
+import { Search, Trash2, ShoppingCart, X, Eye, Building2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { request } from '@/utils/request';
 import DataTable, { type Column } from '@/components/DataTable';
@@ -10,8 +10,9 @@ import AppLoading from '@/components/AppLoading';
 import ConfirmDialog from '@/components/ConfirmDialog';
 import Pagination from '@/components/Pagination';
 import FilterSelect from '@/components/FilterSelect';
-import { fmtDateTime } from '@/utils/format';
+
 import { ORDER_TYPE_OPTIONS } from '@/utils/constants';
+import { resolveUploadedFileUrl } from '@/lib/upload-path';
 
 /* ─── Types ───────────────────────────────────────────────────────────────── */
 export type OrderItem = {
@@ -25,9 +26,9 @@ export type OrderItem = {
   pledge: number | null;
   paidPeriod: string | null;
   createdAt: string;
-  payer: { id: number; username: string; nickname: string | null } | null;
-  payee: { id: number; username: string; nickname: string | null } | null;
-  room: { id: number; name: string; roomCode: string } | null;
+  payer: { id: number; username: string; nickname: string | null; avatar: string | null } | null;
+  payee: { id: number; username: string; nickname: string | null; avatar: string | null } | null;
+  room: { id: number; name: string; roomCode: string; cover: string } | null;
   contract: { id: number; onlineTime: string; offlineTime: string } | null;
 };
 
@@ -54,9 +55,36 @@ const ORDER_TYPE_LABEL: Record<number, string> = {
 
 function TypePill({ type }: { type: number }) {
   return (
-    <span className={`inline-flex items-center px-2 py-0.5 rounded text-tiny font-medium ${ORDER_TYPE_STYLE[type] ?? 'bg-slate-100 text-slate-500'}`}>
+    <span className={`inline-flex items-center px-2 py-0.5 rounded text-tiny font-medium whitespace-nowrap ${ORDER_TYPE_STYLE[type] ?? 'bg-slate-100 text-slate-500'}`}>
       {ORDER_TYPE_LABEL[type] ?? '未知'}
     </span>
+  );
+}
+
+/* ─── User avatar ─────────────────────────────────────────────────────────── */
+function UserAvatar({ user }: { user: { username: string; nickname: string | null; avatar: string | null } }) {
+  return (
+    <div className="w-7 h-7 rounded-full grid place-items-center shrink-0 bg-primary-tint text-primary-dark text-xs font-semibold border border-border overflow-hidden">
+      {user.avatar
+        // eslint-disable-next-line @next/next/no-img-element
+        ? <img src={resolveUploadedFileUrl(user.avatar)} alt={user.username} className="w-full h-full object-cover" />
+        : (user.nickname || user.username).charAt(0).toUpperCase()}
+    </div>
+  );
+}
+
+/* ─── Room thumbnail ──────────────────────────────────────────────────────── */
+function RoomThumb({ room }: { room: OrderItem['room'] }) {
+  if (!room) return null;
+  const url = resolveUploadedFileUrl(room.cover);
+  return (
+    <div className="w-10 h-10 rounded overflow-hidden border border-border bg-surface-2 shrink-0">
+      {url
+        // eslint-disable-next-line @next/next/no-img-element
+        ? <img src={url} alt={room.name} className="w-full h-full object-cover" />
+        : <div className="w-full h-full grid place-items-center text-text-disabled"><Building2 size={14} /></div>
+      }
+    </div>
   );
 }
 
@@ -87,7 +115,6 @@ export default function OrderPage() {
 
   const [deleteTarget, setDeleteTarget] = useState<OrderItem | null>(null);
   const [isDeleting, setIsDeleting]     = useState(false);
-
   useEffect(() => {
     const t = setTimeout(() => setDebouncedQuery(query), 300);
     return () => clearTimeout(t);
@@ -138,34 +165,17 @@ export default function OrderPage() {
   /* ─── Column definitions ──────────────────────────────────────────────── */
   const columns = useMemo<Column<OrderItem>[]>(() => [
     {
-      key: 'id',
-      label: '订单 ID',
-      tdClassName: 'font-mono',
-      render: (item) => (
-        <Link href={`/manage/order/${item.id}`} className="text-primary hover:underline font-medium">
-          #{item.id}
-        </Link>
-      ),
-    },
-    {
-      key: 'contractId',
-      label: '合同 ID',
-      tdClassName: 'font-mono',
-      render: (item) => (
-        <Link href={`/manage/contract/${item.contractId}`} className="text-primary hover:underline">
-          #{item.contractId}
-        </Link>
-      ),
-    },
-    {
       key: 'room',
       label: '房源',
       render: (item) => item.room ? (
-        <Link href={`/manage/room/${item.room.id}`} className="group/room">
-          <p className="text-body font-emphasis text-text group-hover/room:text-primary transition-colors leading-none truncate max-w-44">
-            {item.room.name}
-          </p>
-          <p className="text-tiny text-text-muted mt-0.5 font-mono">{item.room.roomCode}</p>
+        <Link href={`/manage/room/${item.room.id}`} className="flex items-center gap-2 group/room">
+          <RoomThumb room={item.room} />
+          <div className="min-w-0">
+            <p className="text-body-sm font-emphasis text-text group-hover/room:text-primary transition-colors leading-none truncate max-w-64">
+              {item.room.name}
+            </p>
+            <p className="text-tiny text-text-muted mt-0.5 font-mono">{item.room.roomCode}</p>
+          </div>
         </Link>
       ) : <span className="text-body-sm text-text-muted">—</span>,
     },
@@ -173,58 +183,59 @@ export default function OrderPage() {
       key: 'payer',
       label: '付款人',
       render: (item) => item.payer ? (
-        <div>
-          <p className="text-body font-emphasis text-text leading-none">{item.payer.username}</p>
-          {item.payer.nickname && <p className="text-tiny text-text-muted mt-0.5">{item.payer.nickname}</p>}
-        </div>
+        <Link href={`/manage/user/${item.payer.id}`} className="flex items-center gap-2 group/u w-fit">
+          <UserAvatar user={item.payer} />
+          <div className="min-w-0">
+            <p className="text-body-sm font-emphasis text-text group-hover/u:text-primary transition-colors leading-none">{item.payer.username}</p>
+            {item.payer.nickname && <p className="text-tiny text-text-muted mt-0.5 truncate">{item.payer.nickname}</p>}
+          </div>
+        </Link>
       ) : <span className="text-body-sm text-text-muted">—</span>,
     },
     {
       key: 'payee',
       label: '收款人',
       render: (item) => item.payee ? (
-        <div>
-          <p className="text-body font-emphasis text-text leading-none">{item.payee.username}</p>
-          {item.payee.nickname && <p className="text-tiny text-text-muted mt-0.5">{item.payee.nickname}</p>}
-        </div>
+        <Link href={`/manage/user/${item.payee.id}`} className="flex items-center gap-2 group/u w-fit">
+          <UserAvatar user={item.payee} />
+          <div className="min-w-0">
+            <p className="text-body-sm font-emphasis text-text group-hover/u:text-primary transition-colors leading-none">{item.payee.username}</p>
+            {item.payee.nickname && <p className="text-tiny text-text-muted mt-0.5 truncate">{item.payee.nickname}</p>}
+          </div>
+        </Link>
       ) : <span className="text-body-sm text-text-muted">—</span>,
+    },
+    {
+      key: 'fee',
+      label: '付款金额',
+      align: 'right',
+      tdClassName: 'font-mono',
+      render: (item) => (
+        <div className="text-right">
+          {item.fee != null
+            ? <p className="text-body-sm text-text font-medium">¥{item.fee.toFixed(2)}</p>
+            : <p className="text-text-muted">—</p>}
+          {item.type === 1 && item.pledge != null && (
+            <p className="text-tiny text-text-muted mt-0.5">押金 ¥{item.pledge.toFixed(2)}</p>
+          )}
+        </div>
+      ),
     },
     {
       key: 'type',
       label: '类型',
       align: 'center',
-      render: (item) => <TypePill type={item.type} />,
-    },
-    {
-      key: 'fee',
-      label: '月租金额',
-      align: 'right',
-      tdClassName: 'font-mono',
-      render: (item) => item.fee != null
-        ? <span className="text-text font-medium">¥{item.fee.toFixed(2)}</span>
-        : <span className="text-text-muted">—</span>,
-    },
-    {
-      key: 'pledge',
-      label: '押金金额',
-      align: 'right',
-      tdClassName: 'font-mono',
-      render: (item) => item.pledge != null
-        ? <span className="text-text font-medium">¥{item.pledge.toFixed(2)}</span>
-        : <span className="text-text-muted">—</span>,
-    },
-    {
-      key: 'paidPeriod',
-      label: '时间段',
-      render: (item) => item.paidPeriod
-        ? <span className="text-body-sm text-text-muted font-mono">{item.paidPeriod}</span>
-        : <span className="text-body-sm text-text-muted">—</span>,
-    },
-    {
-      key: 'createdAt',
-      label: '创建时间',
-      tdClassName: 'font-mono',
-      render: (item) => fmtDateTime(item.createdAt),
+      render: (item) => (
+        <div className="flex flex-col items-center gap-1">
+          <TypePill type={item.type} />
+          <Link
+            href={`/manage/contract/${item.contractId}`}
+            className="text-tiny text-primary hover:underline font-mono"
+          >
+            合同#{item.contractId}
+          </Link>
+        </div>
+      ),
     },
     {
       key: 'actions',
@@ -251,7 +262,6 @@ export default function OrderPage() {
         </div>
       ),
     },
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   ], []);
 
   const cardBtnCls = 'w-8 h-8 rounded-sm grid place-items-center text-text-muted transition-colors active:scale-95 cursor-pointer';
@@ -322,77 +332,82 @@ export default function OrderPage() {
         ) : (
           list.map((item) => (
             <div key={item.id} className="bg-card border border-border rounded shadow-sm overflow-hidden">
-              {/* 头部：ID + 类型 */}
+
+              {/* 头部：类型 + 合同 + 金额 */}
               <div className="flex items-center gap-3 px-4 pt-4 pb-3">
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2">
-                    <Link href={`/manage/order/${item.id}`} className="text-body font-emphasis text-primary hover:underline leading-none font-mono">
-                      #{item.id}
-                    </Link>
-                    <TypePill type={item.type} />
-                  </div>
-                  <p className="text-tiny text-text-muted mt-0.5 font-mono">
-                    合同 <Link href={`/manage/contract/${item.contractId}`} className="text-primary hover:underline">#{item.contractId}</Link>
-                  </p>
+                <div className="flex-1 min-w-0 flex items-center gap-2 flex-wrap">
+                  <TypePill type={item.type} />
+                  <Link
+                    href={`/manage/contract/${item.contractId}`}
+                    className="text-tiny text-primary hover:underline font-mono shrink-0"
+                  >
+                    合同#{item.contractId}
+                  </Link>
                 </div>
                 <div className="text-right shrink-0">
-                  {item.fee != null && <p className="text-body font-mono font-medium text-text">¥{item.fee.toFixed(2)}</p>}
-                  {item.pledge != null && <p className="text-tiny text-text-muted font-mono">押金 ¥{item.pledge.toFixed(2)}</p>}
+                  {item.fee != null && <p className="text-body-sm font-mono font-medium text-text">¥{item.fee.toFixed(2)}</p>}
+                  {item.type === 1 && item.pledge != null && (
+                    <p className="text-tiny text-text-muted font-mono">押金 ¥{item.pledge.toFixed(2)}</p>
+                  )}
                 </div>
               </div>
 
               <div className="mx-4 border-t border-border" />
 
               {/* 房源 + 当事人 */}
-              <div className="px-4 py-3 space-y-1.5">
+              <div className="px-4 py-3 space-y-2">
                 {item.room && (
-                  <div className="flex items-center gap-1.5">
-                    <span className="text-tiny text-text-muted w-10 shrink-0">房源</span>
-                    <Link href={`/manage/room/${item.room.id}`} className="text-body-sm text-text hover:text-primary transition-colors truncate">
-                      {item.room.name}
+                  <Link href={`/manage/room/${item.room.id}`} className="flex items-center gap-2 group/room">
+                    <RoomThumb room={item.room} />
+                    <div className="min-w-0">
+                      <p className="text-body-sm text-text group-hover/room:text-primary transition-colors truncate">{item.room.name}</p>
+                      <p className="text-tiny text-text-muted font-mono">{item.room.roomCode}</p>
+                    </div>
+                  </Link>
+                )}
+                <div className="flex items-center gap-3">
+                  {item.payer && (
+                    <Link href={`/manage/user/${item.payer.id}`} className="flex items-center gap-1.5 group/u min-w-0">
+                      <UserAvatar user={item.payer} />
+                      <div className="min-w-0">
+                        <p className="text-body-sm text-text group-hover/u:text-primary transition-colors truncate">{item.payer.username}</p>
+                        <p className="text-tiny text-text-muted">付款人</p>
+                      </div>
                     </Link>
-                    <span className="text-tiny text-text-muted font-mono shrink-0">{item.room.roomCode}</span>
-                  </div>
-                )}
-                <div className="flex items-center gap-1.5">
-                  <span className="text-tiny text-text-muted w-10 shrink-0">付款人</span>
-                  <span className="text-body-sm text-text">{item.payer?.username ?? '—'}</span>
-                  {item.payer?.nickname && <span className="text-tiny text-text-muted">({item.payer.nickname})</span>}
+                  )}
+                  {item.payer && item.payee && (
+                    <span className="text-text-muted text-tiny shrink-0">→</span>
+                  )}
+                  {item.payee && (
+                    <Link href={`/manage/user/${item.payee.id}`} className="flex items-center gap-1.5 group/u min-w-0">
+                      <UserAvatar user={item.payee} />
+                      <div className="min-w-0">
+                        <p className="text-body-sm text-text group-hover/u:text-primary transition-colors truncate">{item.payee.username}</p>
+                        <p className="text-tiny text-text-muted">收款人</p>
+                      </div>
+                    </Link>
+                  )}
                 </div>
-                <div className="flex items-center gap-1.5">
-                  <span className="text-tiny text-text-muted w-10 shrink-0">收款人</span>
-                  <span className="text-body-sm text-text">{item.payee?.username ?? '—'}</span>
-                  {item.payee?.nickname && <span className="text-tiny text-text-muted">({item.payee.nickname})</span>}
-                </div>
-                {item.paidPeriod && (
-                  <div className="flex items-center gap-1.5">
-                    <span className="text-tiny text-text-muted w-10 shrink-0">时间段</span>
-                    <span className="text-tiny text-text-muted font-mono">{item.paidPeriod}</span>
-                  </div>
-                )}
               </div>
 
               <div className="mx-4 border-t border-border" />
 
-              {/* 时间 + 操作 */}
-              <div className="flex items-center gap-2 px-4 py-2.5">
-                <p className="text-tiny text-text-muted font-mono flex-1">{fmtDateTime(item.createdAt)}</p>
-                <div className="flex items-center gap-0.5 shrink-0">
-                  <Link
-                    href={`/manage/order/${item.id}`}
-                    title="查看详情"
-                    className={`${cardBtnCls} hover:text-primary hover:bg-primary-tint`}
-                  >
-                    <Eye size={16} />
-                  </Link>
-                  <button
-                    onClick={() => setDeleteTarget(item)}
-                    title="删除"
-                    className={`${cardBtnCls} hover:text-danger hover:bg-danger-bg`}
-                  >
-                    <Trash2 size={16} />
-                  </button>
-                </div>
+              {/* 操作 */}
+              <div className="flex items-center justify-end gap-0.5 px-4 py-2">
+                <Link
+                  href={`/manage/order/${item.id}`}
+                  title="查看详情"
+                  className={`${cardBtnCls} hover:text-primary hover:bg-primary-tint`}
+                >
+                  <Eye size={16} />
+                </Link>
+                <button
+                  onClick={() => setDeleteTarget(item)}
+                  title="删除"
+                  className={`${cardBtnCls} hover:text-danger hover:bg-danger-bg`}
+                >
+                  <Trash2 size={16} />
+                </button>
               </div>
             </div>
           ))

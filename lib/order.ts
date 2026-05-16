@@ -10,9 +10,9 @@ type OrderRecord = {
   paidPeriod: string | null;
   createdAt: Date;
   updatedAt: Date;
-  payer?: { id: number; username: string; nickname: string | null } | null;
-  payee?: { id: number; username: string; nickname: string | null } | null;
-  room?: { id: number; name: string; roomCode: string } | null;
+  payer?: { id: number; username: string; nickname: string | null; avatar: string | null } | null;
+  payee?: { id: number; username: string; nickname: string | null; avatar: string | null } | null;
+  room?: { id: number; name: string; roomCode: string; cover: string } | null;
   contract?: { id: number; onlineTime: Date; offlineTime: Date } | null;
 };
 
@@ -29,9 +29,9 @@ export function serializeOrder(o: OrderRecord) {
     paidPeriod: o.paidPeriod,
     createdAt: o.createdAt.toISOString(),
     updatedAt: o.updatedAt.toISOString(),
-    payer: o.payer ?? null,
-    payee: o.payee ?? null,
-    room: o.room ?? null,
+    payer: o.payer ? { id: o.payer.id, username: o.payer.username, nickname: o.payer.nickname, avatar: o.payer.avatar } : null,
+    payee: o.payee ? { id: o.payee.id, username: o.payee.username, nickname: o.payee.nickname, avatar: o.payee.avatar } : null,
+    room: o.room ? { id: o.room.id, name: o.room.name, roomCode: o.room.roomCode, cover: o.room.cover } : null,
     contract: o.contract
       ? {
           id: o.contract.id,

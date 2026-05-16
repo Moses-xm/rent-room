@@ -4,9 +4,9 @@ import { requireManageAuth } from '@/lib/manage-auth';
 import { prisma } from '@/lib/prisma';
 
 const INCLUDE = {
-  payer:    { select: { id: true, username: true, nickname: true } },
-  payee:    { select: { id: true, username: true, nickname: true } },
-  room:     { select: { id: true, name: true, roomCode: true } },
+  payer:    { select: { id: true, username: true, nickname: true, avatar: true } },
+  payee:    { select: { id: true, username: true, nickname: true, avatar: true } },
+  room:     { select: { id: true, name: true, roomCode: true, cover: true } },
   contract: { select: { id: true, onlineTime: true, offlineTime: true } },
 } as const;
 
