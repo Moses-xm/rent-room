@@ -157,7 +157,8 @@ function ContractPreview({
     );
   }
 
-  const onlineDate  = new Date(onlineTime);
+  // 追加 T00:00:00（无 Z）以解析为本地午夜，避免纯日期字符串被 JS 解析为 UTC 导致跨时区差一天
+  const onlineDate  = new Date(onlineTime + 'T00:00:00');
   const offlineDate = addMonths(onlineDate, tenancy);
   const pledgeAmount = room.price * room.pledge;
   const fee = room.price * room.pay;
@@ -391,15 +392,18 @@ export default function ContractForm({ title, subtitle, backHref, isEdit = false
   const payMonths    = selectedRoom?.pay ?? 1;
   const minTenancy   = selectedRoom?.minTenancy ?? 1;
   const isValidTen   = tenancyNum >= minTenancy && tenancyNum % payMonths === 0;
-  const offlineDate  = onlineTime && tenancyNum ? addMonths(new Date(onlineTime), tenancyNum) : null;
+  const offlineDate  = onlineTime && tenancyNum ? addMonths(new Date(onlineTime + 'T00:00:00'), tenancyNum) : null;
   const pledgeAmount = selectedRoom ? selectedRoom.price * selectedRoom.pledge : 0;
   const fee          = selectedRoom ? selectedRoom.price * selectedRoom.pay : 0;
 
   /* ── Load options ── */
   useEffect(() => {
+    const roomsUrl = isEdit && editingContract?.roomId
+      ? `/manage/contract/options/rooms?includeRoomId=${editingContract.roomId}`
+      : '/manage/contract/options/rooms';
     Promise.all([
       request<{ success: boolean; data: UserOption[] }>('/manage/contract/options/users'),
-      request<{ success: boolean; data: RoomOption[] }>('/manage/contract/options/rooms'),
+      request<{ success: boolean; data: RoomOption[] }>(roomsUrl),
     ]).then(([ur, rr]) => {
       if (ur.success) setUsers(ur.data ?? []);
       if (rr.success) setRooms(rr.data ?? []);
@@ -708,7 +712,7 @@ export default function ContractForm({ title, subtitle, backHref, isEdit = false
           {/* 操作按钮 */}
           {!isReadOnly && (
             <div className="flex gap-3 pt-2">
-              <Link href={backHref} className="flex-1 h-11 border border-border rounded-xl text-body text-text hover:bg-surface-2 transition-colors flex items-center justify-center">取消</Link>
+              <button type="button" onClick={() => router.back()} className="flex-1 h-11 border border-border rounded-xl text-body text-text hover:bg-surface-2 transition-colors flex items-center justify-center cursor-pointer">取消</button>
               {isEdit ? (
                 <button
                   onClick={handleEdit}

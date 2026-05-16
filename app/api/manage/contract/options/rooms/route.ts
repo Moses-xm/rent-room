@@ -8,9 +8,15 @@ export async function GET(req: NextRequest) {
     const auth = await requireManageAuth(req);
     if (!auth.ok) return auth.response;
 
-    // 只返回已发布且未租出的房源（用于新建合同时选择）
+    const includeRoomId = parseInt(req.nextUrl.searchParams.get('includeRoomId') ?? '');
+
+    // 只返回已发布且未租出的房源；编辑模式下额外包含当前合同绑定的房源
+    const where = !isNaN(includeRoomId)
+      ? { OR: [{ isPublished: 2, isRented: 1 }, { id: includeRoomId }] }
+      : { isPublished: 2, isRented: 1 };
+
     const rooms = await prisma.room.findMany({
-      where: { isPublished: 2, isRented: 1 },
+      where,
       select: {
         id: true,
         name: true,
