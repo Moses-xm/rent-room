@@ -5,6 +5,7 @@ type WalletRecordRecord = {
   type: number;
   remark: string | null;
   orderId: number | null;
+  balanceAfter: number | null;
   createdAt: Date;
   updatedAt: Date;
 };
@@ -17,6 +18,7 @@ export function serializeWalletRecord(r: WalletRecordRecord) {
     type: r.type,
     remark: r.remark,
     orderId: r.orderId,
+    balanceAfter: r.balanceAfter,
     createdAt: r.createdAt.toISOString(),
     updatedAt: r.updatedAt.toISOString(),
   };

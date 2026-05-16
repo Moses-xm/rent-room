@@ -137,8 +137,8 @@ export async function POST(req: Request) {
       });
 
       // 更新钱包
-      await tx.user.update({ where: { id: userId },     data: { wallet: { decrement: totalAmount } } });
-      await tx.user.update({ where: { id: landlordId }, data: { wallet: { increment: totalAmount } } });
+      const updatedTenant   = await tx.user.update({ where: { id: userId },     data: { wallet: { decrement: totalAmount } }, select: { wallet: true } });
+      const updatedLandlord = await tx.user.update({ where: { id: landlordId }, data: { wallet: { increment: totalAmount } }, select: { wallet: true } });
 
       // 创建订单
       const orderRecord = await tx.order.create({
@@ -152,8 +152,8 @@ export async function POST(req: Request) {
       // 钱包记录
       await tx.walletRecord.createMany({
         data: [
-          { userId, amount: -totalAmount, type: 2, remark: `支付房源「${room.name}」首期押金+房租`, orderId: orderRecord.id },
-          { userId: landlordId, amount: totalAmount, type: 3, remark: `收到房源「${room.name}」首期押金+房租`, orderId: orderRecord.id },
+          { userId, amount: -totalAmount, type: 2, remark: `支付房源「${room.name}」首期押金+房租`, orderId: orderRecord.id, balanceAfter: updatedTenant.wallet },
+          { userId: landlordId, amount: totalAmount, type: 3, remark: `收到房源「${room.name}」首期押金+房租`, orderId: orderRecord.id, balanceAfter: updatedLandlord.wallet },
         ],
       });
 

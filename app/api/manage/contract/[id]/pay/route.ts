@@ -60,13 +60,13 @@ export async function POST(req: NextRequest, { params }: Params) {
         },
       });
 
-      await tx.user.update({ where: { id: contract.userId     }, data: { wallet: { decrement: contract.fee } } });
-      await tx.user.update({ where: { id: contract.landlordId }, data: { wallet: { increment: contract.fee } } });
+      const updatedTenant   = await tx.user.update({ where: { id: contract.userId     }, data: { wallet: { decrement: contract.fee } }, select: { wallet: true } });
+      const updatedLandlord = await tx.user.update({ where: { id: contract.landlordId }, data: { wallet: { increment: contract.fee } }, select: { wallet: true } });
 
       await tx.walletRecord.createMany({
         data: [
-          { userId: contract.userId, amount: -contract.fee, type: 2, remark: `支付房源「${contract.room?.name ?? ''}」续期房租`, orderId: orderRecord.id },
-          { userId: contract.landlordId, amount: contract.fee, type: 3, remark: `收到房源「${contract.room?.name ?? ''}」续期房租`, orderId: orderRecord.id },
+          { userId: contract.userId, amount: -contract.fee, type: 2, remark: `支付房源「${contract.room?.name ?? ''}」续期房租`, orderId: orderRecord.id, balanceAfter: updatedTenant.wallet },
+          { userId: contract.landlordId, amount: contract.fee, type: 3, remark: `收到房源「${contract.room?.name ?? ''}」续期房租`, orderId: orderRecord.id, balanceAfter: updatedLandlord.wallet },
         ],
       });
 
@@ -85,8 +85,8 @@ export async function POST(req: NextRequest, { params }: Params) {
         refund       = true;
 
         await tx.room.update({ where: { id: contract.roomId }, data: { isRented: 1 } });
-        await tx.user.update({ where: { id: contract.landlordId }, data: { wallet: { decrement: contract.pledge } } });
-        await tx.user.update({ where: { id: contract.userId },     data: { wallet: { increment: contract.pledge } } });
+        const refundedLandlord = await tx.user.update({ where: { id: contract.landlordId }, data: { wallet: { decrement: contract.pledge } }, select: { wallet: true } });
+        const refundedTenant   = await tx.user.update({ where: { id: contract.userId },     data: { wallet: { increment: contract.pledge } }, select: { wallet: true } });
 
         const refundOrder = await tx.order.create({
           data: {
@@ -96,8 +96,8 @@ export async function POST(req: NextRequest, { params }: Params) {
         });
         await tx.walletRecord.createMany({
           data: [
-            { userId: contract.userId,     amount:  contract.pledge, type: 4, remark: '押金退款', orderId: refundOrder.id },
-            { userId: contract.landlordId, amount: -contract.pledge, type: 2, remark: '退还押金给租客', orderId: refundOrder.id },
+            { userId: contract.userId,     amount:  contract.pledge, type: 4, remark: '押金退款', orderId: refundOrder.id, balanceAfter: refundedTenant.wallet },
+            { userId: contract.landlordId, amount: -contract.pledge, type: 2, remark: '退还押金给租客', orderId: refundOrder.id, balanceAfter: refundedLandlord.wallet },
           ],
         });
 

@@ -24,16 +24,17 @@ export async function POST(req: Request, props: { params: Promise<{ id: string }
       return NextResponse.json({ success: false, message: '用户不存在' }, { status: 404 });
     }
 
-    const [walletRecord, updatedUser] = await prisma.$transaction([
-      prisma.walletRecord.create({
-        data: { userId, amount, type: 1, remark },
-      }),
-      prisma.user.update({
+    const { walletRecord, updatedUser } = await prisma.$transaction(async (tx) => {
+      const updated = await tx.user.update({
         where: { id: userId },
         data: { wallet: { increment: amount } },
         select: { wallet: true },
-      }),
-    ]);
+      });
+      const record = await tx.walletRecord.create({
+        data: { userId, amount, type: 1, remark, balanceAfter: updated.wallet },
+      });
+      return { walletRecord: record, updatedUser: updated };
+    });
 
     return NextResponse.json({
       success: true,

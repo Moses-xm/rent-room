@@ -233,14 +233,15 @@ model order {
 
 // ─── 钱包消费记录 ──────────────────────────────────────────────────────────────
 model walletRecord {
-  id        Int      @id @default(autoincrement())
-  userId    Int                                // 记录归属用户
-  amount    Float                              // 金额（正数=收入，负数=支出）
-  type      Int                                // 1=充值 2=支付租房 3=收款(房东) 4=退押金
-  remark    String?  @db.VarChar(200)          // 备注说明
-  orderId   Int?                               // 关联订单
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id           Int      @id @default(autoincrement())
+  userId       Int                                // 记录归属用户
+  amount       Float                              // 金额（正数=收入，负数=支出）
+  type         Int                                // 1=充值 2=支付租房 3=收款(房东) 4=退押金
+  remark       String?  @db.VarChar(200)          // 备注说明
+  orderId      Int?                               // 关联订单
+  balanceAfter Float?                             // 交易后余额（历史数据为 null）
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 
   user  user   @relation(fields: [userId],  references: [id])
   order order? @relation(fields: [orderId], references: [id])

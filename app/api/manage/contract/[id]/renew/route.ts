@@ -65,13 +65,13 @@ export async function POST(req: NextRequest, { params }: Params) {
         },
       });
 
-      await tx.user.update({ where: { id: contract.userId     }, data: { wallet: { decrement: contract.fee } } });
-      await tx.user.update({ where: { id: contract.landlordId }, data: { wallet: { increment: contract.fee } } });
+      const updatedTenant   = await tx.user.update({ where: { id: contract.userId     }, data: { wallet: { decrement: contract.fee } }, select: { wallet: true } });
+      const updatedLandlord = await tx.user.update({ where: { id: contract.landlordId }, data: { wallet: { increment: contract.fee } }, select: { wallet: true } });
 
       await tx.walletRecord.createMany({
         data: [
-          { userId: contract.userId,     amount: -contract.fee, type: 2, remark: `支付房源「${contract.room?.name ?? ''}」续租首期房租`, orderId: orderRecord.id },
-          { userId: contract.landlordId, amount:  contract.fee, type: 3, remark: `收到房源「${contract.room?.name ?? ''}」续租首期房租`, orderId: orderRecord.id },
+          { userId: contract.userId,     amount: -contract.fee, type: 2, remark: `支付房源「${contract.room?.name ?? ''}」续租首期房租`, orderId: orderRecord.id, balanceAfter: updatedTenant.wallet },
+          { userId: contract.landlordId, amount:  contract.fee, type: 3, remark: `收到房源「${contract.room?.name ?? ''}」续租首期房租`, orderId: orderRecord.id, balanceAfter: updatedLandlord.wallet },
         ],
       });
 

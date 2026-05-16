@@ -50,6 +50,7 @@ type WalletRecord = {
   type: number;
   remark: string | null;
   orderId: number | null;
+  balanceAfter: number | null;
   createdAt: string;
   updatedAt: string;
 };
@@ -314,7 +315,7 @@ function WalletRecordsSection({ userId }: { userId: number }) {
   const amountColor = (amount: number) =>
     amount > 0 ? 'text-success' : 'text-danger';
 
-  const amountPrefix = (amount: number) => amount > 0 ? '+' : '';
+  const amountPrefix = (amount: number) => amount > 0 ? '+' : '-';
 
   return (
     <div className="bg-card border border-border rounded-md shadow-sm overflow-hidden">
@@ -403,9 +404,16 @@ function WalletRecordsSection({ userId }: { userId: number }) {
                     </p>
                   </div>
 
-                  {/* 金额 */}
-                  <div className={`text-body font-semibold font-mono tabular-nums shrink-0 ${amountColor(rec.amount)}`}>
-                    {amountPrefix(rec.amount)}¥{Math.abs(rec.amount).toFixed(2)}
+                  {/* 金额 + 交易后余额 */}
+                  <div className="flex flex-col items-end shrink-0">
+                    <span className={`text-body font-semibold font-mono tabular-nums ${amountColor(rec.amount)}`}>
+                      {amountPrefix(rec.amount)}¥{Math.abs(rec.amount).toFixed(2)}
+                    </span>
+                    {rec.balanceAfter !== null && (
+                      <span className="text-caption text-text-disabled font-mono tabular-nums mt-0.5">
+                        余额 ¥{rec.balanceAfter.toFixed(2)}
+                      </span>
+                    )}
                   </div>
                 </li>
               );
