@@ -84,6 +84,7 @@ function CheckoutPill({ isCheckout, refund }: { isCheckout: boolean; refund: boo
 /* ─── Fetch ────────────────────────────────────────────────────────────────── */
 async function fetchContracts(params: {
   page: number; limit: number; search?: string; status?: string; isCheckout?: string;
+  userId?: string; landlordId?: string; roomId?: string;
 }) {
   const qs = new URLSearchParams();
   qs.set('page', String(params.page));
@@ -91,7 +92,37 @@ async function fetchContracts(params: {
   if (params.search)     qs.set('search',     params.search);
   if (params.status)     qs.set('status',     params.status);
   if (params.isCheckout) qs.set('isCheckout', params.isCheckout);
+  if (params.userId)     qs.set('userId',     params.userId);
+  if (params.landlordId) qs.set('landlordId', params.landlordId);
+  if (params.roomId)     qs.set('roomId',     params.roomId);
   return request<ContractsResponse>(`/manage/contract?${qs.toString()}`);
+}
+
+type UserOption = { value: string; label: string };
+type RoomOption = { value: string; label: string };
+
+async function fetchUserOptions(): Promise<UserOption[]> {
+  const res = await request<{ success: boolean; data: { id: number; username: string; nickname: string | null }[] }>(
+    '/manage/user?page=1&limit=1000',
+    { silent: true },
+  );
+  if (!res.success) return [];
+  return res.data.map((u) => ({
+    value: String(u.id),
+    label: u.nickname ? `${u.username}（${u.nickname}）` : u.username,
+  }));
+}
+
+async function fetchRoomOptions(): Promise<RoomOption[]> {
+  const res = await request<{ success: boolean; data: { id: number; name: string; roomCode: string }[] }>(
+    '/manage/room?page=1&limit=1000',
+    { silent: true },
+  );
+  if (!res.success) return [];
+  return res.data.map((r) => ({
+    value: String(r.id),
+    label: `${r.name}（${r.roomCode}）`,
+  }));
 }
 
 /* ─── User avatar cell ─────────────────────────────────────────────────────── */
@@ -128,6 +159,12 @@ export default function ContractPage() {
   const [refreshKey, setRefreshKey] = useState(0);
   const [statusFilter, setStatusFilter] = useState('');
   const [checkoutFilter, setCheckoutFilter] = useState('');
+  const [userIdFilter, setUserIdFilter] = useState('');
+  const [landlordIdFilter, setLandlordIdFilter] = useState('');
+  const [roomIdFilter, setRoomIdFilter] = useState('');
+
+  const [userOptions, setUserOptions] = useState<UserOption[]>([]);
+  const [roomOptions, setRoomOptions] = useState<RoomOption[]>([]);
 
   const [deleteTarget, setDeleteTarget] = useState<ContractItem | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -142,9 +179,24 @@ export default function ContractPage() {
   }, [query]);
 
   useEffect(() => {
+    Promise.all([fetchUserOptions(), fetchRoomOptions()]).then(([users, rooms]) => {
+      setUserOptions(users);
+      setRoomOptions(rooms);
+    });
+  }, []);
+
+  useEffect(() => {
     let cancelled = false;
     setLoading(true);
-    fetchContracts({ page, limit: pageSize, search: debouncedQuery || undefined, status: statusFilter || undefined, isCheckout: checkoutFilter || undefined })
+    fetchContracts({
+      page, limit: pageSize,
+      search:     debouncedQuery || undefined,
+      status:     statusFilter    || undefined,
+      isCheckout: checkoutFilter  || undefined,
+      userId:     userIdFilter    || undefined,
+      landlordId: landlordIdFilter || undefined,
+      roomId:     roomIdFilter    || undefined,
+    })
       .then((res) => {
         if (cancelled) return;
         if (res.success) {
@@ -157,14 +209,18 @@ export default function ContractPage() {
       .catch(console.error)
       .finally(() => { if (!cancelled) { setLoading(false); setHasLoadedOnce(true); } });
     return () => { cancelled = true; };
-  }, [page, pageSize, debouncedQuery, statusFilter, checkoutFilter, refreshKey]);
+  }, [page, pageSize, debouncedQuery, statusFilter, checkoutFilter, userIdFilter, landlordIdFilter, roomIdFilter, refreshKey]);
 
   const refresh = () => setRefreshKey((k) => k + 1);
   const handlePageChange = (p: number) => setPage(Math.max(1, Math.min(p, totalPages)));
   const handlePageSizeChange = (s: number) => { setPageSize(s); setPage(1); };
 
-  const hasFilter = !!(debouncedQuery.trim() || statusFilter || checkoutFilter);
-  const clearFilters = () => { setQuery(''); setStatusFilter(''); setCheckoutFilter(''); setPage(1); };
+  const hasFilter = !!(debouncedQuery.trim() || statusFilter || checkoutFilter || userIdFilter || landlordIdFilter || roomIdFilter);
+  const clearFilters = () => {
+    setQuery(''); setStatusFilter(''); setCheckoutFilter('');
+    setUserIdFilter(''); setLandlordIdFilter(''); setRoomIdFilter('');
+    setPage(1);
+  };
 
   const confirmDelete = async () => {
     if (!deleteTarget || isDeleting) return;
@@ -337,6 +393,27 @@ export default function ContractPage() {
                        placeholder:text-text-muted"
           />
         </div>
+        <FilterSelect
+          value={userIdFilter}
+          onChange={(v) => { setUserIdFilter(v); setPage(1); }}
+          placeholder="全部租客"
+          className="w-full sm:w-36"
+          options={userOptions}
+        />
+        <FilterSelect
+          value={landlordIdFilter}
+          onChange={(v) => { setLandlordIdFilter(v); setPage(1); }}
+          placeholder="全部房东"
+          className="w-full sm:w-36"
+          options={userOptions}
+        />
+        <FilterSelect
+          value={roomIdFilter}
+          onChange={(v) => { setRoomIdFilter(v); setPage(1); }}
+          placeholder="全部房源"
+          className="w-full sm:w-48"
+          options={roomOptions}
+        />
         <FilterSelect
           value={statusFilter}
           onChange={(v) => { setStatusFilter(v); setPage(1); }}

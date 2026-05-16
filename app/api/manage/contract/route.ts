@@ -20,14 +20,18 @@ export async function GET(req: NextRequest) {
     const search       = searchParams.get('search')      || '';
     const statusParam  = searchParams.get('status');
     const isCheckoutP  = searchParams.get('isCheckout');
-    const userIdParam  = searchParams.get('userId');
+    const userIdParam     = searchParams.get('userId');
+    const landlordIdParam = searchParams.get('landlordId');
+    const roomIdParam     = searchParams.get('roomId');
     const skip = (page - 1) * limit;
 
     const where: Record<string, unknown> = {};
-    if (statusParam)         where.status     = parseInt(statusParam);
-    if (userIdParam)         where.userId     = parseInt(userIdParam);
-    if (isCheckoutP === 'true')  where.isCheckout = true;
-    if (isCheckoutP === 'false') where.isCheckout = false;
+    if (statusParam)              where.status     = parseInt(statusParam);
+    if (userIdParam)              where.userId     = parseInt(userIdParam);
+    if (landlordIdParam)          where.landlordId = parseInt(landlordIdParam);
+    if (roomIdParam)              where.roomId     = parseInt(roomIdParam);
+    if (isCheckoutP === 'true')   where.isCheckout = true;
+    if (isCheckoutP === 'false')  where.isCheckout = false;
     if (search) {
       where.OR = [
         { user:     { username: { contains: search, mode: 'insensitive' as const } } },
