@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import {
   ArrowLeft, ChevronRight, Home, User, Building2, Calendar, CreditCard,
   RefreshCw, LogOut, Trash2, Pencil, CheckCircle2, Clock,
-  FileText, AlertTriangle, CheckCircle, XCircle,
+  AlertTriangle, CheckCircle, XCircle, EyeOff, Eye,
 } from 'lucide-react';
 import { resolveUploadedFileUrl } from '@/lib/upload-path';
 import { toast } from 'sonner';
@@ -113,11 +113,17 @@ export default function ContractDetailPage({ params }: { params: Promise<{ id: s
   const [contract, setContract] = useState<ContractItem | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const [payOpen,      setPayOpen]      = useState(false);
-  const [renewOpen,    setRenewOpen]    = useState(false);
-  const [checkoutOpen, setCheckoutOpen] = useState(false);
-  const [deleteOpen,   setDeleteOpen]   = useState(false);
-  const [deleting,     setDeleting]     = useState(false);
+  const [payOpen,          setPayOpen]          = useState(false);
+  const [renewOpen,        setRenewOpen]        = useState(false);
+  const [checkoutOpen,     setCheckoutOpen]     = useState(false);
+  const [deleteOpen,       setDeleteOpen]       = useState(false);
+  const [deleting,         setDeleting]         = useState(false);
+  const [hideUserOpen,     setHideUserOpen]     = useState(false);
+  const [hideLandlordOpen, setHideLandlordOpen] = useState(false);
+  const [hidingUser,       setHidingUser]       = useState(false);
+  const [hidingLandlord,   setHidingLandlord]   = useState(false);
+  const [unhidingUser,     setUnhidingUser]     = useState(false);
+  const [unhidingLandlord, setUnhidingLandlord] = useState(false);
 
   const load = async () => {
     const res = await request<{ success: boolean; data: ContractItem }>(`/manage/contract/${id}`);
@@ -139,6 +145,56 @@ export default function ContractDetailPage({ params }: { params: Promise<{ id: s
       router.push('/manage/contract');
     } finally {
       setDeleting(false);
+    }
+  };
+
+  const handleHideUser = async () => {
+    if (hidingUser) return;
+    setHidingUser(true);
+    try {
+      await request(`/manage/contract/${id}`, { method: 'DELETE', json: { side: 'tenant' } });
+      toast.success('已对租客隐藏此合同');
+      setHideUserOpen(false);
+      refresh();
+    } finally {
+      setHidingUser(false);
+    }
+  };
+
+  const handleHideLandlord = async () => {
+    if (hidingLandlord) return;
+    setHidingLandlord(true);
+    try {
+      await request(`/manage/contract/${id}`, { method: 'DELETE', json: { side: 'landlord' } });
+      toast.success('已对房东隐藏此合同');
+      setHideLandlordOpen(false);
+      refresh();
+    } finally {
+      setHidingLandlord(false);
+    }
+  };
+
+  const handleShowUser = async () => {
+    if (unhidingUser) return;
+    setUnhidingUser(true);
+    try {
+      await request(`/manage/contract/${id}`, { method: 'PATCH', json: { side: 'tenant' } });
+      toast.success('已恢复对租客显示此合同');
+      refresh();
+    } finally {
+      setUnhidingUser(false);
+    }
+  };
+
+  const handleShowLandlord = async () => {
+    if (unhidingLandlord) return;
+    setUnhidingLandlord(true);
+    try {
+      await request(`/manage/contract/${id}`, { method: 'PATCH', json: { side: 'landlord' } });
+      toast.success('已恢复对房东显示此合同');
+      refresh();
+    } finally {
+      setUnhidingLandlord(false);
     }
   };
 
@@ -179,11 +235,15 @@ export default function ContractDetailPage({ params }: { params: Promise<{ id: s
 
   const paidPeriods   = JSON.parse(contract.paidPeriod)   as { start: string; end: string }[];
   const payingPeriods = JSON.parse(contract.payingPeriod) as { start: string; end: string }[];
-  const canEdit     = contract.status === 1 && !contract.isCheckout;
-  const canPay      = contract.status === 1 && !contract.isCheckout && payingPeriods.length > 0;
-  const canRenew    = contract.status === 1 && !contract.isCheckout;
-  const canCheckout = contract.status === 1 && !contract.isCheckout;
-  const canDelete   = contract.isCheckout;
+  const canEdit         = contract.status === 1 && !contract.isCheckout;
+  const canPay          = contract.status === 1 && !contract.isCheckout && payingPeriods.length > 0;
+  const canRenew        = contract.status === 1 && !contract.isCheckout;
+  const canCheckout     = contract.status === 1 && !contract.isCheckout;
+  const canDelete       = contract.isCheckout;
+  const canHideUser     = contract.isCheckout && !contract.userDeleted;
+  const canHideLandlord = contract.isCheckout && !contract.landlordDeleted;
+  const canShowUser     = contract.isCheckout && contract.userDeleted;
+  const canShowLandlord = contract.isCheckout && contract.landlordDeleted;
 
   return (
     <div className="space-y-5">
@@ -335,77 +395,116 @@ export default function ContractDetailPage({ params }: { params: Promise<{ id: s
         <div className="space-y-4 lg:sticky lg:top-6">
 
           {/* 操作 */}
-          <div className="bg-card border border-border rounded-2xl shadow-sm p-5">
-            <h2 className="text-body font-semibold text-text mb-4">合同操作</h2>
-            <div className="space-y-2">
-              {canEdit && (
-                <Link
-                  href={`/manage/contract/${id}/edit`}
-                  className="flex items-center gap-3 w-full h-10 px-4 rounded-xl border border-border text-body text-text hover:border-primary hover:bg-primary-tint hover:text-primary transition-all"
-                >
-                  <Pencil size={15} />
-                  修改开始时间
-                </Link>
-              )}
-              {canPay && (
-                <button
-                  onClick={() => setPayOpen(true)}
-                  className="flex items-center gap-3 w-full h-10 px-4 rounded-xl border border-emerald-200 bg-emerald-50 text-body text-emerald-700 hover:bg-emerald-100 hover:border-emerald-300 transition-all cursor-pointer"
-                >
-                  <CreditCard size={15} />
-                  交房租
-                  {payingPeriods.length > 0 && (
-                    <span className="ml-auto text-tiny bg-emerald-200 text-emerald-700 px-1.5 py-0.5 rounded">
-                      下期 ¥{contract.fee.toFixed(0)}
-                    </span>
-                  )}
-                </button>
-              )}
-              {canRenew && (
-                <button
-                  onClick={() => setRenewOpen(true)}
-                  className="flex items-center gap-3 w-full h-10 px-4 rounded-xl border border-sky-200 bg-sky-50 text-body text-sky-700 hover:bg-sky-100 hover:border-sky-300 transition-all cursor-pointer"
-                >
-                  <RefreshCw size={15} />
-                  续租
-                </button>
-              )}
-              {canCheckout && (
-                <button
-                  onClick={() => setCheckoutOpen(true)}
-                  className="flex items-center gap-3 w-full h-10 px-4 rounded-xl border border-orange-200 bg-orange-50 text-body text-orange-700 hover:bg-orange-100 hover:border-orange-300 transition-all cursor-pointer"
-                >
-                  <LogOut size={15} />
-                  退房
-                </button>
-              )}
-
-              {!canEdit && !canPay && !canRenew && !canCheckout && !canDelete && (
-                <div className="text-center py-4 text-body-sm text-text-muted">
-                  <FileText size={24} className="mx-auto mb-2 text-text-disabled" />
-                  暂无可用操作
-                </div>
-              )}
+          {(canEdit || canPay || canRenew || canCheckout) && (
+            <div className="bg-card border border-border rounded-2xl shadow-sm p-5">
+              <h2 className="text-body font-semibold text-text mb-4">合同操作</h2>
+              <div className="space-y-2">
+                {canEdit && (
+                  <Link
+                    href={`/manage/contract/${id}/edit`}
+                    className="flex items-center gap-3 w-full h-10 px-4 rounded-xl border border-border text-body text-text hover:border-primary hover:bg-primary-tint hover:text-primary transition-all"
+                  >
+                    <Pencil size={15} />
+                    修改开始时间
+                  </Link>
+                )}
+                {canPay && (
+                  <button
+                    onClick={() => setPayOpen(true)}
+                    className="flex items-center gap-3 w-full h-10 px-4 rounded-xl border border-emerald-200 bg-emerald-50 text-body text-emerald-700 hover:bg-emerald-100 hover:border-emerald-300 transition-all cursor-pointer"
+                  >
+                    <CreditCard size={15} />
+                    交房租
+                    {payingPeriods.length > 0 && (
+                      <span className="ml-auto text-tiny bg-emerald-200 text-emerald-700 px-1.5 py-0.5 rounded">
+                        下期 ¥{contract.fee.toFixed(0)}
+                      </span>
+                    )}
+                  </button>
+                )}
+                {canRenew && (
+                  <button
+                    onClick={() => setRenewOpen(true)}
+                    className="flex items-center gap-3 w-full h-10 px-4 rounded-xl border border-sky-200 bg-sky-50 text-body text-sky-700 hover:bg-sky-100 hover:border-sky-300 transition-all cursor-pointer"
+                  >
+                    <RefreshCw size={15} />
+                    续租
+                  </button>
+                )}
+                {canCheckout && (
+                  <button
+                    onClick={() => setCheckoutOpen(true)}
+                    className="flex items-center gap-3 w-full h-10 px-4 rounded-xl border border-orange-200 bg-orange-50 text-body text-orange-700 hover:bg-orange-100 hover:border-orange-300 transition-all cursor-pointer"
+                  >
+                    <LogOut size={15} />
+                    退房
+                  </button>
+                )}
+              </div>
             </div>
-          </div>
+          )}
 
-          {/* 删除操作（仅退房后可用） */}
-          {canDelete && (
+          {/* 隐藏 / 删除操作（仅退房后可用） */}
+          {(canHideUser || canHideLandlord || canShowUser || canShowLandlord || canDelete) && (
             <div className="bg-card border border-rose-200 rounded-2xl shadow-sm p-5">
               <div className="flex items-center gap-2 mb-3">
                 <AlertTriangle size={15} className="text-rose-500" />
                 <h2 className="text-body font-semibold text-rose-700">危险操作</h2>
               </div>
-              <p className="text-caption text-text-muted mb-3">
-                删除合同后，房东和租客均无法查看此合同，相当于完全取消租约记录，操作不可撤销。
+              <div className="space-y-2">
+                {canHideUser && (
+                  <button
+                    onClick={() => setHideUserOpen(true)}
+                    className="flex items-center gap-2 w-full h-10 px-4 rounded-xl border border-amber-200 bg-amber-50 text-body text-amber-700 hover:bg-amber-100 transition-all cursor-pointer"
+                  >
+                    <EyeOff size={15} />
+                    为租客隐藏
+                    <span className="ml-auto text-tiny text-amber-500">租客端不再显示</span>
+                  </button>
+                )}
+                {canShowUser && (
+                  <button
+                    onClick={handleShowUser}
+                    disabled={unhidingUser}
+                    className="flex items-center gap-2 w-full h-10 px-4 rounded-xl border border-emerald-200 bg-emerald-50 text-body text-emerald-700 hover:bg-emerald-100 transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <Eye size={15} />
+                    {unhidingUser ? '处理中...' : '取消对租客隐藏'}
+                    <span className="ml-auto text-tiny text-emerald-500">恢复租客端显示</span>
+                  </button>
+                )}
+                {canHideLandlord && (
+                  <button
+                    onClick={() => setHideLandlordOpen(true)}
+                    className="flex items-center gap-2 w-full h-10 px-4 rounded-xl border border-amber-200 bg-amber-50 text-body text-amber-700 hover:bg-amber-100 transition-all cursor-pointer"
+                  >
+                    <EyeOff size={15} />
+                    为房东隐藏
+                    <span className="ml-auto text-tiny text-amber-500">房东端不再显示</span>
+                  </button>
+                )}
+                {canShowLandlord && (
+                  <button
+                    onClick={handleShowLandlord}
+                    disabled={unhidingLandlord}
+                    className="flex items-center gap-2 w-full h-10 px-4 rounded-xl border border-emerald-200 bg-emerald-50 text-body text-emerald-700 hover:bg-emerald-100 transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <Eye size={15} />
+                    {unhidingLandlord ? '处理中...' : '取消对房东隐藏'}
+                    <span className="ml-auto text-tiny text-emerald-500">恢复房东端显示</span>
+                  </button>
+                )}
+                <button
+                  onClick={() => setDeleteOpen(true)}
+                  className="flex items-center justify-center gap-2 w-full h-10 px-4 rounded-xl border border-rose-300 bg-rose-50 text-body text-rose-700 hover:bg-rose-100 transition-all cursor-pointer"
+                >
+                  <Trash2 size={15} />
+                  彻底删除合同
+                </button>
+              </div>
+              <p className="text-caption text-text-muted mt-3">
+                隐藏后仅对该端用户不可见，管理后台仍可查看。彻底删除后所有人均无法查看，操作不可撤销。
               </p>
-              <button
-                onClick={() => setDeleteOpen(true)}
-                className="flex items-center justify-center gap-2 w-full h-10 px-4 rounded-xl border border-rose-300 bg-rose-50 text-body text-rose-700 hover:bg-rose-100 transition-all cursor-pointer"
-              >
-                <Trash2 size={15} />
-                删除合同
-              </button>
             </div>
           )}
 
@@ -425,6 +524,28 @@ export default function ContractDetailPage({ params }: { params: Promise<{ id: s
                 <span className="text-text-muted">最后更新</span>
                 <span className="font-mono text-text">{fmtDate(contract.updatedAt)}</span>
               </div>
+              {(contract.userDeleted || contract.landlordDeleted) && (
+                <div className="pt-1 mt-1 border-t border-border space-y-1.5">
+                  {contract.userDeleted && (
+                    <div className="flex items-center justify-between">
+                      <span className="text-text-muted">租客可见</span>
+                      <span className="inline-flex items-center gap-1 text-tiny bg-amber-50 text-amber-600 px-2 py-0.5 rounded-full">
+                        <EyeOff size={10} />
+                        已隐藏
+                      </span>
+                    </div>
+                  )}
+                  {contract.landlordDeleted && (
+                    <div className="flex items-center justify-between">
+                      <span className="text-text-muted">房东可见</span>
+                      <span className="inline-flex items-center gap-1 text-tiny bg-amber-50 text-amber-600 px-2 py-0.5 rounded-full">
+                        <EyeOff size={10} />
+                        已隐藏
+                      </span>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -437,7 +558,7 @@ export default function ContractDetailPage({ params }: { params: Promise<{ id: s
 
       <ConfirmDialog
         open={deleteOpen}
-        title="确认删除合同？"
+        title="确认彻底删除合同？"
         description={
           <>
             合同 <span className="font-semibold text-text">#{contract.id}</span> 将被永久删除，
@@ -451,6 +572,42 @@ export default function ContractDetailPage({ params }: { params: Promise<{ id: s
         icon={<Trash2 size={32} />}
         onClose={() => { if (!deleting) setDeleteOpen(false); }}
         onConfirm={handleDelete}
+      />
+
+      <ConfirmDialog
+        open={hideUserOpen}
+        title="为租客隐藏此合同？"
+        description={
+          <>
+            合同 <span className="font-semibold text-text">#{contract.id}</span>{' '}
+            将在租客端隐藏，租客将无法再查看此合同。管理后台仍可正常查看。
+          </>
+        }
+        confirmText="确认隐藏"
+        cancelText="取消"
+        loading={hidingUser}
+        danger
+        icon={<EyeOff size={32} />}
+        onClose={() => { if (!hidingUser) setHideUserOpen(false); }}
+        onConfirm={handleHideUser}
+      />
+
+      <ConfirmDialog
+        open={hideLandlordOpen}
+        title="为房东隐藏此合同？"
+        description={
+          <>
+            合同 <span className="font-semibold text-text">#{contract.id}</span>{' '}
+            将在房东端隐藏，房东将无法再查看此合同。管理后台仍可正常查看。
+          </>
+        }
+        confirmText="确认隐藏"
+        cancelText="取消"
+        loading={hidingLandlord}
+        danger
+        icon={<EyeOff size={32} />}
+        onClose={() => { if (!hidingLandlord) setHideLandlordOpen(false); }}
+        onConfirm={handleHideLandlord}
       />
     </div>
   );

@@ -77,6 +77,38 @@ export async function PUT(req: NextRequest, { params }: Params) {
   }
 }
 
+// 取消隐藏：将 userDeleted 或 landlordDeleted 置回 false
+export async function PATCH(req: NextRequest, { params }: Params) {
+  try {
+    const auth = await requireManageAuth(req);
+    if (!auth.ok) return auth.response;
+
+    const { id } = await params;
+    const contractId = parseInt(id);
+    if (isNaN(contractId)) return NextResponse.json({ success: false, message: '无效的合同 ID' }, { status: 400 });
+
+    const contract = await prisma.contract.findUnique({ where: { id: contractId } });
+    if (!contract) return NextResponse.json({ success: false, message: '合同不存在' }, { status: 404 });
+
+    const body = await req.json() as Record<string, unknown>;
+    const side = body.side as string | undefined;
+
+    if (side === 'tenant') {
+      const updated = await prisma.contract.update({ where: { id: contractId }, data: { userDeleted: false }, include: INCLUDE });
+      return NextResponse.json({ success: true, data: serializeContract(updated) });
+    }
+    if (side === 'landlord') {
+      const updated = await prisma.contract.update({ where: { id: contractId }, data: { landlordDeleted: false }, include: INCLUDE });
+      return NextResponse.json({ success: true, data: serializeContract(updated) });
+    }
+
+    return NextResponse.json({ success: false, message: '请指定 side: tenant 或 landlord' }, { status: 400 });
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : '服务器内部错误';
+    return NextResponse.json({ success: false, message }, { status: 500 });
+  }
+}
+
 // 删除合同：合同未退房（isCheckout=false）时不允许删除
 export async function DELETE(req: NextRequest, { params }: Params) {
   try {

@@ -245,12 +245,14 @@ function ContractPreview({
         <div className="space-y-1.5">
           {paidPeriods.map((p, i) => (
             <div key={i} className="flex items-center gap-2 text-body-sm">
-              <span className="w-5 h-5 rounded-full bg-emerald-100 grid place-items-center shrink-0">
-                <CheckCircle2 size={12} className="text-emerald-600" />
+              <span className={`w-5 h-5 rounded-full grid place-items-center shrink-0 ${isEdit ? 'bg-emerald-100' : 'bg-amber-100'}`}>
+                <CheckCircle2 size={12} className={isEdit ? 'text-emerald-600' : 'text-amber-500'} />
               </span>
               <span className="text-text-muted">第 {i + 1} 期</span>
               <span className="font-mono text-text ml-auto">{fmtDate(p.start)} ~ {fmtDate(p.end)}</span>
-              <span className="text-tiny bg-emerald-50 text-emerald-600 px-1.5 py-0.5 rounded shrink-0">已付</span>
+              <span className={`text-tiny px-1.5 py-0.5 rounded shrink-0 ${isEdit ? 'bg-emerald-50 text-emerald-600' : 'bg-amber-50 text-amber-600'}`}>
+                {isEdit ? '已付' : '应付'}
+              </span>
             </div>
           ))}
           {payingPeriods.map((p, i) => (
