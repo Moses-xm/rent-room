@@ -3,7 +3,7 @@
 全栈租房平台。`/manage/*` 管理平台，`/portal/*` 用户平台，共享数据库，认证独立。完整设计见 [doc/design.md](doc/design.md)。
 
 ## 技术栈
-Next.js 15 App Router · shadcn/ui + Tailwind CSS v4 · Neon Postgres + Prisma · 自实现 HS256 JWT（`MANAGE_JWT_SECRET`）· Vercel Blob（`lib/uploaded-file.ts`）· 百度地图 JS API（`NEXT_PUBLIC_BAIDU_MAP_AK`）
+Next.js 15 App Router · shadcn/ui + Tailwind CSS v4 · Neon Postgres + Prisma · 自实现 HS256 JWT（`MANAGE_JWT_SECRET` 管理端 / `PORTAL_JWT_SECRET` 用户端）· Vercel Blob（`lib/uploaded-file.ts`）· 百度地图 JS API（`NEXT_PUBLIC_BAIDU_MAP_AK`）
 
 ## 开发命令
 `npm run dev` · `npm run build` · `npm run lint` · `npx prisma db push`
@@ -17,7 +17,7 @@ Next.js 15 App Router · shadcn/ui + Tailwind CSS v4 · Neon Postgres + Prisma �
 每个模块在 `lib/` 下对应一个序列化文件（如 `lib/facility.ts`），所有 `Date` 字段必须显式调用 `.toISOString()`，确保 TypeScript 返回类型与前端实际收到的 JSON 一致。
 
 ## 前端规范
-- 请求统一用 `utils/request.ts` 的 `request<T>()`；不满足需求时扩展参数，不另起炉灶
+- 请求统一用 `utils/request.ts` 的 `request<T>()`（管理端）或 `utils/portal-request.ts` 的 `portalRequest<T>()`（用户端）；不满足需求时扩展参数，不另起炉灶
 - 新增普通 CRUD 模块时参照管理员管理模块，保持表格/表单/筛选/分页/弹窗风格一致
 - **错误处理**：`request()` 自动处理 4xx/5xx 异常并显示 toast 错误提示，页面层只需处理业务逻辑和成功提示；特殊场景（表单级错误展示、后台清理操作）传 `silent: true` 参数抑制 toast
 - **骨架屏（必须）**：所有页面首次加载不允许白屏。列表页桌面端由 `DataTable` 自动处理，移动端用 `<AppLoading variant="card" />`；详情/表单页在 `if (loading)` 提前返回，用 `skeleton-shimmer` / `skeleton-shimmer-warm` 类搭建与真实布局结构对应的骨架
@@ -49,6 +49,11 @@ rent-room/
 │   │   │   │   └── [id]/route.ts     # GET(详情) / PUT(更新) / DELETE(删除)
 │   │   │   ├── login/route.ts
 │   │   │   └── profile/route.ts
+│   │   ├── portal/
+│   │   │   ├── login/route.ts        # POST 用户登录（返回 JWT）
+│   │   │   └── orders/
+│   │   │       ├── route.ts          # GET 当前用户订单列表（过滤软删除）
+│   │   │       └── [id]/route.ts     # DELETE 软删除（设 payerDeleted/payeeDeleted）
 │   │   └── upload/
 │   │       └── avatar/route.ts       # 图片上传 / 删除
 │   ├── manage/
@@ -103,6 +108,9 @@ rent-room/
 │   │   ├── layout.tsx
 │   │   └── page.tsx                  # Dashboard
 │   ├── portal/
+│   │   ├── login/page.tsx            # 用户登录页
+│   │   ├── account/
+│   │   │   └── orders/page.tsx       # 个人中心 - 我的订单（软删除）
 │   │   ├── layout.tsx
 │   │   └── page.tsx
 │   ├── globals.css
@@ -130,16 +138,19 @@ rent-room/
 │   ├── notification.ts               # notification 序列化
 │   ├── contract.ts                   # contract 序列化（含 generatePeriods/addMonths 工具函数）
 │   ├── user.ts                       # user 序列化
-│   ├── manage-auth.ts                # JWT 签发 / 验证 / 鉴权
+│   ├── manage-auth.ts                # 管理端 JWT 签发 / 验证 / 鉴权
+│   ├── portal-auth.ts                # 用户端 JWT 签发 / 验证 / 鉴权
 │   ├── prisma.ts                     # Prisma 客户端单例
 │   ├── upload-path.ts                # 上传路径工具
 │   └── uploaded-file.ts              # Vercel Blob 操作封装
 ├── utils/                            # 客户端工具
 │   ├── constants.ts                  # 全大写常量统一入口
 │   ├── format.ts                     # 日期格式化工具（fmtDate / fmtDateTime）
-│   ├── manage-auth.ts                # token 本地存取
+│   ├── manage-auth.ts                # 管理端 token 本地存取
+│   ├── portal-auth.ts                # 用户端 token 本地存取
 │   ├── manage-city.ts                # 城市数据工具
-│   ├── request.ts                    # fetch 封装，自动注入 token
+│   ├── request.ts                    # 管理端 fetch 封装，自动注入 token
+│   ├── portal-request.ts             # 用户端 fetch 封装，自动注入 portal token
 │   └── use-body-scroll-lock.ts       # 弹窗背景滚动锁定 hook
 ├── styles/
 │   └── themes/
@@ -157,7 +168,7 @@ rent-room/
 ```
 
 ## 实现状态
-管理平台：登录 ✅、个人资料 ✅、管理员管理 ✅、用户管理 ✅、小区管理 ✅、轮播图管理 ✅、房屋设施管理 ✅、房源管理 ✅、收藏管理 ✅、预约管理 ✅、通知管理 ✅、合同管理 ✅、其余模块 ⬜。用户平台：全部 ⬜。数据库：`admin` 表 ✅、`user` 表 ✅、`community` 表 ✅、`carousel` 表 ✅、`facility` 表 ✅、`room` 表 ✅、`collection` 表 ✅、`appointment` 表 ✅、`notification` 表 ✅、`contract` 表 ✅、`order` 表 ✅、`wallet_record` 表 ✅。
+管理平台：登录 ✅、个人资料 ✅、管理员管理 ✅、用户管理 ✅、小区管理 ✅、轮播图管理 ✅、房屋设施管理 ✅、房源管理 ✅、收藏管理 ✅、预约管理 ✅、通知管理 ✅、合同管理 ✅、其余模块 ⬜。用户平台：登录 ✅、我的订单 ✅、其余模块 ⬜。数据库：`admin` 表 ✅、`user` 表 ✅、`community` 表 ✅、`carousel` 表 ✅、`facility` 表 ✅、`room` 表 ✅、`collection` 表 ✅、`appointment` 表 ✅、`notification` 表 ✅、`contract` 表 ✅、`order` 表 ✅、`wallet_record` 表 ✅。
 
 ## 顶栏面包屑（必须）
 每新增一个管理平台模块，**必须**同步在 `components/Topbar.tsx` 的 `resolveCrumbs` 函数中注册面包屑：

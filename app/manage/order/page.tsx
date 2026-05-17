@@ -25,6 +25,8 @@ export type OrderItem = {
   fee: number | null;
   pledge: number | null;
   paidPeriod: string | null;
+  payerDeleted: boolean;
+  payeeDeleted: boolean;
   createdAt: string;
   payer: { id: number; username: string; nickname: string | null; avatar: string | null } | null;
   payee: { id: number; username: string; nickname: string | null; avatar: string | null } | null;

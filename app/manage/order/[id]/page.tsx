@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import {
   ArrowLeft, ChevronRight, ShoppingCart, Trash2, User, Calendar,
-  AlertTriangle,
+  AlertTriangle, EyeOff, Eye,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { request } from '@/utils/request';
@@ -68,10 +68,17 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
   const { id } = use(params);
   const router  = useRouter();
 
-  const [order, setOrder]           = useState<OrderItem | null>(null);
-  const [loading, setLoading]       = useState(true);
-  const [deleteOpen, setDeleteOpen] = useState(false);
-  const [isDeleting, setIsDeleting] = useState(false);
+  const [order, setOrder]     = useState<OrderItem | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  const [deleteOpen,       setDeleteOpen]       = useState(false);
+  const [deleting,         setDeleting]         = useState(false);
+  const [hidePayerOpen,    setHidePayerOpen]    = useState(false);
+  const [hidePayeeOpen,    setHidePayeeOpen]    = useState(false);
+  const [hidingPayer,      setHidingPayer]      = useState(false);
+  const [hidingPayee,      setHidingPayee]      = useState(false);
+  const [unhidingPayer,    setUnhidingPayer]    = useState(false);
+  const [unhidingPayee,    setUnhidingPayee]    = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -83,15 +90,69 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
     return () => { cancelled = true; };
   }, [id]);
 
-  const confirmDelete = async () => {
-    if (!order || isDeleting) return;
-    setIsDeleting(true);
+  const handleDelete = async () => {
+    if (deleting) return;
+    setDeleting(true);
     try {
-      await request(`/manage/order/${order.id}`, { method: 'DELETE' });
+      await request(`/manage/order/${id}`, { method: 'DELETE' });
       toast.success('订单删除成功');
       router.push('/manage/order');
     } finally {
-      setIsDeleting(false);
+      setDeleting(false);
+    }
+  };
+
+  const handleHidePayer = async () => {
+    if (hidingPayer) return;
+    setHidingPayer(true);
+    try {
+      const res = await request<{ success: boolean; data: OrderItem }>(
+        `/manage/order/${id}`, { method: 'PATCH', json: { payerDeleted: true } },
+      );
+      if (res.success) { setOrder(res.data); toast.success('已对付款人隐藏此订单'); }
+      setHidePayerOpen(false);
+    } finally {
+      setHidingPayer(false);
+    }
+  };
+
+  const handleHidePayee = async () => {
+    if (hidingPayee) return;
+    setHidingPayee(true);
+    try {
+      const res = await request<{ success: boolean; data: OrderItem }>(
+        `/manage/order/${id}`, { method: 'PATCH', json: { payeeDeleted: true } },
+      );
+      if (res.success) { setOrder(res.data); toast.success('已对收款人隐藏此订单'); }
+      setHidePayeeOpen(false);
+    } finally {
+      setHidingPayee(false);
+    }
+  };
+
+  const handleShowPayer = async () => {
+    if (unhidingPayer) return;
+    setUnhidingPayer(true);
+    try {
+      const res = await request<{ success: boolean; data: OrderItem }>(
+        `/manage/order/${id}`, { method: 'PATCH', json: { payerDeleted: false } },
+      );
+      if (res.success) { setOrder(res.data); toast.success('已恢复对付款人显示此订单'); }
+    } finally {
+      setUnhidingPayer(false);
+    }
+  };
+
+  const handleShowPayee = async () => {
+    if (unhidingPayee) return;
+    setUnhidingPayee(true);
+    try {
+      const res = await request<{ success: boolean; data: OrderItem }>(
+        `/manage/order/${id}`, { method: 'PATCH', json: { payeeDeleted: false } },
+      );
+      if (res.success) { setOrder(res.data); toast.success('已恢复对收款人显示此订单'); }
+    } finally {
+      setUnhidingPayee(false);
     }
   };
 
@@ -120,7 +181,7 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
           </div>
           <div className="space-y-4">
             <div className="bg-card border border-border rounded-2xl p-6 space-y-3">
-              {[1, 2, 3].map((i) => <div key={i} className="w-full h-10 skeleton-shimmer rounded-xl" />)}
+              {[1, 2, 3, 4].map((i) => <div key={i} className="w-full h-10 skeleton-shimmer rounded-xl" />)}
             </div>
           </div>
         </div>
@@ -202,6 +263,28 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
                 ) : '—'
               }
             />
+            <InfoRow
+              label="付款人"
+              value={
+                order.payer ? (
+                  <Link href={`/manage/user/${order.payer.id}`} className="text-primary hover:underline">
+                    {order.payer.username}
+                    {order.payer.nickname && <span className="text-text-muted ml-1">（{order.payer.nickname}）</span>}
+                  </Link>
+                ) : '—'
+              }
+            />
+            <InfoRow
+              label="收款人"
+              value={
+                order.payee ? (
+                  <Link href={`/manage/user/${order.payee.id}`} className="text-primary hover:underline">
+                    {order.payee.username}
+                    {order.payee.nickname && <span className="text-text-muted ml-1">（{order.payee.nickname}）</span>}
+                  </Link>
+                ) : '—'
+              }
+            />
             {order.fee != null && (
               <InfoRow label="月租金额" value={`¥${order.fee.toFixed(2)}`} mono />
             )}
@@ -210,10 +293,11 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
             )}
             {totalAmount > 0 && (
               <InfoRow
-                label="合计金额"
+                label="付款金额"
                 value={<span className="font-semibold text-primary">¥{totalAmount.toFixed(2)}</span>}
               />
             )}
+            <InfoRow label="付款时间" value={fmtDateTime(order.createdAt)} mono />
             {order.paidPeriod && (
               <InfoRow label="覆盖时间段" value={order.paidPeriod} mono />
             )}
@@ -253,16 +337,63 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
               <AlertTriangle size={15} className="text-rose-500" />
               <h2 className="text-body font-semibold text-rose-700">危险操作</h2>
             </div>
-            <p className="text-caption text-text-muted mb-3">
-              删除后该订单将被永久移除，相关钱包流水记录不受影响，操作不可撤销。
+            <div className="space-y-2">
+              {/* 付款人侧 */}
+              {!order.payerDeleted ? (
+                <button
+                  onClick={() => setHidePayerOpen(true)}
+                  className="flex items-center gap-2 w-full h-10 px-4 rounded-xl border border-amber-200 bg-amber-50 text-body text-amber-700 hover:bg-amber-100 transition-all cursor-pointer"
+                >
+                  <EyeOff size={15} />
+                  为付款人隐藏
+                  <span className="ml-auto text-tiny text-amber-500">付款人端不再显示</span>
+                </button>
+              ) : (
+                <button
+                  onClick={handleShowPayer}
+                  disabled={unhidingPayer}
+                  className="flex items-center gap-2 w-full h-10 px-4 rounded-xl border border-emerald-200 bg-emerald-50 text-body text-emerald-700 hover:bg-emerald-100 transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <Eye size={15} />
+                  {unhidingPayer ? '处理中...' : '取消对付款人隐藏'}
+                  <span className="ml-auto text-tiny text-emerald-500">恢复付款人端显示</span>
+                </button>
+              )}
+
+              {/* 收款人侧 */}
+              {!order.payeeDeleted ? (
+                <button
+                  onClick={() => setHidePayeeOpen(true)}
+                  className="flex items-center gap-2 w-full h-10 px-4 rounded-xl border border-amber-200 bg-amber-50 text-body text-amber-700 hover:bg-amber-100 transition-all cursor-pointer"
+                >
+                  <EyeOff size={15} />
+                  为收款人隐藏
+                  <span className="ml-auto text-tiny text-amber-500">收款人端不再显示</span>
+                </button>
+              ) : (
+                <button
+                  onClick={handleShowPayee}
+                  disabled={unhidingPayee}
+                  className="flex items-center gap-2 w-full h-10 px-4 rounded-xl border border-emerald-200 bg-emerald-50 text-body text-emerald-700 hover:bg-emerald-100 transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <Eye size={15} />
+                  {unhidingPayee ? '处理中...' : '取消对收款人隐藏'}
+                  <span className="ml-auto text-tiny text-emerald-500">恢复收款人端显示</span>
+                </button>
+              )}
+
+              {/* 彻底删除 */}
+              <button
+                onClick={() => setDeleteOpen(true)}
+                className="flex items-center justify-center gap-2 w-full h-10 px-4 rounded-xl border border-rose-300 bg-rose-50 text-body text-rose-700 hover:bg-rose-100 transition-all cursor-pointer"
+              >
+                <Trash2 size={15} />
+                彻底删除订单
+              </button>
+            </div>
+            <p className="text-caption text-text-muted mt-3">
+              隐藏后仅对该端用户不可见，管理后台仍可查看。彻底删除后所有人均无法查看，操作不可撤销。
             </p>
-            <button
-              onClick={() => setDeleteOpen(true)}
-              className="flex items-center justify-center gap-2 w-full h-10 px-4 rounded-xl border border-rose-300 bg-rose-50 text-body text-rose-700 hover:bg-rose-100 transition-all cursor-pointer"
-            >
-              <Trash2 size={15} />
-              删除订单
-            </button>
           </div>
 
           {/* 元信息 */}
@@ -281,14 +412,37 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
                 <span className="text-text-muted">创建时间</span>
                 <span className="font-mono text-text">{fmtDate(order.createdAt)}</span>
               </div>
+              {(order.payerDeleted || order.payeeDeleted) && (
+                <div className="pt-1 mt-1 border-t border-border space-y-1.5">
+                  {order.payerDeleted && (
+                    <div className="flex items-center justify-between">
+                      <span className="text-text-muted">付款人可见</span>
+                      <span className="inline-flex items-center gap-1 text-tiny bg-amber-50 text-amber-600 px-2 py-0.5 rounded-full">
+                        <EyeOff size={10} />
+                        已隐藏
+                      </span>
+                    </div>
+                  )}
+                  {order.payeeDeleted && (
+                    <div className="flex items-center justify-between">
+                      <span className="text-text-muted">收款人可见</span>
+                      <span className="inline-flex items-center gap-1 text-tiny bg-amber-50 text-amber-600 px-2 py-0.5 rounded-full">
+                        <EyeOff size={10} />
+                        已隐藏
+                      </span>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           </div>
         </div>
       </div>
 
+      {/* ── 确认弹窗 ── */}
       <ConfirmDialog
         open={deleteOpen}
-        title="确认删除订单？"
+        title="确认彻底删除订单？"
         description={
           <>
             订单 <span className="font-semibold text-text">#{order.id}</span> 将被永久移除，
@@ -297,11 +451,47 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
         }
         confirmText="确认删除"
         cancelText="取消"
-        loading={isDeleting}
+        loading={deleting}
         danger
         icon={<Trash2 size={32} />}
-        onClose={() => { if (!isDeleting) setDeleteOpen(false); }}
-        onConfirm={confirmDelete}
+        onClose={() => { if (!deleting) setDeleteOpen(false); }}
+        onConfirm={handleDelete}
+      />
+
+      <ConfirmDialog
+        open={hidePayerOpen}
+        title="为付款人隐藏此订单？"
+        description={
+          <>
+            订单 <span className="font-semibold text-text">#{order.id}</span>{' '}
+            将在付款人端隐藏，付款人将无法再查看此订单。管理后台仍可正常查看。
+          </>
+        }
+        confirmText="确认隐藏"
+        cancelText="取消"
+        loading={hidingPayer}
+        danger
+        icon={<EyeOff size={32} />}
+        onClose={() => { if (!hidingPayer) setHidePayerOpen(false); }}
+        onConfirm={handleHidePayer}
+      />
+
+      <ConfirmDialog
+        open={hidePayeeOpen}
+        title="为收款人隐藏此订单？"
+        description={
+          <>
+            订单 <span className="font-semibold text-text">#{order.id}</span>{' '}
+            将在收款人端隐藏，收款人将无法再查看此订单。管理后台仍可正常查看。
+          </>
+        }
+        confirmText="确认隐藏"
+        cancelText="取消"
+        loading={hidingPayee}
+        danger
+        icon={<EyeOff size={32} />}
+        onClose={() => { if (!hidingPayee) setHidePayeeOpen(false); }}
+        onConfirm={handleHidePayee}
       />
     </div>
   );

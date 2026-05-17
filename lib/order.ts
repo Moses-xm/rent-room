@@ -8,6 +8,8 @@ type OrderRecord = {
   fee: number | null;
   pledge: number | null;
   paidPeriod: string | null;
+  payerDeleted: boolean;
+  payeeDeleted: boolean;
   createdAt: Date;
   updatedAt: Date;
   payer?: { id: number; username: string; nickname: string | null; avatar: string | null } | null;
@@ -27,6 +29,8 @@ export function serializeOrder(o: OrderRecord) {
     fee: o.fee,
     pledge: o.pledge,
     paidPeriod: o.paidPeriod,
+    payerDeleted: o.payerDeleted,
+    payeeDeleted: o.payeeDeleted,
     createdAt: o.createdAt.toISOString(),
     updatedAt: o.updatedAt.toISOString(),
     payer: o.payer ? { id: o.payer.id, username: o.payer.username, nickname: o.payer.nickname, avatar: o.payer.avatar } : null,

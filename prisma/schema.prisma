@@ -215,12 +215,14 @@ model order {
   payerId    Int                              // 付款人（租客；押金退款时角色反转为房东）
   roomId     Int
   payeeId    Int                              // 收款人（房东；押金退款时为租客）
-  type       Int      @default(1)             // 1=首期款(押金+首期房租) 2=续期房租 3=押金退款
-  fee        Float?                           // 本次房租金额
-  pledge     Float?                           // 本次押金金额
-  paidPeriod String?  @db.VarChar(200)        // 本次覆盖的房租时间段
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  type         Int      @default(1)             // 1=首期款(押金+首期房租) 2=续期房租 3=押金退款
+  fee          Float?                           // 本次房租金额
+  pledge       Float?                           // 本次押金金额
+  paidPeriod   String?  @db.VarChar(200)        // 本次覆盖的房租时间段
+  payerDeleted Boolean  @default(false)          // 付款人侧隐藏
+  payeeDeleted Boolean  @default(false)          // 收款人侧隐藏
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 
   contract      contract       @relation(fields: [contractId], references: [id])
   payer         user           @relation("payer", fields: [payerId],  references: [id])
