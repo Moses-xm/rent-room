@@ -22,12 +22,10 @@ export async function POST(req: NextRequest, { params }: Params) {
 
     const body = await req.json();
     const renewMonths = parseInt(body.renewMonths);
-    const payCode = String(body.payCode || '');
 
     if (!renewMonths || isNaN(renewMonths) || renewMonths <= 0) {
       return NextResponse.json({ success: false, message: '请输入有效的续租月数' }, { status: 400 });
     }
-    if (!payCode) return NextResponse.json({ success: false, message: '请输入支付密码' }, { status: 400 });
 
     const contract = await prisma.contract.findUnique({
       where: { id: contractId },
@@ -42,40 +40,14 @@ export async function POST(req: NextRequest, { params }: Params) {
       return NextResponse.json({ success: false, message: `续租月数必须是 ${payMonths} 的整数倍` }, { status: 400 });
     }
 
-    const tenant = contract.user;
-    if (!tenant) return NextResponse.json({ success: false, message: '租客不存在' }, { status: 404 });
-    if (tenant.payCode !== payCode) return NextResponse.json({ success: false, message: '支付密码错误' }, { status: 400 });
-
-    const renewFee = contract.fee * (renewMonths / payMonths);
-    if (tenant.wallet < renewFee) {
-      return NextResponse.json({ success: false, message: `租客余额不足，续租首期需 ¥${contract.fee.toFixed(2)}` }, { status: 400 });
-    }
-
     const newOfflineTime = addMonths(new Date(contract.offlineTime), renewMonths);
     const newPeriods = generatePeriods(new Date(contract.offlineTime), newOfflineTime, payMonths);
     const existingPayingPeriod = JSON.parse(contract.payingPeriod) as { start: string; end: string }[];
     const newPayingPeriod = JSON.stringify([...existingPayingPeriod, ...newPeriods]);
 
+    const tenantName = contract.user?.nickname || contract.user?.username || '租客';
+
     const updated = await prisma.$transaction(async (tx) => {
-      const orderRecord = await tx.order.create({
-        data: {
-          contractId, payerId: contract.userId, payeeId: contract.landlordId, roomId: contract.roomId,
-          type: 2, fee: contract.fee,
-          paidPeriod: `${newPeriods[0].start.substring(0, 10)}~${newPeriods[0].end.substring(0, 10)}`,
-        },
-      });
-
-      const updatedTenant   = await tx.user.update({ where: { id: contract.userId     }, data: { wallet: { decrement: contract.fee } }, select: { wallet: true } });
-      const updatedLandlord = await tx.user.update({ where: { id: contract.landlordId }, data: { wallet: { increment: contract.fee } }, select: { wallet: true } });
-
-      await tx.walletRecord.createMany({
-        data: [
-          { userId: contract.userId,     amount: -contract.fee, type: 2, remark: `支付房源「${contract.room?.name ?? ''}」续租首期房租`, orderId: orderRecord.id, balanceAfter: updatedTenant.wallet },
-          { userId: contract.landlordId, amount:  contract.fee, type: 3, remark: `收到房源「${contract.room?.name ?? ''}」续租首期房租`, orderId: orderRecord.id, balanceAfter: updatedLandlord.wallet },
-        ],
-      });
-
-      const tenantName = tenant.nickname || tenant.username;
       await tx.notification.create({
         data: {
           userId: contract.landlordId, type: 4,

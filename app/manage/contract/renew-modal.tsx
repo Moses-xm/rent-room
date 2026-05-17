@@ -22,7 +22,6 @@ function addMonths(date: Date, months: number): Date {
 
 export default function RenewModal({ contract, onClose, onSuccess }: Props) {
   const [renewMonths, setRenewMonths] = useState('');
-  const [payCode, setPayCode] = useState('');
   const [loading, setLoading] = useState(false);
 
   const payMonths = contract?.room?.pay ?? 1;
@@ -31,17 +30,16 @@ export default function RenewModal({ contract, onClose, onSuccess }: Props) {
 
   const preview = useMemo(() => {
     if (!contract || !isValidRenew) return null;
-    return { newEnd: addMonths(new Date(contract.offlineTime), renewMonthsNum), firstPeriodFee: contract.fee };
+    return { newEnd: addMonths(new Date(contract.offlineTime), renewMonthsNum) };
   }, [contract, renewMonthsNum, isValidRenew]);
 
-  const handleClose = () => { setRenewMonths(''); setPayCode(''); onClose(); };
+  const handleClose = () => { setRenewMonths(''); onClose(); };
 
   const handleSubmit = async () => {
     if (!isValidRenew) { toast.error(`续租月数必须是 ${payMonths} 的整数倍`); return; }
-    if (!payCode || payCode.length !== 6) { toast.error('请输入 6 位支付密码'); return; }
     setLoading(true);
     try {
-      await request(`/manage/contract/${contract!.id}/renew`, { method: 'POST', json: { renewMonths: renewMonthsNum, payCode } });
+      await request(`/manage/contract/${contract!.id}/renew`, { method: 'POST', json: { renewMonths: renewMonthsNum } });
       toast.success(`续租 ${renewMonthsNum} 个月成功`);
       handleClose();
       onSuccess();
@@ -71,13 +69,38 @@ export default function RenewModal({ contract, onClose, onSuccess }: Props) {
 
         {/* Content */}
         <div className="p-6 space-y-5 overflow-y-auto max-h-[70vh]">
-          {/* 当前合同概况 */}
+          {/* 当前合同信息 */}
           <div className="bg-slate-50 border border-border rounded-xl p-4">
-            <p className="text-body-sm font-semibold text-text mb-2">当前合同</p>
+            <p className="text-body-sm font-semibold text-text mb-3">当前合同</p>
             <div className="grid grid-cols-2 gap-2 text-body-sm">
-              <div><p className="text-text-muted mb-0.5">当前截止</p><p className="font-mono text-text">{contract ? fmtDate(contract.offlineTime) : '—'}</p></div>
-              <div><p className="text-text-muted mb-0.5">付款方式</p><p className="text-text">每 {payMonths} 个月一付</p></div>
-              <div><p className="text-text-muted mb-0.5">每期租金</p><p className="font-mono text-text">¥{contract?.fee.toFixed(2)}</p></div>
+              <div className="col-span-2">
+                <p className="text-text-muted mb-0.5">房源名称</p>
+                <p className="text-text font-medium">{contract?.room?.name ?? '—'}</p>
+              </div>
+              <div>
+                <p className="text-text-muted mb-0.5">最短租期</p>
+                <p className="text-text">{contract?.room?.minTenancy ?? '—'} 个月</p>
+              </div>
+              <div>
+                <p className="text-text-muted mb-0.5">付款方式</p>
+                <p className="text-text">每 {payMonths} 个月一付</p>
+              </div>
+              <div>
+                <p className="text-text-muted mb-0.5">合同开始</p>
+                <p className="font-mono text-text">{contract ? fmtDate(contract.onlineTime) : '—'}</p>
+              </div>
+              <div>
+                <p className="text-text-muted mb-0.5">合同截止</p>
+                <p className="font-mono text-text">{contract ? fmtDate(contract.offlineTime) : '—'}</p>
+              </div>
+              <div>
+                <p className="text-text-muted mb-0.5">每期租金</p>
+                <p className="font-mono text-text">¥{contract?.fee.toFixed(2)}</p>
+              </div>
+              <div>
+                <p className="text-text-muted mb-0.5">续租次数</p>
+                <p className="text-text">{contract?.renewTimes ?? 0} 次</p>
+              </div>
             </div>
           </div>
 
@@ -123,33 +146,22 @@ export default function RenewModal({ contract, onClose, onSuccess }: Props) {
                 <p className="text-body-sm font-semibold text-sky-700">续租预览</p>
               </div>
               <div className="grid grid-cols-2 gap-2 text-body-sm">
-                <div><p className="text-text-muted mb-0.5">续租后截止</p><p className="font-mono text-sky-700 font-medium">{fmtDate(preview.newEnd.toISOString())}</p></div>
-                <div><p className="text-text-muted mb-0.5">续租月数</p><p className="text-text">{renewMonthsNum} 个月</p></div>
-                <div className="col-span-2"><p className="text-text-muted mb-0.5">续租首期需付</p><p className="font-mono text-h3 font-heading text-sky-700">¥{preview.firstPeriodFee.toFixed(2)}</p></div>
+                <div>
+                  <p className="text-text-muted mb-0.5">续租月数</p>
+                  <p className="text-text">{renewMonthsNum} 个月</p>
+                </div>
+                <div>
+                  <p className="text-text-muted mb-0.5">续租后截止</p>
+                  <p className="font-mono text-sky-700 font-medium">{fmtDate(preview.newEnd.toISOString())}</p>
+                </div>
               </div>
+              <p className="text-caption text-sky-600 pt-1">续租后可在合同详情中另行交租</p>
             </div>
           )}
 
-          {/* 支付密码 */}
-          <div>
-            <label className="block text-body-sm font-emphasis text-text mb-2">租客支付密码</label>
-            <input
-              type="password"
-              maxLength={6}
-              inputMode="numeric"
-              placeholder="请输入租客 6 位支付密码"
-              value={payCode}
-              onChange={(e) => setPayCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
-              className="w-full h-10 px-3 border border-border rounded-xl text-body outline-none
-                         transition-[border-color,box-shadow] focus:border-primary
-                         focus:shadow-[0_0_0_3px_color-mix(in_srgb,var(--color-primary)_15%,transparent)]
-                         placeholder:text-text-muted tracking-[0.4em] text-center"
-            />
-          </div>
-
           <div className="flex gap-3">
-            <button onClick={handleClose} disabled={loading} className="flex-1 h-10 border border-border rounded-xl text-body text-text hover:bg-surface-2 transition-colors disabled:opacity-50 cursor-pointer">取消</button>
-            <button onClick={handleSubmit} disabled={loading || !isValidRenew} className="flex-1 h-10 bg-sky-600 text-white rounded-xl text-body font-medium hover:bg-sky-700 transition-colors disabled:opacity-50 cursor-pointer">
+            <button onClick={handleClose} disabled={loading} className="flex-1 h-10 border border-border rounded-xl text-body text-text hover:bg-surface-2 transition-colors disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed">取消</button>
+            <button onClick={handleSubmit} disabled={loading || !isValidRenew} className="flex-1 h-10 bg-sky-600 text-white rounded-xl text-body font-medium hover:bg-sky-700 transition-colors disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed">
               {loading ? '处理中...' : '确认续租'}
             </button>
           </div>
