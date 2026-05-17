@@ -854,7 +854,7 @@ import AppLoading from '@/components/AppLoading';
 - **编辑合同**（`/manage/contract/[id]/edit`，表单回显）：进行中合同仅允许修改 onlineTime（结束时间和期限自动重算）；已完成合同只读
 - **交房租弹窗**：显示下一期时段和金额，输入支付密码确认；若最后一期且已到期则触发合法退房流程
 - **续租弹窗**：显示当前合同截止时间，选择续租月数（必须是 pay 的整数倍），实时预览新截止时间，输入支付密码；成功后通知房东
-- **退房弹窗**：二次确认，选择合法退房（退押金）或提前退房（不退押金）；更新合同状态、钱包、通知、房源 isRented
+- **退房弹窗**：后端自动判断类型（`payingPeriod` 为空 → 合法退房；否则 → 非法退房），前端展示判断结果及押金处理说明后二次确认；若合法但合同尚未到期（租客提前付清所有租金），额外显示橙色提示；更新合同状态、钱包、通知、房源 isRented
 - **删除合同**：仅允许 `isCheckout=true` 的合同删除；二次确认后硬删除（管理员直接完全删除，无需区分租客/房东侧）
 - API：
   - `GET /api/manage/contract` — 列表（`page`、`limit`、`search`、`status`、`isCheckout`）
@@ -864,7 +864,7 @@ import AppLoading from '@/components/AppLoading';
   - `DELETE /api/manage/contract/[id]` — 删除（需 isCheckout=true）
   - `POST /api/manage/contract/[id]/pay` — 交房租
   - `POST /api/manage/contract/[id]/renew` — 续租
-  - `POST /api/manage/contract/[id]/checkout` — 退房（`{ legal: boolean }`）
+  - `POST /api/manage/contract/[id]/checkout` — 退房（无需传参，合法/非法由后端根据 `payingPeriod` 自动判断）
   - `GET /api/manage/contract/options/users` — 用户选项（含余额）
   - `GET /api/manage/contract/options/rooms` — 可用房源选项（已发布+未租出）
 - 序列化：`lib/contract.ts`，含 `serializeContract`、`generatePeriods`、`addMonths` 工具函数
@@ -1030,15 +1030,21 @@ import AppLoading from '@/components/AppLoading';
 - `renewTimes + 1`
 - 创建通知告知房东（`type=4`，"租客已续租"）
 
-**提前退房（`POST /checkout`）**：
-- 非法退房：`refund=false`，不退押金
-- 设置 `isCheckout=true`、`checkoutTime=now()`、`status=2`
-- 更新房源 `isRented=1`（重新可租）
-- 为租客创建通知（`type=10`，"提前退房操作已确认，押金不予退还"）
-- 为房东创建通知（`type=11`，"租客已提前退房，押金无需退还"）
+**退房（`POST /checkout`）**：
+- **合法/非法由后端根据 `payingPeriod` 自动判断，不接受客户端传参**
+- `payingPeriod` 为空 → **合法退房**（`refund=true`，押金退还）
+  - 事务：`isCheckout=true`、`checkoutTime=now()`、`refund=true`、`status=2`
+  - 退押金：从房东 wallet 扣除 `pledge`，加入租客 wallet；创建 `Order`（`type=3`）及双方 `WalletRecord`
+  - 更新房源 `isRented=1`
+  - 通知租客（`type=8`）、通知房东（`type=11`）；若合同尚未到期（提前付清退房），通知 content 注明"提前结清"
+- `payingPeriod` 不为空 → **非法退房**（`refund=false`，押金不退）
+  - 事务：`isCheckout=true`、`checkoutTime=now()`、`refund=false`、`status=2`
+  - 更新房源 `isRented=1`
+  - 通知租客（`type=10`，"提前退房操作已确认，押金不予退还"）
+  - 通知房东（`type=11`，"租客已提前退房，仍有未结清租金，押金无需退还"）
 
-**合法退房（系统自动触发，无独立 API）**：
-- 触发时机（懒检测）：API 查询合同时，检测 `payingPeriod` 为空 且 `offlineTime <= now()` 且 `isCheckout=false`
+**合法退房（系统懒检测，无独立 API）**：
+- 触发时机：API 查询合同时，检测 `payingPeriod` 为空 且 `offlineTime <= now()` 且 `isCheckout=false`
 - 事务：`isCheckout=true`、`checkoutTime=now()`、`refund=true`、`status=2`
 - 退押金：从房东 wallet 扣除 `pledge`，加入租客 wallet
 - 创建 `Order`（`type=3`，`pledge=合同押金`）
@@ -1110,9 +1116,9 @@ import AppLoading from '@/components/AppLoading';
 | `5` | 租客完成付款（首期/续期） | 租客 | "付款成功" |
 | `6` | 租客付款，房东收款 | 房东 | "收款成功" |
 | `7` | 下一期房租到期前 7 天（定时/懒触发） | 租客 | "房租即将到期，请准备缴费" |
-| `8` | 合法退房（租期到期），押金自动退回 | 租客 | "租约已到期，押金已退回至您的钱包" |
+| `8` | 合法退房（已付清所有租金），押金退回；到期退房或提前付清退房均用此类型 | 租客 | "退房成功，押金已退回至您的钱包" |
 | `9` | 逾期 15 天未缴房租，强制退房 | 租客 | "逾期未缴房租，已强制退房，押金不予退还" |
-| `10` | 租客主动提前退房（非法退房） | 租客 | "提前退房操作已确认，押金不予退还" |
+| `10` | 仍有未结清租金的提前退房（非法退房） | 租客 | "提前退房操作已确认，押金不予退还" |
 | `11` | 任意退房事件（合法/提前/逾期） | 房东 | "租客已退房"（content 注明具体类型及押金处理结果） |
 
 ### 发布房源

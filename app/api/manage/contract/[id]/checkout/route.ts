@@ -11,7 +11,6 @@ const INCLUDE = {
 
 type Params = { params: Promise<{ id: string }> };
 
-// legal=true 合法退房（退押金），legal=false 非法退房（不退押金）
 export async function POST(req: NextRequest, { params }: Params) {
   try {
     const auth = await requireManageAuth(req);
@@ -21,9 +20,6 @@ export async function POST(req: NextRequest, { params }: Params) {
     const contractId = parseInt(id);
     if (isNaN(contractId)) return NextResponse.json({ success: false, message: '无效的合同 ID' }, { status: 400 });
 
-    const body = await req.json();
-    const isLegal = body.legal === true;
-
     const contract = await prisma.contract.findUnique({
       where: { id: contractId },
       include: { room: true, user: true, landlord: true },
@@ -32,12 +28,17 @@ export async function POST(req: NextRequest, { params }: Params) {
     if (contract.isCheckout) return NextResponse.json({ success: false, message: '合同已退房' }, { status: 400 });
     if (contract.status === 2) return NextResponse.json({ success: false, message: '合同已完成' }, { status: 400 });
 
+    // 判断合法/非法：payingPeriod 为空则合法（押金退还），否则非法（押金不退）
+    const payingPeriods = JSON.parse(contract.payingPeriod ?? '[]') as unknown[];
+    const isLegal       = payingPeriods.length === 0;
+    // 合法退房但合同尚未到期（已提前付清所有租金）
+    const isEarlyLegal  = isLegal && new Date() < contract.offlineTime;
+
     const checkoutTime = new Date();
     const tenantName   = contract.user?.nickname   || contract.user?.username   || '';
     const roomName     = contract.room?.name ?? '';
 
     const updated = await prisma.$transaction(async (tx) => {
-      // 更新房源为可租
       await tx.room.update({ where: { id: contract.roomId }, data: { isRented: 1 } });
 
       if (isLegal) {
@@ -56,18 +57,26 @@ export async function POST(req: NextRequest, { params }: Params) {
             { userId: contract.landlordId, amount: -contract.pledge, type: 2, remark: `退还房源「${roomName}」押金给租客`, orderId: refundOrder.id, balanceAfter: refundedLandlord.wallet },
           ],
         });
+
+        const tenantContent = isEarlyLegal
+          ? `您已提前结清房源「${roomName}」的全部租金并退房，押金 ¥${contract.pledge.toFixed(2)} 已退回至您的钱包。`
+          : `您的租约已到期，房源「${roomName}」押金 ¥${contract.pledge.toFixed(2)} 已退回至您的钱包。`;
+        const landlordContent = isEarlyLegal
+          ? `租客 ${tenantName} 已提前结清所有租金并退出房源「${roomName}」，押金 ¥${contract.pledge.toFixed(2)} 已从您的钱包扣除退还给租客。`
+          : `租客 ${tenantName} 租约到期已退房「${roomName}」，押金 ¥${contract.pledge.toFixed(2)} 已从您的钱包扣除退还给租客。`;
+
         await tx.notification.createMany({
           data: [
-            { userId: contract.userId,     type: 8,  title: '退房成功，押金已退回', content: `您已合法退房，房源「${roomName}」押金 ¥${contract.pledge.toFixed(2)} 已退回至您的钱包。`, relatedType: 'contract', relatedId: contractId },
-            { userId: contract.landlordId, type: 11, title: `租客 ${tenantName} 已退房`, content: `租客 ${tenantName} 已合法退房，押金 ¥${contract.pledge.toFixed(2)} 已从您的钱包扣除退还给租客。`, relatedType: 'contract', relatedId: contractId },
+            { userId: contract.userId,     type: 8,  title: isEarlyLegal ? '退房成功，押金已退回（提前退房）' : '退房成功，押金已退回', content: tenantContent, relatedType: 'contract', relatedId: contractId },
+            { userId: contract.landlordId, type: 11, title: `租客 ${tenantName} 已退房`, content: landlordContent, relatedType: 'contract', relatedId: contractId },
           ],
         });
       } else {
         // 非法退房：押金不退
         await tx.notification.createMany({
           data: [
-            { userId: contract.userId,     type: 10, title: '提前退房确认，押金不予退还', content: `您已提前退出房源「${roomName}」，按合同规定押金 ¥${contract.pledge.toFixed(2)} 不予退还。`, relatedType: 'contract', relatedId: contractId },
-            { userId: contract.landlordId, type: 11, title: `租客 ${tenantName} 已提前退房`, content: `租客 ${tenantName} 已提前退出您的房源「${roomName}」，押金无需退还。`, relatedType: 'contract', relatedId: contractId },
+            { userId: contract.userId,     type: 10, title: '提前退房确认，押金不予退还', content: `您已提前退出房源「${roomName}」，仍有未结清租金，按合同规定押金 ¥${contract.pledge.toFixed(2)} 不予退还。`, relatedType: 'contract', relatedId: contractId },
+            { userId: contract.landlordId, type: 11, title: `租客 ${tenantName} 已提前退房`, content: `租客 ${tenantName} 已提前退出您的房源「${roomName}」，仍有未结清租金，押金无需退还。`, relatedType: 'contract', relatedId: contractId },
           ],
         });
       }
