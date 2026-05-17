@@ -1,112 +1,188 @@
-# Portal 前端还原实施手册
+# Portal 前端实施手册
 
-> 目标：将 `public/prototype/` 高保真静态原型，原原本本地移植为 Next.js App Router 实现，做到视觉、布局、交互风格与原型一致。
+> 目标：以 `public/prototype/` 高保真静态原型为视觉设计稿，使用 **Tailwind CSS v4 + Next.js App Router** 实现，视觉风格还原原型，同时完整支持移动端响应式布局。
 
 ---
 
-## 一、原型全面分析
+## 一、原型分析
 
-### 1.1 色彩体系
+### 1.1 色彩体系与 CSS 变量映射
 
-| 用途 | 颜色值 | 说明 |
+所有颜色已在 `styles/themes/portal.css` 中定义为 CSS 变量，**组件内禁止使用原始 hex 值**，统一通过以下方式引用：
+
+| 用途 | CSS 变量 | Tailwind 写法 |
 |---|---|---|
-| 品牌/导航栏背景 | `#62ab00` | 绿色，top-menu、按钮、active 分页、边框 |
-| 品牌色（Logo） | `#48a841` | 略深的绿，header brand 文字、auth 底边线 |
-| 导航 hover/active 深绿 | `#4a8101` | top-menu 菜单项 hover 背景 |
-| 搜索按钮橙色 | `#f60` (`#ff6600`) | 搜索按钮背景、链接 hover 色、filter 激活色 |
-| 价格橙红色 | `#eb5f00` | 房价文字颜色 |
-| 主文字 | `#333` | 标题、正文 |
-| 次要文字 | `#666` / `#797979` | 描述、说明 |
-| 更弱文字 | `#999` | filter label、表头 |
-| 边框 | `#e6e6e6` | 卡片、分割线 |
-| 浅背景 | `#f9f9f9` / `#f1f1f1` | hover 背景、个人中心页面底色 |
-| 标签色（4种）| red `#fcf4f1/#e88a78`、green `#f2f6ed/#799374`、blue `#f0f4f8/#6682ae`、yellow `#fffaf0/#8b7500` | 房源/小区标签 |
+| 主色（导航栏/按钮/激活态） | `--color-primary` (`#62ab00`) | `bg-primary` / `text-primary` |
+| 主色深（hover 深绿） | `--color-primary-dark` (`#4a8101`) | `bg-primary-dark` |
+| 品牌绿（Logo/auth 边线） | `--color-primary-brand` (`#48a841`) | `text-(--color-primary-brand)` / `border-(--color-primary-brand)` |
+| 浅绿背景（active/tag） | `--color-primary-tint` (`#f2f6ed`) | `bg-primary-tint` |
+| 搜索按钮/hover/激活橙 | `--color-accent` (`#ff6600`) | `bg-(--color-accent)` / `text-(--color-accent)` |
+| 价格文字橙红 | `--color-accent-dark` (`#eb5f00`) | `text-(--color-accent-dark)` |
+| 主文字 | `--color-text` (`#333`) | `text-text` |
+| 次要文字 | `--color-text-2` (`#666`) | `text-text-2` |
+| 弱文字 | `--color-text-muted` (`#999`) | `text-text-muted` |
+| 边框 | `--color-border` (`#e6e6e6`) | `border-border` |
+| 浅背景 | `--color-surface` (`#f9f9f9`) | `bg-surface` |
+| 次级浅背景 | `--color-surface-2` (`#f1f1f1`) | `bg-surface-2` |
 
-### 1.2 页面清单（共 17 个路由）
+> **注**：`--color-primary`、`--color-primary-dark`、`--color-primary-tint` 等已在 `app/globals.css` 的 `@theme inline` 中注册，因此可直接用 `text-primary` / `bg-primary` 等 Tailwind 原生类。`--color-accent`、`--color-accent-dark`、`--color-primary-brand` 仅在 `portal.css` 中定义，需用 `bg-(--color-accent)` 的 CSS 变量简写语法。
 
-| 路径 | 页面 | 布局类型 |
+### 1.2 标签色（4 种固定色）
+
+组件内可直接用 Tailwind 任意值，或封装为 `RoomTags` 组件：
+
+| 类型 | 文字色 | 背景色 |
 |---|---|---|
-| `/portal` | 首页 | BaseLayout |
-| `/portal/areaRoom` | 区域找房 | BaseLayout |
-| `/portal/subwayRoom` | 地铁找房 | BaseLayout |
-| `/portal/cmyRoom` | 小区找房 | BaseLayout |
-| `/portal/cmyRoom/[id]` | 小区房源列表 | BaseLayout |
-| `/portal/room/[id]` | 房源详情 | BaseLayout |
-| `/portal/mapRoom` | 地图找房 | BaseLayout |
-| `/portal/login` | 登录 | AuthLayout |
-| `/portal/register` | 注册 | AuthLayout |
-| `/portal/sharedRoom/createRoom` | 发布房源 | BaseLayout（需登录） |
-| `/portal/sharedRoom/createCmy` | 创建小区 | BaseLayout（需登录） |
-| `/portal/sharedRoom/success` | 提交成功 | BaseLayout |
-| `/portal/account/info` | 我的资料 | MineLayout |
-| `/portal/account/collection` | 我的收藏 | MineLayout |
-| `/portal/account/appointment` | 我的预约 | MineLayout |
-| `/portal/account/room` | 我的房源 | MineLayout |
-| `/portal/account/contract` | 我的合同 | MineLayout |
-| `/portal/account/orders` | 我的订单 | MineLayout（已存在） |
+| tag-red | `text-[#e88a78]` | `bg-[#fcf4f1]` |
+| tag-green | `text-[#799374]` | `bg-[#f2f6ed]` |
+| tag-blue | `text-[#6682ae]` | `bg-[#f0f4f8]` |
+| tag-yellow | `text-[#8b7500]` | `bg-[#fffaf0]` |
 
-### 1.3 布局结构
+### 1.3 页面清单（共 17 个路由）
 
-**BaseLayout（通用）**
-```
-┌─────────────────────────────────────────────┐  高度
-│  GlobalHeader：品牌 + 城市 + 搜索 + 用户链接  │  62px
-├─────────────────────────────────────────────┤
-│  TopMenu：绿色导航栏（6个菜单项）             │  40px
-├─────────────────────────────────────────────┤
-│  <main> 页面内容区 1180px 居中                │  弹性
-├─────────────────────────────────────────────┤
-│  Footer：链接行 + 版权行                      │  117px
-└─────────────────────────────────────────────┘
-```
-
-**AuthLayout（登录/注册）**
-```
-全屏背景图 → auth-header（品牌 + 导航）+ 居中白色卡片（540px）
-```
-
-**MineLayout（个人中心）**
-```
-┌──────────────────────────────────────────────┐
-│  MineHeader：绿色顶栏，品牌 + "个人中心" + 退出│  55px
-├──────────────────────────────────────────────┤
-│  MineBanner：用户横幅（头像 + 姓名欢迎词）     │  100px
-├─────────────┬────────────────────────────────┤
-│ MineSider   │ MineContainer（白色内容区）       │  弹性
-│ 200px       │ 960px                            │
-│ 菜单导航     │                                  │
-└─────────────┴────────────────────────────────┘
-```
-
-### 1.4 可复用组件清单
-
-| 组件 | 位置建议 | 说明 |
+| 路径 | 页面 | Shell 组件 |
 |---|---|---|
-| `GlobalHeader` | `components/portal/GlobalHeader.tsx` | 品牌、城市选择、搜索框、用户链接 |
-| `TopMenu` | `components/portal/TopMenu.tsx` | 绿色导航，高亮当前路径 |
-| `PortalFooter` | `components/portal/PortalFooter.tsx` | 三行页脚 |
-| `PortalShell` | `components/portal/PortalShell.tsx` | BaseLayout 包裹器 |
-| `MineShell` | `components/portal/MineShell.tsx` | MineLayout 包裹器 |
-| `HomeCard` | `components/portal/HomeCard.tsx` | 首页卡片（房源/小区） |
+| `/portal` | 首页 | `PortalShell` |
+| `/portal/areaRoom` | 区域找房 | `PortalShell` |
+| `/portal/subwayRoom` | 地铁找房 | `PortalShell` |
+| `/portal/cmyRoom` | 小区找房 | `PortalShell` |
+| `/portal/cmyRoom/[id]` | 小区房源列表 | `PortalShell` |
+| `/portal/room/[id]` | 房源详情 | `PortalShell` |
+| `/portal/mapRoom` | 地图找房 | `PortalShell` |
+| `/portal/login` | 登录 | `AuthShell` |
+| `/portal/register` | 注册 | `AuthShell` |
+| `/portal/sharedRoom/createRoom` | 发布房源 | `PortalShell`（需登录） |
+| `/portal/sharedRoom/createCmy` | 创建小区 | `PortalShell`（需登录） |
+| `/portal/sharedRoom/success` | 提交成功 | `PortalShell` |
+| `/portal/account/info` | 我的资料 | `MineShell` |
+| `/portal/account/collection` | 我的收藏 | `MineShell` |
+| `/portal/account/appointment` | 我的预约 | `MineShell` |
+| `/portal/account/room` | 我的房源 | `MineShell` |
+| `/portal/account/contract` | 我的合同 | `MineShell` |
+| `/portal/account/orders` | 我的订单 | `MineShell`（已存在） |
+
+### 1.4 布局结构与响应式策略
+
+**PortalShell（公开页面）**
+
+```
+桌面端（lg:）                        移动端
+┌───────────────────────────────┐    ┌──────────────────────┐
+│ GlobalHeader  max-w-295 mx-auto│    │ 品牌 Logo  [≡ 汉堡]  │  h-14
+├───────────────────────────────┤    ├──────────────────────┤
+│ TopMenu（绿色导航栏，6 个菜单）  │    │  隐藏（收入汉堡抽屉）  │
+├───────────────────────────────┤    ├──────────────────────┤
+│ <main> flex-1                  │    │ <main> flex-1        │
+├───────────────────────────────┤    ├──────────────────────┤
+│ PortalFooter  max-w-295 mx-auto│    │ PortalFooter         │
+└───────────────────────────────┘    └──────────────────────┘
+```
+
+移动端汉堡抽屉（`MobileNav`）从左侧滑入，包含：城市、搜索框、6 个菜单项、用户状态区。
+
+**AuthShell（登录/注册）**
+
+```
+桌面端                          移动端
+全屏背景图                       全屏背景图
+h-15.5 导航（品牌 + 登录/注册）   h-15.5 导航
+w-135 mx-auto mt-37.5 白色卡片   mx-4 mt-16 白色卡片（全宽）
+```
+
+**MineShell（个人中心）**
+
+```
+桌面端                           移动端
+全宽绿色顶栏（h-13.75）            全宽绿色顶栏
+全宽用户横幅（h-25）                全宽用户横幅
+max-w-295 mx-auto                 max-w-295 mx-auto px-4
+  w-50 侧边菜单 | flex-1 内容区      水平滚动 Tab + flex-1 内容区（全宽）
+```
+
+### 1.5 已实现的 Shell 组件
+
+| 组件 | 文件 | 说明 |
+|---|---|---|
+| `PortalToaster` | `components/portal/PortalToaster.tsx` | 全局 Toast，挂载于 layout |
+| `GlobalHeader` | `components/portal/GlobalHeader.tsx` | 顶部导航，桌面/移动双布局 |
+| `TopMenu` | `components/portal/TopMenu.tsx` | 绿色导航栏，移动端 `hidden` |
+| `MobileNav` | `components/portal/MobileNav.tsx` | 移动端汉堡抽屉内容 |
+| `PortalFooter` | `components/portal/PortalFooter.tsx` | 页脚 |
+| `PortalShell` | `components/portal/PortalShell.tsx` | 公开页面 BaseLayout |
+| `AuthShell` | `components/portal/AuthShell.tsx` | 登录/注册布局 |
+| `MineShell` | `components/portal/MineShell.tsx` | 个人中心布局，内置 auth 守卫 |
+
+### 1.6 待实现的共享 UI 组件
+
+| 组件 | 文件 | 说明 |
+|---|---|---|
+| `HomeCard` | `components/portal/HomeCard.tsx` | 首页房源/小区卡片 |
 | `RoomRow` | `components/portal/RoomRow.tsx` | 列表页房源行 |
 | `CommunityRow` | `components/portal/CommunityRow.tsx` | 小区列表行 |
-| `RoomFilterBar` | `components/portal/RoomFilterBar.tsx` | 筛选栏（区域/地铁/租金/更多） |
-| `RoomTags` | `components/portal/RoomTags.tsx` | 颜色标签组（red/green/blue/yellow） |
-| `BrokerCard` | `components/portal/BrokerCard.tsx` | 房源详情右侧经纪人卡片 |
-| `PortalPagination` | `components/portal/PortalPagination.tsx` | 绿色分页组件 |
-| `AdSidebar` | `components/portal/AdSidebar.tsx` | 列表页右侧广告占位 |
+| `RoomFilterBar` | `components/portal/RoomFilterBar.tsx` | 筛选栏 |
+| `RoomTags` | `components/portal/RoomTags.tsx` | 颜色标签组 |
+| `BrokerCard` | `components/portal/BrokerCard.tsx` | 房源详情经纪人卡片 |
+| `RoomImage` | `components/portal/RoomImage.tsx` | 图片容错占位封装 |
 
 ---
 
-## 二、实施路线图（分步骤）
+## 二、编码规范（必须遵守）
+
+### 2.1 样式
+
+- 所有样式用 **Tailwind CSS v4**，禁止大量内联 `style={{}}`
+- 布局尺寸优先使用 Tailwind 规范写法：`max-w-295`（1180px）、`h-15.5`（62px）、`h-13.75`（55px）、`h-25`（100px）、`w-50`（200px）等
+- 颜色通过 CSS 变量：已注册主题色用 `bg-primary`，未注册的用 `bg-(--color-accent)`
+- hover/active 交互效果写在 `portal.css` 的 utility 类（`p-link`、`p-menu-link`、`p-mine-item`），组件内用 `className="p-link"` 调用
+
+### 2.2 响应式
+
+- **移动优先**：默认写移动端样式，`lg:` 前缀叠加桌面端
+- 内容容器：`max-w-295 mx-auto px-4 lg:px-0`
+- 导航栏在移动端完全隐藏（`hidden lg:block`），由汉堡抽屉替代
+- 列表卡片网格：`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5`
+- 找房列表双栏（内容区 + 广告侧边）：移动端单列，桌面端 `lg:flex`
+
+### 2.3 常量
+
+所有固定数据一律在 `utils/constants.ts` 维护：
+
+```ts
+PORTAL_NAV_MENU      // 顶部导航 6 个菜单项（TopMenu + MobileNav 共用）
+PORTAL_MINE_MENU     // 个人中心菜单项
+PORTAL_FOOTER_LINKS  // 页脚链接
+PORTAL_SEARCH_PATH   // 搜索跳转路径
+PORTAL_AUTH_BG       // 登录/注册页背景图路径
+PORTAL_MINE_BANNER   // 个人中心横幅背景图路径
+```
+
+### 2.4 图片容错
+
+所有 `<img>` 封装为 `<RoomImage>` 组件，`onError` 时替换为灰色占位 div：
+
+```tsx
+// components/portal/RoomImage.tsx
+<img
+  src={src}
+  alt={alt}
+  className={className}
+  onError={(e) => {
+    const el = e.currentTarget;
+    const ph = document.createElement("div");
+    ph.className = `${el.className} bg-[repeating-linear-gradient(-45deg,#f4f4f4,#f4f4f4_10px,#ededed_10px,#ededed_20px)] flex items-center justify-center text-xs text-[#9aa0a6]`;
+    ph.textContent = "图片占位";
+    el.replaceWith(ph);
+  }}
+/>
+```
 
 ---
 
-### Step 1：更新主题色（`styles/themes/portal.css`）
+## 三、实施路线图
 
-**目标**：把占位的天蓝色换为原型的绿色 + 橙色体系。
+### ✅ Step 1：主题色（已完成）
 
-修改 `styles/themes/portal.css`，将变量值替换为：
+`styles/themes/portal.css` 已更新，完整变量：
 
 ```css
 [data-platform="portal"] {
@@ -115,39 +191,36 @@
   --color-primary-brand:  #48a841;
   --color-primary-tint:   #f2f6ed;
   --color-primary-tint-2: #eaf2e0;
-
-  --color-accent:         #ff6600;   /* 橙色：搜索按钮、hover、激活 */
-  --color-accent-dark:    #eb5f00;   /* 价格文字橙红 */
-
+  --color-accent:         #ff6600;
+  --color-accent-dark:    #eb5f00;
   --color-text:           #333333;
   --color-text-2:         #666666;
   --color-text-muted:     #999999;
-  --color-text-subtle:    #797979;
-
   --color-surface:        #f9f9f9;
   --color-surface-2:      #f1f1f1;
-  --color-card:           #ffffff;
-
   --color-border:         #e6e6e6;
   --color-border-subtle:  #eeeeee;
-
-  --typeface-body: Arial, 'Hiragino Sans GB', 'Microsoft YaHei', '微软雅黑', sans-serif;
+  --typeface-body:    system-ui, 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  --typeface-display: Georgia, 'Songti SC', serif;
 }
 ```
 
+同时追加 shell 专用 utility 类：`.p-link`（hover 橙色+下划线）、`.p-menu-link`（导航项）、`.p-mine-item`（侧边菜单项）。
+
 ---
 
-### Step 2：更新 Portal Layout（`app/portal/layout.tsx`）
+### ✅ Step 2：Portal Layout（已完成）
 
-**目标**：挂载 `data-platform="portal"` 让主题变量生效，引入字体。
+`app/portal/layout.tsx` 已挂载主题 + 全局 Toast：
 
 ```tsx
-// app/portal/layout.tsx
 import "@/styles/themes/portal.css";
+import { PortalToaster } from "@/components/portal/PortalToaster";
 
 export default function PortalLayout({ children }) {
   return (
-    <div data-platform="portal" className="min-h-screen">
+    <div data-platform="portal">
+      <PortalToaster />
       {children}
     </div>
   );
@@ -156,337 +229,418 @@ export default function PortalLayout({ children }) {
 
 ---
 
-### Step 3：创建 `PortalShell`（BaseLayout）
+### ✅ Steps 3–7：Shell 组件（已完成）
 
-**文件**：`components/portal/PortalShell.tsx`
+7 个 Shell 组件已实现，均使用 Tailwind + 响应式，详见 `components/portal/`。
 
-包含：`GlobalHeader` + `TopMenu` + `<main>` + `PortalFooter`，所有 BaseLayout 页面用这个组件包裹。
-
-关键样式点：
-- `.page-shell`：`width: 1180px; margin: 0 auto;`
-- `main.main-container`：`min-height: calc(100vh - 102px)`（102 = 62 + 40）
-
----
-
-### Step 4：创建 `GlobalHeader`
-
-**文件**：`components/portal/GlobalHeader.tsx`
-
-结构（从原型 `baseLayout()` 提取）：
-```
-<header class="global-header"> （高度 62px）
-  左侧：品牌文字（绿色 #48a841，25px）+ 城市选择（灰色，含 <span> 绿色城市名）
-  右侧：搜索框（480px input + 120px 橙色"搜索"按钮）+ 用户链接区
-</header>
-```
-
-**注意点**：
-- 搜索框按钮背景 `#f60`，`letter-spacing: 4px`，border-radius 只有右侧
-- 城市名 `<span>` 颜色 `#62ab00`
-- 用户链接 hover 变橙色 + 下划线
-- 用户状态：未登录显示"登录 | 注册 | 个人中心"，已登录显示用户名 + 个人中心 + 退出
+**架构要点**：
+- `PortalShell`（client）管理移动端抽屉 `mobileOpen` 状态，路由切换自动关闭
+- `GlobalHeader` 接收 `onMenuToggle` prop，桌面端 `hidden lg:flex` 完整三栏，移动端 `flex lg:hidden` 品牌+汉堡
+- `TopMenu` 全宽绿色导航，`hidden lg:block`，内层 `max-w-295 mx-auto flex`
+- `MineShell` 内置 auth 守卫，未登录跳转 `/portal/login?redirect=...`；移动端侧边菜单降级为水平滚动 Tab
+- `AuthShell` 无状态，背景图路径来自 `PORTAL_AUTH_BG` 常量
 
 ---
 
-### Step 5：创建 `TopMenu`
-
-**文件**：`components/portal/TopMenu.tsx`
-
-```
-<nav class="top-menu"> （高度 40px，背景 #62ab00）
-  首页 | 区域找房 | 地铁找房 | 小区找房 | 地图找房 | 我要出租
-</nav>
-```
-
-**注意点**：
-- 每个菜单项 `padding: 0 25px; line-height: 40px; color: #fff; font-size: 16px`
-- active / hover 背景 `#4a8101`
-- 用 Next.js `usePathname()` 判断高亮项
-
----
-
-### Step 6：创建 `PortalFooter`
-
-**文件**：`components/portal/PortalFooter.tsx`
-
-```
-<footer class="footer-full"> （高度 117px，背景 #f9f9f9，上边框 #e6e6e6）
-  .footer（1180px 居中）：
-    关于我们 | 联系我们 | 用户协议 | 隐私政策
-    Copyright © 2026 雅阁租房系统 All Rights Reserved
-</footer>
-```
-
----
-
-### Step 7：创建 `MineShell`（个人中心布局）
-
-**文件**：`components/portal/MineShell.tsx`
-
-结构：
-1. `mine-header-full`：绿色顶栏 55px（品牌 | 个人中心 + 退出按钮）
-2. `mine-sub-full`：banner 图 100px（头像 + 用户名 + 欢迎语）
-3. `mine-content`（1180px 居中）：
-   - `mine-sider`（200px）：菜单项列表，`border-left: 3px solid transparent`，active/hover 绿色
-   - `mine-container`（960px）：白色内容区，上方有 `mine-title`（54px 带底边线）
-
-**菜单项**：我的资料 / 我的收藏 / 我的预约 / 我的房源 / 我的合同 / 我的订单
-
----
-
-### Step 8：创建共享 UI 组件
+### Step 8：共享 UI 组件
 
 #### 8.1 `HomeCard`（首页卡片）
-- 尺寸 280×288px，边框 `#e6e6e6`
-- 图片区 250×187px，居中 margin
-- 标题 `text-align: center; font-size: 15px`，hover 变橙+下划线
-- 底部信息两端分布：左（户型/地区），右（价格/套数）红橙色
+
+**用途**：首页三个区块（最新上架/小区精选/热门推荐）的卡片，房源和小区共用同一组件。
+
+```tsx
+// 桌面端：4列 grid，卡片固定宽度
+// 移动端：1列，宽度自适应
+
+<div className="border border-border bg-white cursor-pointer group">
+  {/* 图片区 */}
+  <div className="mx-auto w-full lg:w-62.5 aspect-250/187 overflow-hidden">
+    <RoomImage className="w-full h-full object-cover" />
+  </div>
+  {/* 标题 */}
+  <h3 className="text-[15px] text-center h-8.5 leading-8.5 px-2 truncate
+                 group-hover:text-(--color-accent) group-hover:underline">
+    {name}
+  </h3>
+  {/* 底部信息 */}
+  <div className="flex justify-between px-5 text-sm text-text-2 pb-3">
+    <span>{leftText}</span>
+    <span className="text-(--color-accent-dark) font-bold">{rightText}</span>
+  </div>
+</div>
+```
+
+父容器（首页各区块）：`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-0 lg:flex lg:justify-around`
+
+---
 
 #### 8.2 `RoomRow`（列表房源行）
-- flex 布局，min-height 175px，padding 20px，底部 `dashed #e6e6e6`
-- 缩略图 180×135px，左对齐
-- 信息区（528px）：标题 + 户型面积朝向楼层 + 小区地址 + Tags
-- 右侧价格：`font-size: 20px; color: #eb5f00; font-weight: bold`
-- hover 整行背景 `#f9f9f9`，标题变橙色
+
+**用途**：区域/地铁/小区找房列表中的房源行。
+
+```
+桌面端：横排（图 180×135 + 信息区 + 右侧价格）
+移动端：上下堆叠（图全宽 + 信息区）
+```
+
+关键 Tailwind：
+- 外容器：`flex flex-col lg:flex-row lg:justify-between min-h-35 lg:min-h-43.75 p-4 lg:p-5 border-b border-dashed border-border cursor-pointer hover:bg-surface`
+- 缩略图：`w-full lg:w-45 h-40 lg:h-33.75 object-cover shrink-0`
+- 信息区：`flex-1 lg:pl-5 overflow-hidden text-text-2`
+- 标题：`font-bold text-text text-base truncate group-hover:text-(--color-accent) group-hover:underline`
+- 价格：`text-(--color-accent-dark) font-bold text-xl shrink-0 flex items-center lg:justify-end`
+
+---
 
 #### 8.3 `CommunityRow`（小区列表行）
-- 同 RoomRow 但 min-height 140px，图 144×108px
 
-#### 8.4 `RoomTags`
-- 4色圆角标签（tag-red/green/blue/yellow），height 22px，border-radius 16px
+同 `RoomRow`，图片改为 `w-full lg:w-36 h-32 lg:h-27`，无右侧价格列。
 
-#### 8.5 `RoomFilterBar`
-- 筛选栏外框 `border: 1px solid #e6e6e6`
-- 每行：label（58px, `#999`） + values（flex-wrap，间距 20px）
-- active/hover 颜色 `#f60` + 下划线
-- 最后一行（更多）：select-chip 下拉（93px 小型 select）+ 近地铁/有电梯复选框
+---
+
+#### 8.4 `RoomTags`（标签组）
+
+```tsx
+const TAG_STYLES = {
+  red:    "text-[#e88a78] bg-[#fcf4f1]",
+  green:  "text-[#799374] bg-[#f2f6ed]",
+  blue:   "text-[#6682ae] bg-[#f0f4f8]",
+  yellow: "text-[#8b7500] bg-[#fffaf0]",
+};
+
+// 用法
+<span className={`${TAG_STYLES.red} h-5.5 px-2.5 text-xs leading-5.5 rounded-2xl`}>
+  整租
+</span>
+```
+
+---
+
+#### 8.5 `RoomFilterBar`（筛选栏）
+
+**桌面端**：展开的筛选条（border 包裹，每行一个筛选维度）  
+**移动端**：顶部横向滚动 Chip 快选，点击"更多"展开 bottom sheet
+
+桌面端结构：
+```
+border border-border mt-5 px-2.5
+  每行：flex py-1 border-b border-dashed border-border text-sm
+    label（w-14 text-text-muted）
+    values（flex flex-wrap gap-x-5）
+      <span className="cursor-pointer hover:text-(--color-accent) hover:underline active:text-(--color-accent)">
+```
+
+筛选维度（区域找房）：
+- 区域：全部 / 上城 / 下城 / 滨江 / 拱墅 / 萧山 / 余杭 / 西湖 / 钱塘
+- 租金：全部 / 1000以下 / 1000-1500 / 1500-2000 / 2000-3000 / 3000-5000 / 5000以上
+- 更多：房型 / 朝向 / 类型（select）+ 近地铁 / 有电梯（checkbox）
+
+筛选维度（地铁找房）：区域改为线路（1/2/4/5/6/7/16号线）。
+
+---
 
 #### 8.6 `BrokerCard`（经纪人卡片）
-- 右侧 260px 卡片，高度 450px，边框 `#e6e6e6`
-- 头像 130×141px，居中圆角 2px
-- 姓名、电话/邮箱/服务区域（font-size: 13px, color: #666）
-- 两个 `outline-btn`：`border: 1px solid #62ab00; color: #62ab00; hover: 绿色背景白字`
 
-#### 8.7 `PortalPagination`
-- 每项 32×32px，`border: 1px solid #d9d9d9`，active 绿色背景
-- flex 右对齐，margin 20px 0
+**桌面端**：右侧 `w-[260px]` 固定宽，`min-h-[450px]`  
+**移动端**：独立区块，全宽展示，置于图片下方
 
-#### 8.8 `AdSidebar`（广告侧边栏）
-- 232px 宽，`adv-box` 卡片 248px 高，`border: 1px solid #ccc; border-radius: 5px`
-
----
-
-### Step 9：实现首页（`app/portal/page.tsx`）
-
-重写当前占位页面，结构：
-1. `PortalShell` 包裹
-2. Hero 轮播图：`.hero-carousel`，高度 470px，全宽 → 接 `/api/portal/carousels` 接口
-3. "最新上架"区块：section-title + 4张 `HomeCard`（最新房源）→ 接 `/api/portal/rooms?sort=latest&limit=4`
-4. "小区精选"区块：4张 `HomeCard`（小区）→ 接 `/api/portal/communities?limit=4`
-5. "热门推荐"区块：4张 `HomeCard`（房源）→ 接 `/api/portal/rooms?sort=hot&limit=4`
-
-**section-title 样式**：height 40px，padding-left 20px，font-size 18px，flex 居中
-
----
-
-### Step 10：实现区域/地铁找房（`app/portal/areaRoom/page.tsx` 等）
-
-结构：
 ```
-RoomFilterBar（type="area" 或 "subway"）
-<div class="content-two-col"> （flex justify-between）
-  <div class="room-part">（900px）
-    {rooms.map(RoomRow)}
-    PortalPagination
+border border-border p-5
+  头像：w-32.5 h-35.25 mx-auto rounded-sm object-cover
+  姓名：text-center text-[15px] py-4
+  信息行：text-xs text-text-2 leading-[26px] truncate
+  两个按钮（outline 样式）：
+    border border-primary text-primary hover:bg-primary hover:text-white
+    w-full h-10 text-[15px] text-center cursor-pointer transition-colors
+```
+
+---
+
+#### 8.7 `RoomImage`（图片容错）
+
+见 2.4 节。封装为独立组件，全站统一使用。
+
+---
+
+### Step 9：首页（`app/portal/page.tsx`）
+
+重写当前占位页面：
+
+```
+PortalShell
+  <div className="max-w-295 mx-auto px-4 lg:px-0">
+
+    {/* Hero 轮播图 */}
+    <div className="w-full h-60 lg:h-117.5 mt-5 overflow-hidden bg-surface">
+      <img className="w-full h-full object-cover" />
+    </div>
+
+    {/* 区块 × 3：最新上架 / 小区精选 / 热门推荐 */}
+    <section className="mt-7 mb-2">
+      <div className="flex items-center h-10 pl-5 text-lg">最新上架</div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+        {rooms.map(r => <HomeCard key={r.id} />)}
+      </div>
+    </section>
   </div>
-  <AdSidebar />（232px）
-</div>
 ```
 
-**接口**：`GET /api/portal/rooms?district=XX&minPrice=XX&maxPrice=XX&page=1`
-
-**筛选项**：
-- 区域找房：区域（全部/上城/下城/滨江/拱墅/萧山/余杭/西湖/钱塘）
-- 地铁找房：线路（1/2/4/5/6/7/16号线）
-- 租金区间：全部/1000以下/1000-1500/1500-2000/2000-3000/3000-5000/5000以上
-- 更多：房型/朝向/类型 select + 近地铁/有电梯 checkbox
+**接口**：
+- `GET /api/portal/carousels` → 轮播图
+- `GET /api/portal/rooms?sort=latest&limit=4`
+- `GET /api/portal/communities?limit=4`
+- `GET /api/portal/rooms?sort=hot&limit=4`
 
 ---
 
-### Step 11：实现小区找房（`app/portal/cmyRoom/page.tsx`）
+### Step 10：区域/地铁找房
 
-结构与区域找房类似，列表用 `CommunityRow` 替换 `RoomRow`。
+**路由**：`app/portal/areaRoom/page.tsx`、`app/portal/subwayRoom/page.tsx`
 
-小区房源列表页（`app/portal/cmyRoom/[id]/page.tsx`）：
 ```
-section-title（小区名称）
-小区信息 filter-room（地址/交通/特点）
-room-part（该小区所有 RoomRow）
-```
+PortalShell
+  <div className="max-w-295 mx-auto px-4 lg:px-0">
+    <RoomFilterBar type="area" | "subway" />
 
----
+    <div className="flex flex-col lg:flex-row lg:justify-between mt-5">
+      {/* 左：列表 */}
+      <div className="flex-1 lg:w-225">
+        {rooms.map(r => <RoomRow key={r.id} />)}
+        <Pagination />
+      </div>
 
-### Step 12：实现房源详情（`app/portal/room/[id]/page.tsx`）
-
-结构：
-```
-<h1 class="room-title">房源标题</h1>
-<div class="title-basic-info">价格 | 户型 | 面积 | Tags | 收藏</div>
-<div class="detail-content"> （flex justify-between）
-  <div class="detail-left">（900px）
-    <div class="detail-images">图片轮播</div>
-    <div class="house-info-head">房屋信息</div>
-    <div class="house-info-detail">价格/押金/户型/面积/朝向/楼层/小区/地址/描述</div>
-    <div class="house-info-head">位置及周边</div>
-    <BaiduMap />（高度 360px）
+      {/* 右：广告（移动端隐藏） */}
+      <aside className="hidden lg:block lg:w-58">
+        <AdSidebar />
+      </aside>
+    </div>
   </div>
-  <aside class="detail-right">（260px）
-    <BrokerCard />
-  </aside>
-</div>
 ```
 
-**接口**：`GET /api/portal/rooms/[id]`
+**接口**：`GET /api/portal/rooms?district=&subwayLine=&minPrice=&maxPrice=&type=&page=1`
 
 ---
 
-### Step 13：实现地图找房（`app/portal/mapRoom/page.tsx`）
+### Step 11：小区找房
 
+**路由**：`app/portal/cmyRoom/page.tsx`、`app/portal/cmyRoom/[id]/page.tsx`
+
+列表页与 Step 10 相同结构，`RoomRow` 替换为 `CommunityRow`。
+
+小区房源列表页：
 ```
-<div class="map-page">（高度 calc(100vh - 102px)，百度地图背景）
-  <aside class="map-side">（左上 360px 浮层）
-    h3：地图找房
-    {communities.map(map-list-item)}  // 小区名/地址/价格起
-  </aside>
-  <BaiduMap 全屏 />
-  {mapMarkers}  // 绿色胶囊标注
-</div>
+section-title（小区名）
+小区基础信息（地址/交通标签）
+<div className="flex flex-col"> {rooms.map(r => <RoomRow />)} </div>
 ```
 
 ---
 
-### Step 14：更新登录/注册页（`app/portal/login/page.tsx`、`register/page.tsx`）
+### Step 12：房源详情（`app/portal/room/[id]/page.tsx`）
 
-**AuthLayout 结构**：
 ```
-<div class="auth-shell">（全屏背景图 bg.jpg / portal 自备背景）
-  <header class="auth-header">（62px，底边 2px solid #48a841）
-    品牌 logo + 右侧"登录 | 注册"导航
-  </header>
-  <div class="auth-card">（540px 居中，margin-top: 150px，白色卡片，box-shadow）
-    auth-title（登录/注册）
-    tabs（密码登录/手机号登录 或 普通注册/房东注册）
-    表单字段 + primary-btn（绿色全宽按钮）
+PortalShell
+  <div className="max-w-295 mx-auto px-4 lg:px-0">
+    {/* 标题 */}
+    <h1 className="text-[24px] leading-12.75 tracking-wide">{name}</h1>
+
+    {/* 基础信息标签行 */}
+    <div className="flex flex-wrap items-center gap-x-4 gap-y-2 h-auto lg:h-7 mt-1.5">
+      <span className="text-(--color-accent)">¥{price}/月</span>
+      <RoomTags />
+    </div>
+
+    {/* 主内容：移动端单列，桌面端双列 */}
+    <div className="flex flex-col lg:flex-row lg:justify-between mt-4">
+      <div className="flex-1 lg:w-225">
+        图片轮播（h-75 lg:h-112.5）
+        房屋信息（grid grid-cols-1 lg:grid-cols-2）
+        百度地图（h-60 lg:h-90）
+      </div>
+      <aside className="mt-5 lg:mt-0 lg:w-65 lg:ml-4">
+        <BrokerCard />
+      </aside>
+    </div>
   </div>
-</div>
 ```
 
-**注意**：现有 `app/portal/login/page.tsx` 需完全重写 UI，但保留已有 JWT 逻辑。
+**接口**：`GET /api/portal/rooms/[id]`（含关联小区、设施、发布者）
 
 ---
 
-### Step 15：实现出租页面（`app/portal/sharedRoom/`）
+### Step 13：地图找房（`app/portal/mapRoom/page.tsx`）
 
-`createRoom` 和 `createCmy` 共享 `SharedRoomForm` 组件：
-- `shared-tabs`：发布房源 / 创建小区（tab 切换）
-- `shared-content`：2列 `form-grid` 表单
-- `primary-btn` 提交
+此页面需要全屏地图，主内容不套容器约束：
 
-路由：
+```
+PortalShell（main 为 flex-1 全宽）
+  <div className="relative h-[calc(100vh-102px)] lg:h-[calc(100vh-102px)]">
+    {/* 左侧浮层列表（移动端底部抽屉或上方折叠） */}
+    <aside className="absolute top-5 left-5 w-70 lg:w-90 bg-white shadow-md">
+      <h3 className="px-4 py-3.5 border-b border-border text-base">地图找房</h3>
+      {communities.map(c => <MapListItem />)}
+    </aside>
+
+    {/* 百度地图全屏 */}
+    <BaiduMap className="absolute inset-0" />
+
+    {/* 绿色胶囊标注 */}
+    {markers.map(m => <MapMarker />)}
+  </div>
+```
+
+---
+
+### Step 14：登录/注册页
+
+**路由**：`app/portal/login/page.tsx`（已存在，需重写 UI）、`app/portal/register/page.tsx`（新建）
+
+```
+AuthShell（内部结构由 AuthShell 提供，页面只写卡片内容）
+  <div className="w-100 mx-auto">
+    <div className="text-[28px] font-semibold text-center mb-5">账户登录</div>
+
+    {/* Tab：密码登录 / 手机号登录 */}
+    <div className="flex justify-center border-b border-[#f0f0f0] mb-5">
+      <span className="px-4 py-2.5 text-base cursor-pointer
+                       text-primary border-b-2 border-primary">密码登录</span>
+      <span className="px-4 py-2.5 text-base cursor-pointer text-text-2">手机号登录</span>
+    </div>
+
+    {/* 表单 */}
+    <div className="space-y-4">
+      <input className="w-full h-9.5 px-2.5 border border-[#d9d9d9] rounded-sm outline-none" />
+      <input type="password" className="w-full h-9.5 px-2.5 border border-[#d9d9d9] rounded-sm outline-none" />
+      <button className="w-full h-10 text-white bg-primary border border-primary rounded-sm cursor-pointer
+                         hover:opacity-90 transition-opacity">
+        登录
+      </button>
+    </div>
+  </div>
+```
+
+**注意**：现有 `app/portal/login/page.tsx` 保留 JWT + `portalRequest` 逻辑，只重写 UI 层。
+
+---
+
+### Step 15：出租页面（`app/portal/sharedRoom/`）
+
+**路由**：
 - `app/portal/sharedRoom/createRoom/page.tsx`
 - `app/portal/sharedRoom/createCmy/page.tsx`
-- `app/portal/sharedRoom/success/page.tsx`（成功页：绿色✓ + "提交成功"）
+- `app/portal/sharedRoom/success/page.tsx`
+
+```
+PortalShell
+  <div className="max-w-295 mx-auto px-4 lg:px-0 mt-5">
+    {/* Tab */}
+    <div className="flex border-b border-border">
+      <a className="px-5 py-2 border-b-2 border-primary text-sm">发布房源</a>
+      <a className="px-5 py-2 border-b border-transparent text-sm">创建小区</a>
+    </div>
+
+    {/* 表单（2 列 grid，移动端 1 列） */}
+    <div className="mt-5 p-6 lg:px-20 border border-border">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-x-6">
+        <div>...</div>  {/* 各表单项 */}
+        <div className="lg:col-span-2">图片上传</div>
+        <div className="lg:col-span-2">描述</div>
+        <div className="lg:col-span-2">
+          <button className="w-full h-10 text-white bg-primary rounded-sm cursor-pointer">提交</button>
+        </div>
+      </div>
+    </div>
+  </div>
+```
 
 ---
 
-### Step 16：实现个人中心各页
+### Step 16：个人中心各页
 
-所有页面用 `MineShell` 包裹，差异仅在内容区：
+所有页面用 `MineShell` 包裹，`title` prop 传入当前页名称：
+
+```tsx
+<MineShell title="我的收藏">
+  {/* 内容区 */}
+</MineShell>
+```
 
 | 页面 | 内容区结构 |
 |---|---|
-| `account/info` | `info-list`（info-item 行：头像/用户名/手机/邮箱/性别/余额 + 修改按钮） |
-| `account/collection` | table（收藏房源/收藏时间/租金/小区/操作） |
-| `account/appointment` | table（预约房源/预约时间/联系人/状态/操作） |
-| `account/room` | table（房源名称/发布时间/租金/状态/操作） |
-| `account/contract` | table（合同房源/签约时间/租期/状态/操作） |
-| `account/orders` | 已存在，接入 `MineShell` 并更新 UI 风格 |
+| `account/info` | 信息列表（头像/用户名/手机/邮箱/性别/余额）每行 `flex h-16 border-b` |
+| `account/collection` | 数据表格（收藏房源/收藏时间/租金/小区/操作） |
+| `account/appointment` | 数据表格（预约房源/预约时间/联系人/状态/操作） |
+| `account/room` | 数据表格（房源名称/发布时间/租金/状态/操作） |
+| `account/contract` | 数据表格（合同房源/签约时间/租期/状态/操作） |
+| `account/orders` | 已存在，接入 `MineShell` 并对齐表格样式 |
 
-**table 结构**：`grid-template-columns: 1.4fr 1fr 1fr 1fr 100px`，表头 `#fafafa`，行底边虚线
+**表格布局**：
+```tsx
+{/* 桌面端：grid 表格 */}
+<div className="hidden lg:grid grid-cols-[1.4fr_1fr_1fr_1fr_100px] ...">表头</div>
+<div className="hidden lg:grid grid-cols-[1.4fr_1fr_1fr_1fr_100px] ...">行数据</div>
+
+{/* 移动端：卡片列表 */}
+<div className="lg:hidden space-y-3 p-4">
+  {items.map(item => <div className="border rounded p-3">...</div>)}
+</div>
+```
 
 ---
 
-### Step 17：新增 Portal API 接口
+### Step 17：Portal API 接口
 
-需要在 `app/api/portal/` 下新增以下接口（管理端已有对应数据，复用 Prisma）：
+在 `app/api/portal/` 下新增（管理端已有对应 Prisma 数据，直接复用）：
 
 | 接口 | 说明 |
 |---|---|
-| `GET /api/portal/rooms` | 房源列表，支持 district/subway/price/type/page 过滤 |
-| `GET /api/portal/rooms/[id]` | 房源详情 + 关联小区、设施、经纪人 |
-| `GET /api/portal/communities` | 小区列表 |
+| `GET /api/portal/carousels` | 首页轮播图列表 |
+| `GET /api/portal/rooms` | 房源列表，支持 district/subwayLine/minPrice/maxPrice/type/page |
+| `GET /api/portal/rooms/[id]` | 房源详情（含小区、设施、发布者） |
+| `GET /api/portal/communities` | 小区列表，支持 district/page |
 | `GET /api/portal/communities/[id]` | 小区详情 + 该小区房源 |
-| `GET /api/portal/carousels` | 首页轮播图 |
 | `GET /api/portal/account/info` | 当前用户资料（需 portal token） |
-| `PUT /api/portal/account/info` | 更新用户资料 |
+| `PUT /api/portal/account/info` | 更新资料 |
 | `GET /api/portal/account/collections` | 我的收藏 |
 | `GET /api/portal/account/appointments` | 我的预约 |
 | `GET /api/portal/account/contracts` | 我的合同 |
 | `POST /api/portal/appointments` | 提交预约看房 |
-| `POST /api/portal/rooms` | 发布房源（需登录） |
+| `POST /api/portal/rooms` | 发布房源（需 portal token） |
+
+所有需要鉴权的接口调用 `lib/portal-auth.ts` 的 `requirePortalAuth(request)`，参照已有 orders API 的写法。
 
 ---
 
-### Step 18：面包屑注册（`components/Topbar.tsx`）
+## 四、注意事项
 
-Portal 页面不使用管理端 `Topbar`，无需修改。  
-若未来 portal 有独立面包屑需求，在 `MineShell` 的 `mine-title` 中显示当前页名即可。
+### 搜索跳转
+搜索框回车/点击 → `router.push(\`${PORTAL_SEARCH_PATH}?q=\${encodeURIComponent(q)}\`)`，`PORTAL_SEARCH_PATH` 已在 `utils/constants.ts` 定义。
 
----
-
-### Step 19：整合现有 portal/account/orders 页面
-
-现有 `app/portal/account/orders/page.tsx` 已有软删除逻辑，需要：
-1. 将页面包裹进 `MineShell`（替换自有布局）
-2. 更新表格 UI 为原型 `table-card` 风格
-3. 操作列改为原型的"查看 | 删除"链接样式
-
----
-
-## 三、关键注意事项
-
-### 宽度约定
-原型固定 1180px 容器，不考虑响应式。Portal 平台按同样策略处理，`min-width: 1180px`，在移动端不强制适配（或后续单独任务处理）。
-
-### 搜索框行为
-- 搜索跳转到 `/portal/areaRoom?q=关键词`
-- 城市选择暂时静态展示"杭州"，后续接入 `CitySelector`
-
-### 图片容错
-所有 `<img>` 加 `onError` 展示灰色占位（对应原型的 `makePlaceholder()`），可封装为 `<RoomImage>` 组件统一处理。
+### 城市选择
+当前静态展示"杭州"。后续可接入 `CitySelector` 组件，需在 `GlobalHeader` 和 `MobileNav` 同步更新。
 
 ### 收藏按钮
-房源详情页"☆ 收藏"需登录才可操作；未登录点击跳转 `/portal/login?redirect=...`。
+房源详情页"☆ 收藏"需登录才可操作，未登录跳转 `/portal/login?redirect=/portal/room/[id]`。
 
-### 个人中心权限
-`MineShell` 内部检查 portal token，未登录统一跳转 `/portal/login`。
+### 个人中心骨架屏
+`MineShell` 在 auth 检查期间返回 `null`（不白屏）。页面内的数据加载用 `skeleton-shimmer` 类搭建占位骨架。
 
 ---
 
-## 四、开发顺序建议
+## 五、开发进度
 
 ```
-Step 1-2   → 主题 + layout（30 min）
-Step 3-7   → 5个布局/Shell 组件（1.5 h）
-Step 8     → 8个 UI 组件（2 h）
-Step 9     → 首页（1 h）
-Step 14    → 登录/注册（1 h）
-Step 10-11 → 找房列表页（1.5 h）
-Step 12    → 房源详情（1.5 h）
-Step 13    → 地图找房（1 h）
-Step 15    → 出租页面（1 h）
-Step 16+19 → 个人中心（2 h）
-Step 17    → Portal API（2 h）
+✅ Step 1    主题 CSS 变量
+✅ Step 2    Portal Layout + PortalToaster
+✅ Steps 3-7 Shell 组件（PortalShell / GlobalHeader / TopMenu /
+             MobileNav / PortalFooter / AuthShell / MineShell）
+⬜ Step 8    共享 UI 组件（HomeCard / RoomRow / RoomFilterBar 等）
+⬜ Step 9    首页
+⬜ Step 14   登录/注册
+⬜ Step 10-11 区域/地铁/小区找房
+⬜ Step 12   房源详情
+⬜ Step 13   地图找房
+⬜ Step 15   出租页面
+⬜ Step 16   个人中心各页
+⬜ Step 17   Portal API 接口
 ```
-
-预计总工时：**~15 小时**，可按模块拆分为多次会话独立推进。
