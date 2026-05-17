@@ -75,6 +75,36 @@ export const ORDER_TYPE_OPTIONS = [
   { value: 3, label: '押金退款' },
 ];
 
+// ── Portal Navigation ─────────────────────────────────────────────────────────
+export const PORTAL_NAV_MENU = [
+  { href: "/portal",                         label: "首页",   exact: true },
+  { href: "/portal/areaRoom",               label: "区域找房" },
+  { href: "/portal/subwayRoom",             label: "地铁找房" },
+  { href: "/portal/cmyRoom",                label: "小区找房" },
+  { href: "/portal/mapRoom",                label: "地图找房" },
+  { href: "/portal/sharedRoom/createRoom",  label: "我要出租" },
+];
+
+export const PORTAL_MINE_MENU = [
+  { label: "我的资料", href: "/portal/account/info"        },
+  { label: "我的收藏", href: "/portal/account/collection"  },
+  { label: "我的预约", href: "/portal/account/appointment" },
+  { label: "我的房源", href: "/portal/account/room"        },
+  { label: "我的合同", href: "/portal/account/contract"    },
+  { label: "我的订单", href: "/portal/account/orders"      },
+];
+
+export const PORTAL_FOOTER_LINKS = ["关于我们", "联系我们", "用户协议", "隐私政策"];
+
+/** 搜索跳转目标路径（含 ?q= 参数由调用方拼接） */
+export const PORTAL_SEARCH_PATH = "/portal/areaRoom";
+
+/** 登录/注册页全屏背景图 */
+export const PORTAL_AUTH_BG = "/prototype/assets/bg.jpg";
+
+/** 个人中心横幅背景图 */
+export const PORTAL_MINE_BANNER = "/prototype/assets/banner.png";
+
 // ── Wallet ────────────────────────────────────────────────────────────────────
 export const WALLET_RECORD_TYPE_OPTIONS = [
   { value: 1, label: '充值' },

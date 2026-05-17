@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "@/styles/themes/portal.css";
+import { PortalToaster } from "@/components/portal/PortalToaster";
 
 export const metadata: Metadata = {
   title: "雅阁租房 - 客户端",
@@ -11,5 +12,10 @@ export default function PortalLayout({
 }: {
   children: React.ReactNode;
 }) {
-  return <div data-platform="portal">{children}</div>;
+  return (
+    <div data-platform="portal">
+      <PortalToaster />
+      {children}
+    </div>
+  );
 }
