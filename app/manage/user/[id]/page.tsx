@@ -393,12 +393,10 @@ function WalletRecordsSection({ userId }: { userId: number }) {
 
                   {/* 主体信息 */}
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <StatusPill variant={variant}>{getRecordTypeLabel(rec.type)}</StatusPill>
-                      {rec.remark && (
-                        <span className="text-caption text-text-muted truncate max-w-50">{rec.remark}</span>
-                      )}
-                    </div>
+                    <StatusPill variant={variant}>{getRecordTypeLabel(rec.type)}</StatusPill>
+                    {rec.remark && (
+                      <p className="text-caption text-text-muted mt-0.5 break-words">{rec.remark}</p>
+                    )}
                     <p className="text-caption text-text-disabled mt-0.5 font-mono">
                       {fmtDateTime(rec.createdAt)}
                     </p>

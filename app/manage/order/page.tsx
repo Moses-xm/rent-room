@@ -270,16 +270,19 @@ export default function OrderPage() {
       label: '付款金额',
       align: 'right',
       tdClassName: 'font-mono',
-      render: (item) => (
-        <div className="text-right">
-          {item.fee != null
-            ? <p className="text-body-sm text-text font-medium">¥{item.fee.toFixed(2)}</p>
-            : <p className="text-text-muted">—</p>}
-          {item.type === 1 && item.pledge != null && (
-            <p className="text-tiny text-text-muted mt-0.5">押金 ¥{item.pledge.toFixed(2)}</p>
-          )}
-        </div>
-      ),
+      render: (item) => {
+        const displayAmount = item.type === 3 ? item.pledge : item.fee;
+        return (
+          <div className="text-right">
+            {displayAmount != null
+              ? <p className="text-body-sm text-text font-medium">¥{displayAmount.toFixed(2)}</p>
+              : <p className="text-text-muted">—</p>}
+            {item.type === 1 && item.pledge != null && (
+              <p className="text-tiny text-text-muted mt-0.5">押金 ¥{item.pledge.toFixed(2)}</p>
+            )}
+          </div>
+        );
+      },
     },
     {
       key: 'type',
@@ -426,7 +429,12 @@ export default function OrderPage() {
                   </Link>
                 </div>
                 <div className="text-right shrink-0">
-                  {item.fee != null && <p className="text-body-sm font-mono font-medium text-text">¥{item.fee.toFixed(2)}</p>}
+                  {(() => {
+                    const displayAmount = item.type === 3 ? item.pledge : item.fee;
+                    return displayAmount != null
+                      ? <p className="text-body-sm font-mono font-medium text-text">¥{displayAmount.toFixed(2)}</p>
+                      : null;
+                  })()}
                   {item.type === 1 && item.pledge != null && (
                     <p className="text-tiny text-text-muted font-mono">押金 ¥{item.pledge.toFixed(2)}</p>
                   )}
