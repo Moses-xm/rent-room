@@ -62,17 +62,25 @@ export default function PayModal({ contract, onClose, onSuccess }: Props) {
             <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-4 space-y-3">
               <p className="text-body-sm font-semibold text-emerald-700 mb-2">下一期房租详情</p>
               <div className="grid grid-cols-2 gap-3 text-body-sm">
-                <div>
+                <div className="col-span-2">
                   <p className="text-text-muted mb-0.5">房源</p>
-                  <p className="font-emphasis text-text truncate">{contract?.room?.name ?? '—'}</p>
+                  <p className="font-emphasis text-text">{contract?.room?.name ?? '—'}</p>
                 </div>
                 <div>
-                  <p className="text-text-muted mb-0.5">应付金额</p>
-                  <p className="font-mono text-h3 font-heading text-emerald-700">¥{contract?.fee.toFixed(2)}</p>
+                  <p className="text-text-muted mb-0.5">合同开始</p>
+                  <p className="font-mono text-text">{contract ? fmtDate(contract.onlineTime) : '—'}</p>
+                </div>
+                <div>
+                  <p className="text-text-muted mb-0.5">合同截止</p>
+                  <p className="font-mono text-text">{contract ? fmtDate(contract.offlineTime) : '—'}</p>
                 </div>
                 <div className="col-span-2">
                   <p className="text-text-muted mb-0.5">缴租时段</p>
                   <p className="font-mono text-text">{fmtDate(nextPeriod.start)} ~ {fmtDate(nextPeriod.end)}</p>
+                </div>
+                <div>
+                  <p className="text-text-muted mb-0.5">应付金额</p>
+                  <p className="font-mono text-h3 font-heading text-emerald-700">¥{contract?.fee.toFixed(2)}</p>
                 </div>
                 <div>
                   <p className="text-text-muted mb-0.5">租客</p>

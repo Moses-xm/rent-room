@@ -72,13 +72,11 @@ export default function CheckoutModal({ contract, onClose, onSuccess }: Props) {
           {/* 合同概况 */}
           <div className="bg-slate-50 border border-border rounded-xl p-4">
             <div className="grid grid-cols-2 gap-2 text-body-sm">
-              <div><p className="text-text-muted mb-0.5">房源</p><p className="font-emphasis text-text truncate">{contract?.room?.name ?? '—'}</p></div>
-              <div><p className="text-text-muted mb-0.5">租客</p><p className="font-emphasis text-text">{contract?.user?.username ?? '—'}</p></div>
+              <div className="col-span-2"><p className="text-text-muted mb-0.5">房源</p><p className="font-emphasis text-text">{contract?.room?.name ?? '—'}</p></div>
+              <div><p className="text-text-muted mb-0.5">合同开始</p><p className="font-mono text-text">{contract ? fmtDate(contract.onlineTime) : '—'}</p></div>
+              <div><p className="text-text-muted mb-0.5">合同截止</p><p className="font-mono text-text">{contract ? fmtDate(contract.offlineTime) : '—'}</p></div>
               <div><p className="text-text-muted mb-0.5">已交押金</p><p className="font-mono text-text">¥{contract?.pledge.toFixed(2)}</p></div>
-              <div>
-                <p className="text-text-muted mb-0.5">合同到期</p>
-                <p className="font-mono text-text">{contract ? fmtDate(contract.offlineTime) : '—'}</p>
-              </div>
+              <div><p className="text-text-muted mb-0.5">租客</p><p className="font-emphasis text-text">{contract?.user?.username ?? '—'}</p></div>
             </div>
           </div>
 
@@ -102,7 +100,7 @@ export default function CheckoutModal({ contract, onClose, onSuccess }: Props) {
                     {kind === 'legal-early'   && `租客已提前结清全部租金，押金 ¥${contract.pledge.toFixed(2)} 将从房东钱包退回租客钱包。`}
                     {kind === 'illegal'        && `仍有未结清的租金期数，属于提前违约退房，押金 ¥${contract.pledge.toFixed(2)} 不予退还。`}
                   </p>
-                  <p className="text-tiny text-text-disabled mt-1.5">此操作不可撤销，房源将重新上架。</p>
+                  <p className="text-body-sm text-amber-600 mt-1.5">此操作不可撤销，房源将重新上架。</p>
                 </div>
               </div>
             </div>
