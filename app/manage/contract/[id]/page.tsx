@@ -206,7 +206,6 @@ export default function ContractDetailPage({ params }: { params: Promise<{ id: s
           <div className="w-7 h-7 skeleton-shimmer rounded-sm" />
           <div className="w-44 h-4 skeleton-shimmer rounded" />
         </div>
-        <div className="w-32 h-7 skeleton-shimmer rounded" />
         <div className="grid lg:grid-cols-[1fr_320px] gap-5">
           <div className="space-y-4">
             {[1, 2, 3].map((i) => (
@@ -247,33 +246,24 @@ export default function ContractDetailPage({ params }: { params: Promise<{ id: s
 
   return (
     <div className="space-y-5">
-      {/* ── 面包屑 ── */}
-      <div className="flex items-center gap-1.5 text-body-sm min-w-0">
-        <button
-          onClick={() => router.back()}
-          title="返回"
-          className="w-7 h-7 rounded-sm grid place-items-center text-text-muted hover:bg-surface-2 hover:text-text transition-colors shrink-0 cursor-pointer"
-        >
-          <ArrowLeft size={17} />
-        </button>
-        <span className="text-text-disabled shrink-0">/</span>
-        <Link href="/manage/contract" className="text-text-muted hover:text-text transition-colors shrink-0">
-          合同管理
-        </Link>
-        <ChevronRight size={13} className="text-text-disabled shrink-0" />
-        <span className="text-text font-emphasis truncate">合同详情</span>
-      </div>
-
-      {/* ── 标题 ── */}
-      <div className="flex items-start justify-between gap-4 flex-wrap">
-        <div>
-          <div className="flex items-center gap-2.5">
-            <h1 className="font-(family-name:--typeface-display) text-h1 font-heading tracking-tight text-text leading-[1.1] m-0">合同详情</h1>
-            <span className="text-body-sm text-text-muted font-mono">#{contract.id}</span>
-          </div>
-          <p className="text-body text-text-muted mt-1">创建于 {fmtDateTime(contract.createdAt)}</p>
-        </div>
-        <div className="flex items-center gap-2 flex-wrap">
+      {/* ── 面包屑 + 徽章 ── */}
+      <div className="flex items-center justify-between gap-4">
+        <nav className="flex items-center gap-1.5 text-body-sm min-w-0">
+          <button
+            onClick={() => router.back()}
+            title="返回"
+            className="w-7 h-7 rounded-sm grid place-items-center text-text-muted hover:bg-surface-2 hover:text-text transition-colors shrink-0 cursor-pointer"
+          >
+            <ArrowLeft size={17} />
+          </button>
+          <span className="text-text-disabled shrink-0">/</span>
+          <Link href="/manage/contract" className="text-text-muted hover:text-text transition-colors shrink-0">
+            合同管理
+          </Link>
+          <ChevronRight size={13} className="text-text-disabled shrink-0" />
+          <span className="text-text font-emphasis font-mono truncate">#{contract.id}</span>
+        </nav>
+        <div className="flex items-center gap-2 shrink-0">
           <StatusBadge status={contract.status} />
           <CheckoutBadge isCheckout={contract.isCheckout} refund={contract.refund} />
         </div>
