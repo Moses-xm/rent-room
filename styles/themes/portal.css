@@ -1,35 +1,37 @@
 /* ═══════════════════════════════════════════════════════════
-   Portal 平台主题（占位）
-   待用户平台设计稿确定后，填充以下变量值。
-
-   ★ 换色操作：只需修改下方四行 --color-primary* 的值，
-     整个用户平台配色立即更新，组件代码无需任何改动。
+   Portal 平台主题
+   ★ 换色操作：只需修改下方变量值，整个用户平台配色立即更新。
    ═══════════════════════════════════════════════════════════ */
 
 [data-platform="portal"] {
-  /* —— 主色（示例：天蓝，待定）—— */
-  --color-primary:        #0ea5e9;
-  --color-primary-dark:   #0284c7;
-  --color-primary-tint:   #e0f2fe;
-  --color-primary-tint-2: #f0f9ff;
+  /* —— 主色：绿色系（源自高保真原型）—— */
+  --color-primary:        #62ab00;   /* 导航栏 / 按钮 / 激活态 / 分页 */
+  --color-primary-dark:   #4a8101;   /* hover 深绿 */
+  --color-primary-brand:  #48a841;   /* Logo 品牌绿、auth 底边线 */
+  --color-primary-tint:   #f2f6ed;   /* 浅绿背景（菜单 active、tag-green） */
+  --color-primary-tint-2: #eaf2e0;   /* 更浅绿背景 */
 
-  /* —— 文字灰阶（与 manage 保持一致，可按需调整）—— */
-  --color-text:          #1A1A1A;
-  --color-text-2:        #3F3F3F;
-  --color-text-muted:    #8A8A8A;
-  --color-text-subtle:   #B5B5B5;
-  --color-text-disabled: #D8D8D8;
+  /* —— 强调色：橙色系 —— */
+  --color-accent:         #ff6600;   /* 搜索按钮 / hover / filter 激活 */
+  --color-accent-dark:    #eb5f00;   /* 价格文字 */
+
+  /* —— 文字灰阶 —— */
+  --color-text:           #333333;
+  --color-text-2:         #666666;
+  --color-text-muted:     #999999;
+  --color-text-subtle:    #797979;
+  --color-text-disabled:  #cccccc;
 
   /* —— 背景 —— */
-  --color-surface:       #F8FAFC;
-  --color-surface-2:     #F1F5F9;
-  --color-card:          #FFFFFF;
+  --color-surface:        #f9f9f9;
+  --color-surface-2:      #f1f1f1;
+  --color-card:           #ffffff;
 
   /* —— 边框 —— */
-  --color-border:        #E2E8F0;
-  --color-border-subtle: #F1F5F9;
+  --color-border:         #e6e6e6;
+  --color-border-subtle:  #eeeeee;
 
-  /* —— 字体栈（portal 独立配置，不依赖 manage 字体）—— */
+  /* —— 字体栈 —— */
   --typeface-body:    system-ui, 'PingFang SC', 'Microsoft YaHei', sans-serif;
   --typeface-display: Georgia, 'Songti SC', serif;
 }
