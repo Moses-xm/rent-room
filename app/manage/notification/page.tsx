@@ -65,6 +65,35 @@ function ReadBadge({ isRead }: { isRead: boolean }) {
   );
 }
 
+const RELATED_TYPE_LABEL: Record<string, string> = {
+  contract:    '合同',
+  appointment: '预约',
+  order:       '订单',
+};
+
+function relatedHref(relatedType: string, relatedId: number): string | null {
+  if (relatedType === 'contract') return `/manage/contract/${relatedId}`;
+  return null;
+}
+
+function RelatedCell({ relatedType, relatedId }: { relatedType: string | null; relatedId: number | null }) {
+  if (!relatedType || !relatedId) return <span className="text-body-sm text-text-muted">—</span>;
+  const label = RELATED_TYPE_LABEL[relatedType] ?? relatedType;
+  const href  = relatedHref(relatedType, relatedId);
+  if (href) {
+    return (
+      <Link href={href} className="inline-flex items-center gap-1 text-body-sm font-mono text-primary hover:underline underline-offset-2">
+        {label} <span className="font-semibold">#{relatedId}</span>
+      </Link>
+    );
+  }
+  return (
+    <span className="text-body-sm text-text-muted font-mono">
+      {label} <span className="text-text">#{relatedId}</span>
+    </span>
+  );
+}
+
 /* ─── Fetch helper ────────────────────────────────────────────────────────── */
 async function fetchNotifications(params: {
   page: number; limit: number; search?: string;
@@ -223,11 +252,7 @@ export default function NotificationPage() {
     {
       key: 'relatedId',
       label: '关联',
-      render: (item) => item.relatedType && item.relatedId ? (
-        <span className="text-body-sm text-text-muted font-mono">
-          {item.relatedType} <span className="text-text">#{item.relatedId}</span>
-        </span>
-      ) : <span className="text-body-sm text-text-muted">—</span>,
+      render: (item) => <RelatedCell relatedType={item.relatedType} relatedId={item.relatedId} />,
     },
     {
       key: 'isRead',
@@ -394,6 +419,16 @@ export default function NotificationPage() {
               </button>
 
               <div className="mx-4 border-t border-border" />
+
+              {/* 关联 */}
+              {item.relatedType && item.relatedId && (
+                <>
+                  <div className="mx-4 border-t border-border" />
+                  <div className="px-4 py-2.5">
+                    <RelatedCell relatedType={item.relatedType} relatedId={item.relatedId} />
+                  </div>
+                </>
+              )}
 
               {/* 时间 + 操作 */}
               <div className="flex items-center gap-2 px-4 py-2.5">
