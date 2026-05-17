@@ -16,23 +16,49 @@ Next.js 15 App Router · shadcn/ui + Tailwind CSS v4 · Neon Postgres + Prisma �
 成功：`{ success: true, data }` 列表额外含 `total, page, limit, totalPages`。失败：`{ success: false, message }`（含对应 HTTP 状态码）。
 每个模块在 `lib/` 下对应一个序列化文件（如 `lib/facility.ts`），所有 `Date` 字段必须显式调用 `.toISOString()`，确保 TypeScript 返回类型与前端实际收到的 JSON 一致。
 
-## 前端规范
-- 请求统一用 `utils/request.ts` 的 `request<T>()`（管理端）或 `utils/portal-request.ts` 的 `portalRequest<T>()`（用户端）；不满足需求时扩展参数，不另起炉灶
-- 新增普通 CRUD 模块时参照管理员管理模块，保持表格/表单/筛选/分页/弹窗风格一致
-- **错误处理**：`request()` 自动处理 4xx/5xx 异常并显示 toast 错误提示，页面层只需处理业务逻辑和成功提示；特殊场景（表单级错误展示、后台清理操作）传 `silent: true` 参数抑制 toast
-- **骨架屏（必须）**：所有页面首次加载不允许白屏。列表页桌面端由 `DataTable` 自动处理，移动端用 `<AppLoading variant="card" />`；详情/表单页在 `if (loading)` 提前返回，用 `skeleton-shimmer` / `skeleton-shimmer-warm` 类搭建与真实布局结构对应的骨架
-- **移动端分页（必须）**：列表页移动端卡片区必须在卡片列表下方渲染 `<Pagination />` 组件（条件：`hasLoadedOnce && total > 0`），禁止只渲染卡片而省略分页；桌面端分页由 `DataTable` 内部处理，移动端须手动补上
-- **Toaster 禁止重复渲染**：`ManageLayoutShell` 已全局挂载 `<Toaster />`，各页面只需 `import { toast } from 'sonner'` 调用即可，**不得**在页面内再渲染 `<Toaster />`，否则会在内容区占位，导致顶部间距异常
-- **全大写常量统一存放**：所有大写命名的常量（如魔法数字、枚举值、配置项）一律定义在 `utils/constants.ts`，禁止在页面或组件内就地声明
-- **日期格式化**：统一使用 `utils/format.ts` 的 `fmtDate`（年月日）和 `fmtDateTime`（年月日时分），禁止在页面内就地定义同类函数
-- **iconfont 图标**：字体族名不是 `iconfont`，必须用 `utils/constants.ts` 的 `FONT_FAMILY` 常量作为类名；图标类名直接使用 `facility.icon` 字段值（已含 `icon-` 前缀），写法为 `<i className={`${FONT_FAMILY} ${item.icon}`} />`，禁止拼接 `icon-${item.icon}`
-- **下拉选择（必须）**：所有下拉选择一律使用 `components/FilterSelect.tsx` 的 `<FilterSelect />`，禁止使用原生 `<select>`。支持的 props：`value`、`onChange`、`options`（`{ value: string; label: string }[]`）、`placeholder`、`disabled`（级联禁用）、`clearable`（`false` 用于无空选项的必选字段，如性别、租房类型）、`error`（表单校验错误时传入，显示红色边框）、`className`（控制宽度，列表筛选传 `min-w-*`，表单内传 `w-full`）。例外：`<Pagination />` 内部的每页条数 select 和 `<CitySelector />` 不适用
-- **按钮鼠标样式（必须）**：所有可点击的 `<button>` 必须加 `cursor-pointer`；若按钮有禁用态，同时加 `disabled:cursor-not-allowed`。浏览器默认不为 `<button>` 显示手形光标，必须显式声明，禁止遗漏
-
 ## 文件上传
 1. `POST /api/upload/avatar`（FormData）→ `{ path: string }`
 2. 入库前 `normalizeUploadPathForStorage()`，展示时 `resolveUploadedFileUrl()`
 3. 替换或关闭表单时调 `DELETE /api/upload/avatar` 清理临时文件
+
+---
+
+## 前端规范（公共）
+
+以下规范适用于管理平台和用户平台，开发任意平台都必须遵守。
+
+- **请求封装**：管理端统一用 `utils/request.ts` 的 `request<T>()`，用户端统一用 `utils/portal-request.ts` 的 `portalRequest<T>()`；不满足需求时扩展参数，不另起炉灶
+- **错误处理**：`request()` / `portalRequest()` 自动处理 4xx/5xx 异常并显示 toast 错误提示，页面层只需处理业务逻辑和成功提示；特殊场景（表单级错误展示、后台清理操作）传 `silent: true` 参数抑制 toast
+- **Toaster 禁止重复渲染**：两个平台均在 layout 层全局挂载 `<Toaster />`（Manage：`ManageLayoutShell`；Portal：`app/portal/layout.tsx` 的 `PortalToaster`），各页面只需 `import { toast } from 'sonner'` 调用，**不得**在页面内再渲染 `<Toaster />`，否则会在内容区占位导致顶部间距异常
+- **全大写常量统一存放**：所有大写命名的常量（如魔法数字、枚举值、配置项）一律定义在 `utils/constants.ts`，禁止在页面或组件内就地声明
+- **日期格式化**：统一使用 `utils/format.ts` 的 `fmtDate`（年月日）和 `fmtDateTime`（年月日时分），禁止在页面内就地定义同类函数
+- **iconfont 图标**：字体族名不是 `iconfont`，必须用 `utils/constants.ts` 的 `FONT_FAMILY` 常量作为类名；图标类名直接使用 `facility.icon` 字段值（已含 `icon-` 前缀），写法为 `<i className={`${FONT_FAMILY} ${item.icon}`} />`，禁止拼接 `icon-${item.icon}`
+- **按钮鼠标样式（必须）**：所有可点击的 `<button>` 必须加 `cursor-pointer`；若按钮有禁用态，同时加 `disabled:cursor-not-allowed`。浏览器默认不为 `<button>` 显示手形光标，必须显式声明，禁止遗漏
+
+---
+
+## 管理平台规范（Manage）
+
+以下规范仅适用于 `/manage/*`，开发用户平台时无需关注。
+
+- 新增普通 CRUD 模块时参照管理员管理模块，保持表格/表单/筛选/分页/弹窗风格一致
+- **骨架屏（必须）**：所有页面首次加载不允许白屏。列表页桌面端由 `DataTable` 自动处理，移动端用 `<AppLoading variant="card" />`；详情/表单页在 `if (loading)` 提前返回，用 `skeleton-shimmer` / `skeleton-shimmer-warm` 类搭建与真实布局结构对应的骨架
+- **移动端分页（必须）**：列表页移动端卡片区必须在卡片列表下方渲染 `<Pagination />` 组件（条件：`hasLoadedOnce && total > 0`），禁止只渲染卡片而省略分页；桌面端分页由 `DataTable` 内部处理，移动端须手动补上
+- **下拉选择（必须）**：所有下拉选择一律使用 `components/FilterSelect.tsx` 的 `<FilterSelect />`，禁止使用原生 `<select>`。支持的 props：`value`、`onChange`、`options`（`{ value: string; label: string }[]`）、`placeholder`、`disabled`（级联禁用）、`clearable`（`false` 用于无空选项的必选字段，如性别、租房类型）、`error`（表单校验错误时传入，显示红色边框）、`className`（控制宽度，列表筛选传 `min-w-*`，表单内传 `w-full`）。例外：`<Pagination />` 内部的每页条数 select 和 `<CitySelector />` 不适用
+- **顶栏面包屑（必须）**：每新增一个管理平台模块，必须同步在 `components/Topbar.tsx` 的 `resolveCrumbs` 函数中注册面包屑：纯列表页在 `flat` 对象里加一条 `"/manage/<module>": "模块名称"`；含子路由（详情/新建/编辑）在 `flat` 之前用正则分支返回多级面包屑，参照 `room`/`community` 的写法
+
+---
+
+## 用户平台规范（Portal）
+
+以下规范仅适用于 `/portal/*`，开发管理平台时无需关注。
+
+- **样式（必须）**：所有组件一律用 **Tailwind CSS v4** 编写样式，禁止大量使用内联 `style={{}}`（仅允许动态计算值或极少数 Tailwind 无对应工具类的特殊场景）。颜色统一引用 `styles/themes/portal.css` 中定义的 CSS 变量，通过 Tailwind 任意值语法使用，如 `bg-[var(--color-primary)]`、`text-[var(--color-accent)]`
+- **响应式（必须）**：portal 平台必须完整支持移动端，禁止仅实现桌面端。布局策略采用**移动优先**：默认全宽单列流式布局，`lg:`（≥1024px）断点切换为桌面定宽居中版本。具体规则：① 导航栏在移动端折叠为汉堡菜单抽屉或底部 Tab Bar；② 内容容器移动端 `w-full px-4`，桌面端 `max-w-[1180px] mx-auto`；③ 列表卡片网格移动端单列（`grid-cols-1`），平板两列（`sm:grid-cols-2`），桌面四列（`lg:grid-cols-4`）；④ 个人中心侧边菜单在移动端改为顶部横向标签页；⑤ 找房筛选栏在移动端以底部抽屉展示
+- **Shell 组件（必须）**：所有 portal 页面必须通过对应 Shell 组件包裹：普通公开页面用 `PortalShell`，登录/注册页用 `AuthShell`，个人中心页用 `MineShell`（内置 auth 守卫，未登录自动重定向至登录页）
+- **骨架屏**：首次加载不允许白屏，用 `skeleton-shimmer` / `skeleton-shimmer-warm` 类搭建与真实布局结构一致的骨架占位
+
+---
 
 ## 项目结构
 
@@ -116,7 +142,15 @@ rent-room/
 │   ├── globals.css
 │   ├── layout.tsx
 │   └── page.tsx
-├── components/                       # 共享 UI 组件
+├── components/
+│   ├── portal/                       # Portal 平台专属组件
+│   │   ├── PortalToaster.tsx         # Toaster 客户端封装（layout 层挂载）
+│   │   ├── PortalFooter.tsx          # 页脚
+│   │   ├── GlobalHeader.tsx          # 顶部导航（品牌+城市+搜索+用户状态）
+│   │   ├── TopMenu.tsx               # 绿色主导航菜单
+│   │   ├── PortalShell.tsx           # BaseLayout（Header+TopMenu+main+Footer）
+│   │   ├── AuthShell.tsx             # 登录/注册布局（背景图+居中卡片）
+│   │   └── MineShell.tsx             # 个人中心布局（顶栏+横幅+侧边菜单+内容区）
 │   ├── AppLoading.tsx
 │   ├── BaiduMapPicker.tsx            # 百度地图选点组件（双向联动）
 │   ├── CitySelector.tsx
@@ -155,7 +189,7 @@ rent-room/
 ├── styles/
 │   └── themes/
 │       ├── manage.css                # Manage 平台主题（换色只改此文件）
-│       └── portal.css                # Portal 平台主题（占位）
+│       └── portal.css                # Portal 平台主题（绿色系+橙色 accent+shell utility 类）
 ├── prisma/
 │   └── schema.prisma
 ├── localData/                        # 城市等静态数据
@@ -169,11 +203,6 @@ rent-room/
 
 ## 实现状态
 管理平台：登录 ✅、个人资料 ✅、管理员管理 ✅、用户管理 ✅、小区管理 ✅、轮播图管理 ✅、房屋设施管理 ✅、房源管理 ✅、收藏管理 ✅、预约管理 ✅、通知管理 ✅、合同管理 ✅、其余模块 ⬜。用户平台：登录 ✅、我的订单 ✅、其余模块 ⬜。数据库：`admin` 表 ✅、`user` 表 ✅、`community` 表 ✅、`carousel` 表 ✅、`facility` 表 ✅、`room` 表 ✅、`collection` 表 ✅、`appointment` 表 ✅、`notification` 表 ✅、`contract` 表 ✅、`order` 表 ✅、`wallet_record` 表 ✅。
-
-## 顶栏面包屑（必须）
-每新增一个管理平台模块，**必须**同步在 `components/Topbar.tsx` 的 `resolveCrumbs` 函数中注册面包屑：
-- 纯列表页（无子路由）：在 `flat` 对象里加一条 `"/manage/<module>": "模块名称"`
-- 含子路由（详情/新建/编辑）：在 `flat` 之前用正则分支返回多级面包屑，参照 `room`/`community` 的写法
 
 ## 协作约定
 - 回复用中文，以 **My lord** 开头

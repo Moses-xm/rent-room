@@ -1164,9 +1164,24 @@ import AppLoading from '@/components/AppLoading';
 
 ### 用户平台
 
-- 所有页面完全支持移动端，导航使用底部 Tab Bar
+Portal 平台视觉风格还原自高保真原型（`public/prototype/`），但必须在原型桌面设计的基础上叠加完整的移动端响应式能力。
+
+**布局策略（移动优先）**
+
+| 区域 | 移动端（默认） | 桌面端（`lg:`，≥1024px） |
+|---|---|---|
+| 内容容器 | `w-full px-4` | `max-w-[1180px] mx-auto` |
+| 主导航 TopMenu | 汉堡菜单抽屉（右滑弹出） | 水平菜单栏（高度 40px） |
+| 列表卡片网格 | 单列 `grid-cols-1` | 四列 `lg:grid-cols-4` |
+| 个人中心侧边菜单 | 顶部横向标签页 | 左侧固定菜单（200px） |
+| 找房筛选栏 | 底部抽屉 / 折叠 Panel | 展开的筛选条（inline） |
+| 房源详情双栏 | 上下堆叠 | 左 900px + 右 260px |
+
+**样式规范**
+- 所有组件使用 **Tailwind CSS v4** 编写，不使用内联 `style={{}}`（极少数动态值除外）
+- Portal 主题色通过 CSS 变量使用：`bg-[var(--color-primary)]`、`text-[var(--color-accent)]` 等
+- 图片统一使用 `object-cover`，容器比例固定
 - 筛选条件在移动端以抽屉/底部弹层展示
-- 图片使用 `object-fit: cover` 自适应容器
 
 ---
 

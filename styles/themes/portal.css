@@ -35,3 +35,59 @@
   --typeface-body:    system-ui, 'PingFang SC', 'Microsoft YaHei', sans-serif;
   --typeface-display: Georgia, 'Songti SC', serif;
 }
+
+/* ═══════════════════════════════════════════
+   Portal Shell 专用 utility class
+   供 GlobalHeader / TopMenu / MineShell 等
+   shell 组件使用，避免在组件内写内联 hover
+   ═══════════════════════════════════════════ */
+
+/* 普通链接 hover：橙色 + 下划线 */
+[data-platform="portal"] .p-link {
+  cursor: pointer;
+  color: inherit;
+  text-decoration: none;
+  transition: color 0.1s;
+}
+[data-platform="portal"] .p-link:hover {
+  color: var(--color-accent);
+  text-decoration: underline;
+}
+
+/* 顶部导航菜单项 */
+[data-platform="portal"] .p-menu-link {
+  display: inline-flex;
+  align-items: center;
+  height: 40px;
+  padding: 0 25px;
+  color: #fff;
+  font-size: 16px;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background 0.1s;
+}
+[data-platform="portal"] .p-menu-link:hover,
+[data-platform="portal"] .p-menu-link.active {
+  background: var(--color-primary-dark);
+}
+
+/* 个人中心侧边菜单项 */
+[data-platform="portal"] .p-mine-item {
+  display: block;
+  height: 50px;
+  padding-left: 19px;
+  color: #666;
+  font-size: 16px;
+  line-height: 50px;
+  background: #fff;
+  border-left: 3px solid transparent;
+  text-decoration: none;
+  cursor: pointer;
+  transition: color 0.1s, background 0.1s, border-color 0.1s;
+}
+[data-platform="portal"] .p-mine-item:hover,
+[data-platform="portal"] .p-mine-item.active {
+  color: var(--color-primary);
+  background: var(--color-primary-tint);
+  border-left-color: var(--color-primary);
+}
