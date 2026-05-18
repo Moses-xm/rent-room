@@ -77,6 +77,9 @@ rent-room/
 │   │   │   └── profile/route.ts
 │   │   ├── portal/
 │   │   │   ├── login/route.ts        # POST 用户登录（返回 JWT）
+│   │   │   ├── carousels/route.ts    # GET 已发布轮播图列表
+│   │   │   ├── rooms/route.ts        # GET 房源列表（sort=latest|hot，支持筛选）
+│   │   │   ├── communities/route.ts  # GET 小区列表（支持 district 筛选）
 │   │   │   └── orders/
 │   │   │       ├── route.ts          # GET 当前用户订单列表（过滤软删除）
 │   │   │       └── [id]/route.ts     # DELETE 软删除（设 payerDeleted/payeeDeleted）
@@ -154,6 +157,7 @@ rent-room/
 │   │   ├── RoomImage.tsx             # 图片容错占位封装（onError → 斜线占位 div）
 │   │   ├── RoomTags.tsx              # 颜色标签组（red/green/blue/yellow 四色）
 │   │   ├── HomeCard.tsx              # 首页房源/小区卡片（4 列 grid）
+│   │   ├── HeroCarousel.tsx          # 首页 Hero 自动轮播（client，含圆点导航）
 │   │   ├── RoomRow.tsx               # 列表页房源行（横排桌面 / 堆叠移动端）
 │   │   ├── CommunityRow.tsx          # 小区列表行（同 RoomRow，无右侧价格列）
 │   │   ├── BrokerCard.tsx            # 房源详情经纪人卡片（头像+信息+两按钮）
@@ -209,7 +213,7 @@ rent-room/
 ```
 
 ## 实现状态
-管理平台：登录 ✅、个人资料 ✅、管理员管理 ✅、用户管理 ✅、小区管理 ✅、轮播图管理 ✅、房屋设施管理 ✅、房源管理 ✅、收藏管理 ✅、预约管理 ✅、通知管理 ✅、合同管理 ✅、其余模块 ⬜。用户平台：登录 ✅、我的订单 ✅、其余模块 ⬜。数据库：`admin` 表 ✅、`user` 表 ✅、`community` 表 ✅、`carousel` 表 ✅、`facility` 表 ✅、`room` 表 ✅、`collection` 表 ✅、`appointment` 表 ✅、`notification` 表 ✅、`contract` 表 ✅、`order` 表 ✅、`wallet_record` 表 ✅。
+管理平台：登录 ✅、个人资料 ✅、管理员管理 ✅、用户管理 ✅、小区管理 ✅、轮播图管理 ✅、房屋设施管理 ✅、房源管理 ✅、收藏管理 ✅、预约管理 ✅、通知管理 ✅、合同管理 ✅、其余模块 ⬜。用户平台：登录 ✅、首页 ✅、我的订单 ✅、其余模块 ⬜。数据库：`admin` 表 ✅、`user` 表 ✅、`community` 表 ✅、`carousel` 表 ✅、`facility` 表 ✅、`room` 表 ✅、`collection` 表 ✅、`appointment` 表 ✅、`notification` 表 ✅、`contract` 表 ✅、`order` 表 ✅、`wallet_record` 表 ✅。Portal API：轮播图 ✅、房源列表 ✅、小区列表 ✅、其余 ⬜。
 
 ## 协作约定
 - 回复用中文，以 **My lord** 开头

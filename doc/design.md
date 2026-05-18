@@ -918,12 +918,22 @@ import AppLoading from '@/components/AppLoading';
 - 需要登录的操作：预约、租房、发布房源、查看个人数据
 - 未登录时点击需要登录的操作，弹出提示并跳转登录页
 
-### 首页
+### 首页（`app/portal/page.tsx`）✅
 
-- 轮播图（数据来自 `carousel` 表）
-- 搜索框（按小区名/地址模糊搜索）
-- 热门房源（按 `views` 降序 Top 8）
-- 热门小区（根据房源收藏量聚合）
+页面为 Next.js Server Component，直接调用 Prisma 查询，无需经过 API 路由：
+
+- **Hero 轮播图**：`HeroCarousel`（client 组件），每 4 秒自动切换，支持圆点导航，展示 `published=true` 的轮播图，按 `sortOrder` 升序
+- **最新上架**：`HomeCard` × 4，按 `createdAt` 降序，仅展示 `isPublished=2` 的房源
+- **小区精选**：`HomeCard` × 4，按 `createdAt` 降序，右侧显示已发布房源数量
+- **热门推荐**：`HomeCard` × 4，按 `views` 降序
+
+Portal API（`app/api/portal/`）：
+
+| 接口 | 说明 | 已实现 |
+|------|------|------|
+| `GET /api/portal/carousels` | 已发布轮播图，按 sortOrder 升序 | ✅ |
+| `GET /api/portal/rooms` | 房源列表，支持 sort=latest\|hot、district、minPrice、maxPrice、rentType、page | ✅ |
+| `GET /api/portal/communities` | 小区列表，支持 district、page，返回含 roomCount | ✅ |
 
 ### 房源搜索与筛选
 
