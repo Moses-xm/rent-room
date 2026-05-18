@@ -9,6 +9,15 @@ const communitySelect = {
   district: true,
 };
 
+function SectionTitle({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="flex items-center h-10 mb-4">
+      <span className="w-0.75 h-4.5 bg-primary shrink-0" />
+      <span className="pl-3 text-lg font-semibold text-text">{children}</span>
+    </div>
+  );
+}
+
 export default async function PortalHomePage() {
   const [carousels, latestRooms, communities, hotRooms] = await Promise.all([
     prisma.carousel.findMany({
@@ -51,10 +60,8 @@ export default async function PortalHomePage() {
 
         {/* 最新上架 */}
         <section className="mt-7 mb-2">
-          <div className="flex items-center h-10 pl-5 text-lg border-l-4 border-primary font-semibold text-text">
-            最新上架
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+          <SectionTitle>最新上架</SectionTitle>
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-5">
             {latestRooms.map((r) => (
               <HomeCard
                 key={r.id}
@@ -70,10 +77,8 @@ export default async function PortalHomePage() {
 
         {/* 小区精选 */}
         <section className="mt-7 mb-2">
-          <div className="flex items-center h-10 pl-5 text-lg border-l-4 border-primary font-semibold text-text">
-            小区精选
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+          <SectionTitle>小区精选</SectionTitle>
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-5">
             {communities.map((c) => (
               <HomeCard
                 key={c.id}
@@ -89,10 +94,8 @@ export default async function PortalHomePage() {
 
         {/* 热门推荐 */}
         <section className="mt-7 mb-10">
-          <div className="flex items-center h-10 pl-5 text-lg border-l-4 border-primary font-semibold text-text">
-            热门推荐
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+          <SectionTitle>热门推荐</SectionTitle>
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-5">
             {hotRooms.map((r) => (
               <HomeCard
                 key={r.id}

@@ -48,16 +48,20 @@ export function GlobalHeader({ onMenuToggle }: { onMenuToggle: () => void }) {
   return (
     <header className="w-full bg-white">
       {/* ── 移动端头部 ─────────────────────────── */}
-      <div className="flex lg:hidden items-center justify-between h-14 px-4 border-b border-[#e6e6e6]">
-        <Link href="/portal" className="text-(--color-primary-brand) text-xl font-medium">
-          雅阁租房
-        </Link>
+      <div className="flex lg:hidden items-center h-14 px-4 border-b border-[#e6e6e6]">
+        {/* 汉堡在左侧，与抽屉方向一致 */}
         <button
           onClick={onMenuToggle}
-          className="w-9 h-9 flex items-center justify-center text-[#333] cursor-pointer"
+          className="w-9 h-9 flex items-center justify-center text-[#333] cursor-pointer shrink-0"
         >
           <Menu className="w-5 h-5" />
         </button>
+        {/* Logo 居中 */}
+        <Link href="/portal" className="flex-1 text-center text-(--color-primary-brand) text-xl font-medium">
+          雅阁租房
+        </Link>
+        {/* 右侧占位，保持 Logo 视觉居中 */}
+        <div className="w-9 shrink-0" />
       </div>
 
       {/* ── 桌面端头部 ─────────────────────────── */}
