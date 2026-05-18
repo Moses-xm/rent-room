@@ -634,7 +634,7 @@ PortalShell
 ✅ Step 2    Portal Layout + PortalToaster
 ✅ Steps 3-7 Shell 组件（PortalShell / GlobalHeader / TopMenu /
              MobileNav / PortalFooter / AuthShell / MineShell）
-⬜ Step 8    共享 UI 组件（HomeCard / RoomRow / RoomFilterBar 等）
+✅ Step 8    共享 UI 组件（HomeCard / RoomRow / RoomFilterBar 等）
 ⬜ Step 9    首页
 ⬜ Step 14   登录/注册
 ⬜ Step 10-11 区域/地铁/小区找房

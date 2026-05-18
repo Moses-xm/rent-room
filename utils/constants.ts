@@ -105,6 +105,27 @@ export const PORTAL_AUTH_BG = "/prototype/assets/bg.jpg";
 /** 个人中心横幅背景图 */
 export const PORTAL_MINE_BANNER = "/prototype/assets/banner.png";
 
+// ── Portal Filter Options ─────────────────────────────────────────────────────
+export const PORTAL_DISTRICTS = [
+  "全部", "上城", "下城", "滨江", "拱墅", "萧山", "余杭", "西湖", "钱塘",
+];
+
+export const PORTAL_SUBWAY_LINES = [
+  "全部", "1号线", "2号线", "4号线", "5号线", "6号线", "7号线", "16号线",
+];
+
+export const PORTAL_PRICE_RANGES: Array<{ label: string; min?: number; max?: number }> = [
+  { label: "全部" },
+  { label: "1000以下",  max: 1000 },
+  { label: "1000-1500", min: 1000, max: 1500 },
+  { label: "1500-2000", min: 1500, max: 2000 },
+  { label: "2000-3000", min: 2000, max: 3000 },
+  { label: "3000-5000", min: 3000, max: 5000 },
+  { label: "5000以上",  min: 5000 },
+];
+
+export const PORTAL_ROOM_BED_OPTIONS = ["一室", "两室", "三室", "四室及以上"];
+
 // ── Wallet ────────────────────────────────────────────────────────────────────
 export const WALLET_RECORD_TYPE_OPTIONS = [
   { value: 1, label: '充值' },

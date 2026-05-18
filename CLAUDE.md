@@ -150,7 +150,14 @@ rent-room/
 │   │   ├── TopMenu.tsx               # 绿色主导航菜单
 │   │   ├── PortalShell.tsx           # BaseLayout（Header+TopMenu+main+Footer）
 │   │   ├── AuthShell.tsx             # 登录/注册布局（背景图+居中卡片）
-│   │   └── MineShell.tsx             # 个人中心布局（顶栏+横幅+侧边菜单+内容区）
+│   │   ├── MineShell.tsx             # 个人中心布局（顶栏+横幅+侧边菜单+内容区）
+│   │   ├── RoomImage.tsx             # 图片容错占位封装（onError → 斜线占位 div）
+│   │   ├── RoomTags.tsx              # 颜色标签组（red/green/blue/yellow 四色）
+│   │   ├── HomeCard.tsx              # 首页房源/小区卡片（4 列 grid）
+│   │   ├── RoomRow.tsx               # 列表页房源行（横排桌面 / 堆叠移动端）
+│   │   ├── CommunityRow.tsx          # 小区列表行（同 RoomRow，无右侧价格列）
+│   │   ├── BrokerCard.tsx            # 房源详情经纪人卡片（头像+信息+两按钮）
+│   │   └── RoomFilterBar.tsx         # 筛选栏（桌面三行展开 / 移动端 chip+底部抽屉）
 │   ├── AppLoading.tsx
 │   ├── BaiduMapPicker.tsx            # 百度地图选点组件（双向联动）
 │   ├── CitySelector.tsx
