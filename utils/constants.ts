@@ -106,10 +106,6 @@ export const PORTAL_AUTH_BG = "/prototype/assets/bg.jpg";
 export const PORTAL_MINE_BANNER = "/prototype/assets/banner.png";
 
 // ── Portal Filter Options ─────────────────────────────────────────────────────
-export const PORTAL_SUBWAY_LINES = [
-  "全部", "1号线", "2号线", "4号线", "5号线", "6号线", "7号线", "16号线",
-];
-
 export const PORTAL_PRICE_RANGES: Array<{ label: string; min?: number; max?: number }> = [
   { label: "全部" },
   { label: "1000元以下",    max: 1000 },

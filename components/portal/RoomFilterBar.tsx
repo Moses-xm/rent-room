@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import {
-  PORTAL_SUBWAY_LINES,
   PORTAL_PRICE_RANGES,
   PORTAL_ROOM_BED_OPTIONS,
   DIRECTION_OPTIONS,
@@ -12,6 +11,7 @@ import {
 import FilterSelect from "@/components/FilterSelect";
 import {
   getDistrictsForCity,
+  getSubwayLinesForCity,
   getPortalCity,
   PORTAL_CITY_CHANGED_EVENT,
 } from "@/utils/portal-city";
@@ -93,9 +93,16 @@ export function RoomFilterBar({
   const [districts, setDistricts] = useState<string[]>(() =>
     getDistrictsForCity(getPortalCity())
   );
+  const [subwayLines, setSubwayLines] = useState<string[]>(() =>
+    getSubwayLinesForCity(getPortalCity())
+  );
 
   useEffect(() => {
-    const sync = () => setDistricts(getDistrictsForCity(getPortalCity()));
+    const sync = () => {
+      const city = getPortalCity();
+      setDistricts(getDistrictsForCity(city));
+      setSubwayLines(getSubwayLinesForCity(city));
+    };
     window.addEventListener(PORTAL_CITY_CHANGED_EVENT, sync);
     window.addEventListener("storage", sync);
     return () => {
@@ -105,7 +112,7 @@ export function RoomFilterBar({
   }, []);
 
   const districtOptions = ["全部", ...districts];
-  const locationOptions = type === "area" ? districtOptions : PORTAL_SUBWAY_LINES;
+  const locationOptions = type === "area" ? districtOptions : ["全部", ...subwayLines];
   const locationLabel = type === "area" ? "位置" : "线路";
   const locationKey = type === "area" ? "district" : "subwayLine";
   const currentLocation = locationKey === "district" ? value.district : value.subwayLine;

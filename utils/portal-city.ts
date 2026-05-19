@@ -1,4 +1,5 @@
 import areaAllData from "@/localData/area.json";
+import subwayData from "@/localData/subways_city.json";
 
 type AreaNode = { label: string; value: string; children?: AreaNode[] };
 
@@ -27,6 +28,14 @@ export function getDistrictsForCity(city: string): string[] {
     }
   }
   return [];
+}
+
+/** 从 subways_city.json 提取指定城市的地铁线路列表 */
+export function getSubwayLinesForCity(city: string): string[] {
+  const entry = (subwayData as { name: string; lines: string[] }[]).find(
+    (d) => d.name === city
+  );
+  return entry?.lines ?? [];
 }
 
 export const PORTAL_CITY_KEY     = "portal-cur-city";
