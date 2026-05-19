@@ -53,7 +53,7 @@ export default async function PortalHomePage() {
 
   return (
     <PortalShell>
-      <div className="max-w-295 mx-auto px-4 lg:px-0">
+      <div className="max-w-295 mx-auto px-4">
 
         {/* Hero 轮播图 */}
         <HeroCarousel items={carouselItems} />

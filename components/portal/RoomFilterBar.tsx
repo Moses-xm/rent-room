@@ -41,7 +41,7 @@ interface RoomFilterBarProps {
 function FilterRow({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div className="flex py-2.5 border-b border-dashed border-border text-sm last:border-0">
-      <span className="w-20 shrink-0 text-text-muted pt-0.5">{label}：</span>
+      <span className="shrink-0 text-text-muted pt-0.5 mr-3">{label}：</span>
       <div className="flex flex-wrap gap-x-6 gap-y-2">{children}</div>
     </div>
   );

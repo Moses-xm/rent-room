@@ -5,7 +5,7 @@ const SEP = <span className="mx-2.5 text-[#ccc]">|</span>;
 export function PortalFooter() {
   return (
     <footer className="mt-5 bg-[#f9f9f9] border-t border-[#e6e6e6]">
-      <div className="max-w-295 mx-auto px-4 lg:px-0 text-center py-5">
+      <div className="max-w-295 mx-auto px-4 text-center py-5">
         {/* 链接行 */}
         <div className="flex items-center justify-center h-[30px] text-xs text-[#333]">
           {PORTAL_FOOTER_LINKS.map((label, i) => (

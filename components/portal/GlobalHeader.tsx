@@ -68,7 +68,7 @@ export function GlobalHeader({ onMenuToggle }: { onMenuToggle: () => void }) {
       </div>
 
       {/* ── 桌面端头部 ─────────────────────────── */}
-      <div className="hidden lg:flex items-center justify-between max-w-295 mx-auto h-15.5">
+      <div className="hidden lg:flex items-center justify-between max-w-295 mx-auto px-4 h-15.5">
         {/* 左：品牌 + 城市（底部对齐） */}
         <div className="flex items-end gap-4 shrink-0">
           <Link href="/portal" className="text-(--color-primary-brand) text-[25px] leading-none">

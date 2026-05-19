@@ -122,7 +122,7 @@ export default function AreaRoomPage() {
 
   return (
     <PortalShell>
-      <div className="max-w-295 mx-auto px-4 lg:px-0 py-5">
+      <div className="max-w-295 mx-auto px-4 py-5">
         <nav className="text-xs text-gray-400 mb-3">
           <Link href="/portal" className="hover:text-gray-600">雅阁租房</Link>
           <span className="mx-1">›</span>
