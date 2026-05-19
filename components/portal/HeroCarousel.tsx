@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import useEmblaCarousel from "embla-carousel-react";
 import Link from "next/link";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { RoomImage } from "@/components/portal/RoomImage";
@@ -11,110 +12,137 @@ interface CarouselItem {
   path: string;
 }
 
+const AUTOPLAY_DELAY = 6000;
+
+type DirectionalEmblaApi = NonNullable<
+  ReturnType<typeof useEmblaCarousel>[1]
+> & {
+  scrollTo: (index: number, jump?: boolean, direction?: number) => void;
+};
+
 export function HeroCarousel({ items }: { items: CarouselItem[] }) {
-  const total = items.length;
-  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const [emblaRef, emblaApi] = useEmblaCarousel({ loop: true });
+  const [selectedIndex, setSelectedIndex] = useState(0);
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const startAutoplayRef = useRef<() => void>(() => {});
 
-  // 首尾各克隆一张：[last_clone, ...items, first_clone]
-  // 从 idx=1 开始（真实第一张），自动播放永远向右
-  const extended = total > 1 ? [items[total - 1], ...items, items[0]] : items;
-  const [idx, setIdx] = useState(total > 1 ? 1 : 0);
-  const [animated, setAnimated] = useState(true);
+  const stopAutoplay = useCallback(() => {
+    if (!timerRef.current) return;
+    clearTimeout(timerRef.current);
+    timerRef.current = null;
+  }, []);
 
-  const resetTimer = useCallback(() => {
-    if (timerRef.current) clearInterval(timerRef.current);
-    if (total <= 1) return;
-    timerRef.current = setInterval(() => setIdx((i) => i + 1), 6000);
-  }, [total]);
+  const startAutoplay = useCallback(() => {
+    stopAutoplay();
+
+    if (items.length <= 1 || !emblaApi) return;
+
+    timerRef.current = setTimeout(() => {
+      if (document.visibilityState === "hidden") return;
+      emblaApi.scrollNext();
+      startAutoplayRef.current();
+    }, AUTOPLAY_DELAY);
+  }, [emblaApi, items.length, stopAutoplay]);
 
   useEffect(() => {
-    resetTimer();
-    return () => { if (timerRef.current) clearInterval(timerRef.current); };
-  }, [resetTimer]);
+    startAutoplayRef.current = startAutoplay;
+  }, [startAutoplay]);
 
-  // 过渡结束后：若停在克隆帧，无动画跳回真实帧
-  const handleTransitionEnd = useCallback(() => {
-    if (total <= 1) return;
-    if (idx === extended.length - 1) {
-      // 停在 first_clone → 跳回真实第一张
-      setAnimated(false);
-      setIdx(1);
-    } else if (idx === 0) {
-      // 停在 last_clone → 跳回真实最后一张
-      setAnimated(false);
-      setIdx(total);
-    }
-  }, [idx, total, extended.length]);
+  const scrollPrev = useCallback(() => {
+    emblaApi?.scrollPrev();
+    startAutoplay();
+  }, [emblaApi, startAutoplay]);
 
-  // 双 rAF：等 DOM 完成无动画跳转后，再恢复动画
+  const scrollNext = useCallback(() => {
+    emblaApi?.scrollNext();
+    startAutoplay();
+  }, [emblaApi, startAutoplay]);
+
+  const scrollTo = useCallback(
+    (index: number) => {
+      if (!emblaApi) return;
+
+      const currentIndex = emblaApi.selectedScrollSnap();
+      const direction = index > currentIndex ? -1 : 1;
+
+      (emblaApi as DirectionalEmblaApi).scrollTo(index, false, direction);
+      startAutoplay();
+    },
+    [emblaApi, startAutoplay],
+  );
+
+  const onSelect = useCallback(() => {
+    if (!emblaApi) return;
+    setSelectedIndex(emblaApi.selectedScrollSnap());
+  }, [emblaApi]);
+
   useEffect(() => {
-    if (!animated) {
-      let f2: number;
-      const f1 = requestAnimationFrame(() => {
-        f2 = requestAnimationFrame(() => setAnimated(true));
-      });
-      return () => {
-        cancelAnimationFrame(f1);
-        cancelAnimationFrame(f2);
-      };
-    }
-  }, [animated]);
+    if (!emblaApi) return;
+    emblaApi.on("select", onSelect);
+    emblaApi.on("reInit", onSelect);
+    startAutoplay();
 
-  const goTo = useCallback((newIdx: number) => {
-    setIdx(newIdx);
-    resetTimer();
-  }, [resetTimer]);
+    const handlePageShow = () => {
+      emblaApi.reInit();
+      startAutoplay();
+    };
 
-  // 圆点高亮对应真实索引（0-based）
-  const dotIdx =
-    total <= 1 ? 0
-    : idx === 0 ? total - 1
-    : idx >= extended.length - 1 ? 0
-    : idx - 1;
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "visible") {
+        emblaApi.reInit();
+        startAutoplay();
+      } else {
+        stopAutoplay();
+      }
+    };
 
-  if (total === 0) {
-    return <div className="w-full h-60 lg:h-[470px] mt-5 bg-surface" />;
+    window.addEventListener("pageshow", handlePageShow);
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
+    return () => {
+      emblaApi.off("select", onSelect);
+      emblaApi.off("reInit", onSelect);
+      window.removeEventListener("pageshow", handlePageShow);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+      stopAutoplay();
+    };
+  }, [emblaApi, onSelect, startAutoplay, stopAutoplay]);
+
+  if (items.length === 0) {
+    return <div className="w-full h-60 lg:h-117.5 mt-5 bg-surface" />;
   }
 
-  const slideW = 100 / extended.length;
-
   return (
-    <div className="relative w-full h-60 lg:h-[470px] mt-5 overflow-hidden bg-surface group">
-
-      {/* 滑动轨道 */}
-      <div
-        className={animated ? "flex h-full transition-transform duration-500 ease-in-out" : "flex h-full"}
-        style={{
-          width: `${extended.length * 100}%`,
-          transform: `translateX(-${idx * slideW}%)`,
-        }}
-        onTransitionEnd={handleTransitionEnd}
-      >
-        {extended.map((item, i) => (
-          <div key={i} className="h-full shrink-0" style={{ width: `${slideW}%` }}>
-            <Link href={item.path || "#"} className="block w-full h-full">
-              <RoomImage
-                src={item.imageUrl}
-                alt={`轮播图${i}`}
-                className="w-full h-full object-cover"
-              />
-            </Link>
-          </div>
-        ))}
+    <div className="relative w-full h-60 lg:h-117.5 mt-5 group">
+      {/* Embla 视口 */}
+      <div ref={emblaRef} className="w-full h-full overflow-hidden">
+        <div className="flex h-full">
+          {items.map((item, i) => (
+            <div key={item.id} className="shrink-0 w-full h-full">
+              <Link href={item.path || "#"} className="block w-full h-full">
+                <RoomImage
+                  src={item.imageUrl}
+                  alt={`轮播图${i + 1}`}
+                  className="w-full h-full object-cover"
+                />
+              </Link>
+            </div>
+          ))}
+        </div>
       </div>
 
       {/* 左右箭头（hover 时显示） */}
-      {total > 1 && (
+      {items.length > 1 && (
         <>
           <button
-            onClick={() => goTo(idx - 1)}
+            onClick={scrollPrev}
             className="absolute left-3 top-1/2 -translate-y-1/2 z-10 w-9 h-9 rounded-full bg-black/30 hover:bg-black/50 text-white flex items-center justify-center transition-all cursor-pointer opacity-0 group-hover:opacity-100"
             aria-label="上一张"
           >
             <ChevronLeft className="w-5 h-5" />
           </button>
           <button
-            onClick={() => goTo(idx + 1)}
+            onClick={scrollNext}
             className="absolute right-3 top-1/2 -translate-y-1/2 z-10 w-9 h-9 rounded-full bg-black/30 hover:bg-black/50 text-white flex items-center justify-center transition-all cursor-pointer opacity-0 group-hover:opacity-100"
             aria-label="下一张"
           >
@@ -124,14 +152,14 @@ export function HeroCarousel({ items }: { items: CarouselItem[] }) {
       )}
 
       {/* 圆点导航 */}
-      {total > 1 && (
+      {items.length > 1 && (
         <div className="absolute bottom-3 left-0 right-0 flex justify-center gap-1.5 z-10">
           {items.map((_, i) => (
             <button
               key={i}
-              onClick={() => goTo(i + 1)}
+              onClick={() => scrollTo(i)}
               className={`w-2 h-2 rounded-full transition-colors cursor-pointer ${
-                i === dotIdx ? "bg-white" : "bg-white/50 hover:bg-white/75"
+                i === selectedIndex ? "bg-white" : "bg-white/50 hover:bg-white/75"
               }`}
               aria-label={`切换到第${i + 1}张`}
             />
