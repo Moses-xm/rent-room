@@ -162,6 +162,7 @@ rent-room/
 │   │   ├── HomeCard.tsx              # 首页房源/小区卡片（4 列 grid）
 │   │   ├── HeroCarousel.tsx          # 首页 Hero 自动轮播（client，含圆点导航）
 │   │   ├── RoomRow.tsx               # 列表页房源行（横排桌面 / 堆叠移动端）
+│   │   ├── RoomListPage.tsx          # 区域/地铁找房共享页面组件（含骨架屏、fetch 逻辑）
 │   │   ├── CommunityRow.tsx          # 小区列表行（同 RoomRow，无右侧价格列）
 │   │   ├── BrokerCard.tsx            # 房源详情经纪人卡片（头像+信息+两按钮）
 │   │   ├── AdSidebar.tsx             # 找房页右侧广告占位（桌面端 w-58，移动端隐藏）
@@ -200,6 +201,7 @@ rent-room/
 │   ├── manage-city.ts                # 城市数据工具
 │   ├── request.ts                    # 管理端 fetch 封装，自动注入 token
 │   ├── portal-request.ts             # 用户端 fetch 封装，自动注入 portal token
+│   ├── portal-room.ts                # Portal 房源列表共享类型与 helper（RoomItem、buildRoomTags 等）
 │   └── use-body-scroll-lock.ts       # 弹窗背景滚动锁定 hook
 ├── styles/
 │   └── themes/

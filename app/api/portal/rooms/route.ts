@@ -70,6 +70,15 @@ export async function GET(req: NextRequest) {
         ? { views: 'desc' as const }
         : { createdAt: 'desc' as const };
 
+    const publisherSelect = {
+      id: true,
+      nickname: true,
+      realname: true,
+      username: true,
+      avatar: true,
+      phone: true,
+    };
+
     const [total, items] = await Promise.all([
       prisma.room.count({ where }),
       prisma.room.findMany({
@@ -77,7 +86,10 @@ export async function GET(req: NextRequest) {
         take: limit,
         skip,
         orderBy,
-        include: { community: { select: communitySelect } },
+        include: {
+          community: { select: communitySelect },
+          publisher: { select: publisherSelect },
+        },
       }),
     ]);
 
