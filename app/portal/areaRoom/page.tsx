@@ -86,6 +86,11 @@ export default function AreaRoomPage() {
         if (f.minPrice !== undefined) params.set("minPrice", String(f.minPrice));
         if (f.maxPrice !== undefined) params.set("maxPrice", String(f.maxPrice));
         if (f.rentType !== undefined) params.set("rentType", String(f.rentType));
+        if (f.bedrooms) params.set("bedrooms", f.bedrooms);
+        if (f.roomType) params.set("roomType", f.roomType);
+        if (f.direction) params.set("direction", f.direction);
+        if (f.nearSubway) params.set("nearSubway", "true");
+        if (f.hasElevator) params.set("hasElevator", "true");
 
         const res = await portalRequest<RoomsResponse>(
           `/portal/rooms?${params.toString()}`,

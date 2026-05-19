@@ -26,17 +26,35 @@ export async function GET(req: NextRequest) {
     const minPrice = searchParams.get('minPrice');
     const maxPrice = searchParams.get('maxPrice');
     const rentType = searchParams.get('rentType');
+    const bedrooms = searchParams.get('bedrooms') || '';
+    const roomType = searchParams.get('roomType') || '';
+    const direction = searchParams.get('direction') || '';
+    const nearSubway = searchParams.get('nearSubway') === 'true';
+    const hasElevator = searchParams.get('hasElevator') === 'true';
     const skip = (page - 1) * limit;
+
+    const bedroomMap: Record<string, object> = {
+      '一室': { equals: 1 },
+      '二室': { equals: 2 },
+      '三室': { equals: 3 },
+      '四室': { equals: 4 },
+      '五室及以上': { gte: 5 },
+    };
 
     const communityFilter = {
       ...(district ? { district } : {}),
       ...(subwayLine ? { subwayLine: { contains: subwayLine } } : {}),
+      ...(nearSubway ? { subwayLine: { not: null, notIn: [''] } } : {}),
     };
 
     const where = {
       isPublished: 2,
       ...(Object.keys(communityFilter).length > 0 ? { community: communityFilter } : {}),
       ...(rentType ? { rentType: Number(rentType) } : {}),
+      ...(roomType ? { roomType } : {}),
+      ...(direction ? { direction } : {}),
+      ...(hasElevator ? { lift: 2 } : {}),
+      ...(bedrooms && bedroomMap[bedrooms] ? { bedroom: bedroomMap[bedrooms] } : {}),
       ...((minPrice || maxPrice)
         ? {
             price: {

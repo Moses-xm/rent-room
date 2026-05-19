@@ -9,6 +9,7 @@ import {
   RENT_TYPE_OPTIONS,
   ROOM_TYPE_OPTIONS,
 } from "@/utils/constants";
+import FilterSelect from "@/components/FilterSelect";
 import {
   getDistrictsForCity,
   getPortalCity,
@@ -35,11 +36,19 @@ interface RoomFilterBarProps {
   className?: string;
 }
 
-function FilterRow({ label, children }: { label: string; children: React.ReactNode }) {
+function FilterRow({
+  label,
+  children,
+  align = "start",
+}: {
+  label: string;
+  children: React.ReactNode;
+  align?: "start" | "center";
+}) {
   return (
-    <div className="flex py-2.5 border-b border-dashed border-border text-sm last:border-0">
-      <span className="shrink-0 text-text-muted pt-0.5 mr-2">{label}：</span>
-      <div className="flex flex-wrap gap-x-5 gap-y-2">{children}</div>
+    <div className={`flex py-2.5 border-b border-dashed border-border text-sm last:border-0 ${align === "center" ? "items-center" : "items-start"}`}>
+      <span className={`shrink-0 text-text-muted mr-2 ${align === "center" ? "" : "pt-0.5"}`}>{label}：</span>
+      <div className="flex flex-wrap gap-x-5 gap-y-2 flex-1">{children}</div>
     </div>
   );
 }
@@ -62,6 +71,16 @@ function FilterChip({
     >
       {label}
     </span>
+  );
+}
+
+function hasActiveFilter(v: RoomFilter): boolean {
+  return !!(
+    v.district || v.subwayLine ||
+    v.minPrice !== undefined || v.maxPrice !== undefined ||
+    v.bedrooms || v.roomType || v.direction ||
+    v.rentType !== undefined ||
+    v.nearSubway || v.hasElevator
   );
 }
 
@@ -155,37 +174,23 @@ export function RoomFilterBar({
       </FilterRow>
 
       {/* 更多筛选 */}
-      <FilterRow label="更多">
-        <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
-          <select
+      <FilterRow label="更多" align="center">
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-2 flex-1">
+          <FilterSelect
             value={value.roomType ?? ""}
-            onChange={(e) =>
-              onChange({ ...value, roomType: e.target.value || undefined })
-            }
-            className="border border-border px-2 py-0.5 text-sm text-text-2 outline-none cursor-pointer"
-          >
-            <option value="">房屋类型</option>
-            {ROOM_TYPE_OPTIONS.map((o) => (
-              <option key={o} value={o}>
-                {o}
-              </option>
-            ))}
-          </select>
+            onChange={(v) => onChange({ ...value, roomType: v || undefined })}
+            options={ROOM_TYPE_OPTIONS.map((o) => ({ value: o, label: o }))}
+            placeholder="房屋类型"
+            className="min-w-28"
+          />
 
-          <select
+          <FilterSelect
             value={value.direction ?? ""}
-            onChange={(e) =>
-              onChange({ ...value, direction: e.target.value || undefined })
-            }
-            className="border border-border px-2 py-0.5 text-sm text-text-2 outline-none cursor-pointer"
-          >
-            <option value="">朝向</option>
-            {DIRECTION_OPTIONS.map((o) => (
-              <option key={o} value={o}>
-                {o}
-              </option>
-            ))}
-          </select>
+            onChange={(v) => onChange({ ...value, direction: v || undefined })}
+            options={DIRECTION_OPTIONS.map((o) => ({ value: o, label: o }))}
+            placeholder="朝向"
+            className="min-w-24"
+          />
 
           <label className="flex items-center gap-1 cursor-pointer text-sm text-text-2">
             <input
@@ -209,6 +214,14 @@ export function RoomFilterBar({
             电梯房
           </label>
         </div>
+        {hasActiveFilter(value) && (
+          <button
+            onClick={() => onChange({})}
+            className="cursor-pointer shrink-0 ml-auto text-xs text-text-muted hover:text-(--color-accent) border border-border px-2.5 py-0.5 rounded whitespace-nowrap"
+          >
+            清除筛选
+          </button>
+        )}
       </FilterRow>
     </div>
   );
