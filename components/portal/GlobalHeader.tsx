@@ -13,6 +13,7 @@ import {
 } from "@/utils/portal-auth";
 import { resolveUploadedFileUrl } from "@/lib/upload-path";
 import { PORTAL_SEARCH_PATH } from "@/utils/constants";
+import { CitySelector } from "@/components/CitySelector";
 
 const SEP = <span className="mx-2.5 text-[#ccc]">|</span>;
 
@@ -60,20 +61,20 @@ export function GlobalHeader({ onMenuToggle }: { onMenuToggle: () => void }) {
         <Link href="/portal" className="flex-1 text-center text-(--color-primary-brand) text-xl font-medium">
           雅阁租房
         </Link>
-        {/* 右侧占位，保持 Logo 视觉居中 */}
-        <div className="w-9 shrink-0" />
+        {/* 右侧城市切换（移动端），保持 Logo 视觉居中 */}
+        <div className="shrink-0 flex items-center pr-1">
+          <CitySelector variant="portal" />
+        </div>
       </div>
 
       {/* ── 桌面端头部 ─────────────────────────── */}
       <div className="hidden lg:flex items-center justify-between max-w-295 mx-auto h-15.5">
-        {/* 左：品牌 + 城市 */}
-        <div className="flex items-center gap-4 shrink-0">
+        {/* 左：品牌 + 城市（底部对齐） */}
+        <div className="flex items-end gap-4 shrink-0">
           <Link href="/portal" className="text-(--color-primary-brand) text-[25px] leading-none">
             雅阁租房
           </Link>
-          <div className="text-sm text-[#666]">
-            当前城市：<span className="text-primary">杭州</span>
-          </div>
+          <CitySelector variant="portal" />
         </div>
 
         {/* 中：搜索框 */}

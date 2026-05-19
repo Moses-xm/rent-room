@@ -12,6 +12,12 @@ import {
   getManageCity,
   setManageCity,
 } from "@/utils/manage-city";
+import {
+  DEFAULT_PORTAL_CITY,
+  PORTAL_CITY_CHANGED_EVENT,
+  getPortalCity,
+  setPortalCity,
+} from "@/utils/portal-city";
 import { MUNICIPALITY_PROVINCES } from "@/utils/constants";
 
 type SimpleCity      = { name: string };
@@ -50,8 +56,15 @@ function buildProvinceCities(area: AreaNode[]): ProvinceCities[] {
 
 const PROVINCE_CITIES = buildProvinceCities(AREA_ALL);
 
-export function CitySelector() {
-  const [currentCity, setCurrentCity] = useState(DEFAULT_MANAGE_CITY);
+export function CitySelector({ variant = "manage" }: { variant?: "manage" | "portal" }) {
+  const isPortal = variant === "portal";
+
+  const defaultCity = isPortal ? DEFAULT_PORTAL_CITY : DEFAULT_MANAGE_CITY;
+  const getCity     = isPortal ? getPortalCity     : getManageCity;
+  const saveCity    = isPortal ? setPortalCity     : setManageCity;
+  const changedEvent = isPortal ? PORTAL_CITY_CHANGED_EVENT : MANAGE_CITY_CHANGED_EVENT;
+
+  const [currentCity, setCurrentCity] = useState(defaultCity);
   const [popoverOpen, setPopoverOpen] = useState(false);
   const [modalOpen, setModalOpen]     = useState(false);
   const [keyword, setKeyword]         = useState("");
@@ -69,15 +82,15 @@ export function CitySelector() {
   }, [keyword]);
 
   useEffect(() => {
-    const sync = () => setCurrentCity(getManageCity());
+    const sync = () => setCurrentCity(getCity());
     sync();
     window.addEventListener("storage", sync);
-    window.addEventListener(MANAGE_CITY_CHANGED_EVENT, sync);
+    window.addEventListener(changedEvent, sync);
     return () => {
       window.removeEventListener("storage", sync);
-      window.removeEventListener(MANAGE_CITY_CHANGED_EVENT, sync);
+      window.removeEventListener(changedEvent, sync);
     };
-  }, []);
+  }, [getCity, changedEvent]);
 
   useEffect(() => {
     if (!modalOpen) return;
@@ -102,7 +115,7 @@ export function CitySelector() {
 
   const handleCityChange = (city: string) => {
     const group = PROVINCE_CITIES.find((g) => g.cities.includes(city));
-    setManageCity(city, group?.province);
+    saveCity(city, group?.province);
     setCurrentCity(city);
     setPopoverOpen(false);
     setModalOpen(false);
@@ -213,31 +226,59 @@ export function CitySelector() {
   return (
     <>
       <div ref={containerRef} className="relative">
-        {/* 触发按钮：.topbar-user 风格 */}
-        <button
-          type="button"
-          onClick={() => {
-            if (window.innerWidth < 1024) {
-              setModalOpen(true);
-            } else {
-              setPopoverOpen((v) => !v);
-            }
-          }}
-          className="flex items-center gap-2 px-2 py-1 rounded-sm text-body-sm
-                     hover:bg-surface-2 transition-colors cursor-pointer"
-        >
-          <MapPin className="w-[14px] h-[14px] text-primary shrink-0" />
-          <span className="font-medium text-text max-w-24 truncate">{currentCity}</span>
-          <ChevronDown
-            className="w-[14px] h-[14px] text-text-muted opacity-55 transition-transform duration-200"
-            style={{ transform: popoverOpen ? "rotate(180deg)" : "none" }}
-          />
-        </button>
+        {/* 触发按钮 */}
+        {isPortal ? (
+          /* portal：标签不可点，仅城市名+箭头是按钮 */
+          <div className="flex items-baseline gap-1">
+            <span className="hidden lg:inline text-[11px] text-[#999] leading-none select-none">
+              当前城市：
+            </span>
+            <button
+              type="button"
+              onClick={() => {
+                if (window.innerWidth < 1024) {
+                  setModalOpen(true);
+                } else {
+                  setPopoverOpen((v) => !v);
+                }
+              }}
+              className="flex items-center gap-0.5 cursor-pointer hover:opacity-75 transition-opacity"
+            >
+              <span className="text-[13px] text-primary font-medium max-w-16 truncate leading-none">
+                {currentCity}
+              </span>
+              <ChevronDown
+                className="w-3 h-3 text-primary transition-transform duration-200"
+                style={{ transform: popoverOpen ? "rotate(180deg)" : "none" }}
+              />
+            </button>
+          </div>
+        ) : (
+          /* manage：整体按钮 */
+          <button
+            type="button"
+            onClick={() => {
+              if (window.innerWidth < 1024) {
+                setModalOpen(true);
+              } else {
+                setPopoverOpen((v) => !v);
+              }
+            }}
+            className="flex items-center gap-2 px-2 py-1 rounded-sm text-body-sm hover:bg-surface-2 transition-colors cursor-pointer"
+          >
+            <MapPin className="w-3.5 h-3.5 text-primary shrink-0" />
+            <span className="font-medium text-text max-w-24 truncate">{currentCity}</span>
+            <ChevronDown
+              className="w-3.5 h-3.5 text-text-muted opacity-55 transition-transform duration-200"
+              style={{ transform: popoverOpen ? "rotate(180deg)" : "none" }}
+            />
+          </button>
+        )}
 
-        {/* 快速城市 Popover：560px 宽，分区 grid */}
+        {/* 快速城市 Popover */}
         {popoverOpen && (
           <div
-            className="absolute right-0 z-50 popover-animate bg-card border border-border rounded-lg"
+            className={`absolute z-50 popover-animate bg-card border border-border rounded-lg ${isPortal ? "left-0" : "right-0"}`}
             style={{
               top: "calc(100% + 8px)",
               width: 360,
