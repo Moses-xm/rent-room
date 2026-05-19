@@ -21,6 +21,7 @@ export async function GET(req: NextRequest) {
     const page = parseInt(searchParams.get('page') || '1');
     const limit = parseInt(searchParams.get('limit') || '10');
     const sort = searchParams.get('sort') || 'latest'; // latest | hot
+    const city = searchParams.get('city') || '';
     const district = searchParams.get('district') || '';
     const subwayLine = searchParams.get('subwayLine') || '';
     const minPrice = searchParams.get('minPrice');
@@ -42,6 +43,7 @@ export async function GET(req: NextRequest) {
     };
 
     const communityFilter = {
+      ...(city ? { city } : {}),
       ...(district ? { district } : {}),
       ...(subwayLine ? { subwayLine: { contains: subwayLine } } : {}),
       ...(nearSubway ? { subwayLine: { not: null, notIn: [''] } } : {}),

@@ -157,7 +157,8 @@ rent-room/
 │   │   ├── PortalShell.tsx           # BaseLayout（Header+TopMenu+main+Footer）
 │   │   ├── AuthShell.tsx             # 登录/注册布局（背景图+居中卡片）
 │   │   ├── MineShell.tsx             # 个人中心布局（顶栏+横幅+侧边菜单+内容区）
-│   │   ├── RoomImage.tsx             # 图片容错占位封装（onError → 斜线占位 div）
+│   │   ├── EmptyState.tsx            # 空状态插图组件（信封插图+文案，支持 text prop）
+│   ├── RoomImage.tsx             # 图片容错占位封装（onError → 斜线占位 div）
 │   │   ├── RoomTags.tsx              # 颜色标签组（red/green/blue/yellow 四色）
 │   │   ├── HomeCard.tsx              # 首页房源/小区卡片（4 列 grid）
 │   │   ├── HeroCarousel.tsx          # 首页 Hero 自动轮播（client，含圆点导航）

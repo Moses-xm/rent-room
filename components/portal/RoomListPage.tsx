@@ -17,6 +17,8 @@ import {
   buildAddress,
   getBroker,
 } from "@/utils/portal-room";
+import { getPortalCity, PORTAL_CITY_CHANGED_EVENT } from "@/utils/portal-city";
+import { EmptyState } from "@/components/portal/EmptyState";
 
 function RoomListSkeleton() {
   return (
@@ -48,6 +50,7 @@ interface RoomListPageProps {
 
 export function RoomListPage({ filterType, breadcrumb }: RoomListPageProps) {
   const [filter, setFilter] = useState<RoomFilter>({});
+  const [city, setCity] = useState(() => getPortalCity());
   const [rooms, setRooms] = useState<RoomItem[]>([]);
   const [total, setTotal] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
@@ -55,12 +58,23 @@ export function RoomListPage({ filterType, breadcrumb }: RoomListPageProps) {
   const [pageSize, setPageSize] = useState(PAGE_SIZE);
   const [loading, setLoading] = useState(true);
 
-  const fetchRooms = useCallback(async (f: RoomFilter, p: number, ps: number) => {
+  useEffect(() => {
+    const sync = () => {
+      setCity(getPortalCity());
+      setFilter({});
+      setPage(1);
+    };
+    window.addEventListener(PORTAL_CITY_CHANGED_EVENT, sync);
+    return () => window.removeEventListener(PORTAL_CITY_CHANGED_EVENT, sync);
+  }, []);
+
+  const fetchRooms = useCallback(async (f: RoomFilter, p: number, ps: number, c: string) => {
     setLoading(true);
     try {
       const params = new URLSearchParams();
       params.set("page", String(p));
       params.set("limit", String(ps));
+      if (c) params.set("city", c);
       if (filterType === "area") {
         if (f.district) params.set("district", f.district);
       } else {
@@ -89,8 +103,8 @@ export function RoomListPage({ filterType, breadcrumb }: RoomListPageProps) {
   }, [filterType]);
 
   useEffect(() => {
-    fetchRooms(filter, page, pageSize);
-  }, [filter, page, pageSize, fetchRooms]);
+    fetchRooms(filter, page, pageSize, city);
+  }, [filter, page, pageSize, city, fetchRooms]);
 
   function handleFilterChange(f: RoomFilter) {
     setFilter(f);
@@ -123,7 +137,7 @@ export function RoomListPage({ filterType, breadcrumb }: RoomListPageProps) {
             {loading ? (
               <RoomListSkeleton />
             ) : rooms.length === 0 ? (
-              <div className="py-20 text-center text-text-muted text-sm">暂无符合条件的房源</div>
+              <EmptyState text="暂无符合条件的房源" />
             ) : (
               <>
                 <div className="text-sm text-text-muted mb-2">
