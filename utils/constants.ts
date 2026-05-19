@@ -112,15 +112,20 @@ export const PORTAL_SUBWAY_LINES = [
 
 export const PORTAL_PRICE_RANGES: Array<{ label: string; min?: number; max?: number }> = [
   { label: "全部" },
-  { label: "1000以下",  max: 1000 },
-  { label: "1000-1500", min: 1000, max: 1500 },
-  { label: "1500-2000", min: 1500, max: 2000 },
-  { label: "2000-3000", min: 2000, max: 3000 },
-  { label: "3000-5000", min: 3000, max: 5000 },
-  { label: "5000以上",  min: 5000 },
+  { label: "1000元以下",    max: 1000 },
+  { label: "1000-1500元",   min: 1000, max: 1500 },
+  { label: "1500-2000元",   min: 1500, max: 2000 },
+  { label: "2000-2500元",   min: 2000, max: 2500 },
+  { label: "2500-3000元",   min: 2500, max: 3000 },
+  { label: "3000-4000元",   min: 3000, max: 4000 },
+  { label: "4000-5000元",   min: 4000, max: 5000 },
+  { label: "5000-6000元",   min: 5000, max: 6000 },
+  { label: "6000-8000元",   min: 6000, max: 8000 },
+  { label: "8000-15000元",  min: 8000, max: 15000 },
+  { label: "15000元以上",   min: 15000 },
 ];
 
-export const PORTAL_ROOM_BED_OPTIONS = ["一室", "两室", "三室", "四室及以上"];
+export const PORTAL_ROOM_BED_OPTIONS = ["一室", "二室", "三室", "四室", "五室及以上"];
 
 // ── Wallet ────────────────────────────────────────────────────────────────────
 export const WALLET_RECORD_TYPE_OPTIONS = [

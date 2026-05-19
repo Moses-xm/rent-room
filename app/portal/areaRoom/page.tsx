@@ -6,6 +6,7 @@ import { RoomFilterBar, type RoomFilter } from "@/components/portal/RoomFilterBa
 import { RoomRow } from "@/components/portal/RoomRow";
 import { AdSidebar } from "@/components/portal/AdSidebar";
 import Pagination from "@/components/Pagination";
+import Link from "next/link";
 import { portalRequest } from "@/utils/portal-request";
 import { RENT_TYPE_OPTIONS } from "@/utils/constants";
 
@@ -122,7 +123,11 @@ export default function AreaRoomPage() {
   return (
     <PortalShell>
       <div className="max-w-295 mx-auto px-4 lg:px-0 py-5">
-        <h1 className="text-lg font-medium text-text mb-1">区域找房</h1>
+        <nav className="text-xs text-gray-400 mb-3">
+          <Link href="/portal" className="hover:text-gray-600">雅阁租房</Link>
+          <span className="mx-1">›</span>
+          <span>区域找房</span>
+        </nav>
 
         <RoomFilterBar type="area" value={filter} onChange={handleFilterChange} />
 
