@@ -637,10 +637,11 @@ PortalShell
 ✅ Step 8    共享 UI 组件（HomeCard / RoomRow / RoomFilterBar 等）
 ⬜ Step 9    首页
 ⬜ Step 14   登录/注册
-⬜ Step 10-11 区域/地铁/小区找房
+✅ Step 10   区域找房 / 地铁找房（areaRoom / subwayRoom）
+⬜ Step 11   小区找房
 ⬜ Step 12   房源详情
 ⬜ Step 13   地图找房
 ⬜ Step 15   出租页面
 ⬜ Step 16   个人中心各页
-⬜ Step 17   Portal API 接口
+⬜ Step 17   Portal API 接口（已实现：carousels ✅ rooms ✅ communities ✅）
 ```

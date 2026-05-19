@@ -22,14 +22,20 @@ export async function GET(req: NextRequest) {
     const limit = parseInt(searchParams.get('limit') || '10');
     const sort = searchParams.get('sort') || 'latest'; // latest | hot
     const district = searchParams.get('district') || '';
+    const subwayLine = searchParams.get('subwayLine') || '';
     const minPrice = searchParams.get('minPrice');
     const maxPrice = searchParams.get('maxPrice');
     const rentType = searchParams.get('rentType');
     const skip = (page - 1) * limit;
 
+    const communityFilter = {
+      ...(district ? { district } : {}),
+      ...(subwayLine ? { subwayLine: { contains: subwayLine } } : {}),
+    };
+
     const where = {
       isPublished: 2,
-      ...(district ? { community: { district } } : {}),
+      ...(Object.keys(communityFilter).length > 0 ? { community: communityFilter } : {}),
       ...(rentType ? { rentType: Number(rentType) } : {}),
       ...((minPrice || maxPrice)
         ? {

@@ -895,21 +895,23 @@ import AppLoading from '@/components/AppLoading';
 
 ```
 /portal                          # 首页（轮播图 + 热门推荐 + 搜索）
+/portal/areaRoom                 # 区域找房（筛选+列表+分页）✅
+/portal/subwayRoom               # 地铁找房（筛选+列表+分页）✅
+/portal/cmyRoom                  # 小区找房列表
+/portal/cmyRoom/[id]             # 小区房源列表
 /portal/login                    # 用户登录
 /portal/register                 # 用户注册
 /portal/room/[id]                # 房源详情
-/portal/search                   # 搜索结果页
-/portal/community/[id]           # 小区详情
-/portal/map                      # 地图找房
-/portal/profile                  # 个人中心（需登录）
-  /portal/profile/info           # 个人资料
-  /portal/profile/rooms          # 我发布的房源（房东可见）
-  /portal/profile/collection     # 我的收藏
-  /portal/profile/appointment    # 我的预约（含两个 Tab：我预约的 / 收到的预约）
-  /portal/profile/notification   # 我的消息（通知中心）
-  /portal/profile/contract       # 我的合同
-  /portal/profile/order          # 我的订单
-  /portal/profile/wallet         # 我的钱包（余额、充值、消费记录）
+/portal/mapRoom                  # 地图找房
+/portal/sharedRoom/createRoom    # 发布房源（需登录）
+/portal/sharedRoom/createCmy     # 创建小区（需登录）
+/portal/sharedRoom/success       # 提交成功
+/portal/account/info             # 我的资料
+/portal/account/collection       # 我的收藏
+/portal/account/appointment      # 我的预约
+/portal/account/room             # 我的房源
+/portal/account/contract         # 我的合同
+/portal/account/orders           # 我的订单 ✅
 ```
 
 ### 认证

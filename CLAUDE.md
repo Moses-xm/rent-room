@@ -138,6 +138,8 @@ rent-room/
 │   │   └── page.tsx                  # Dashboard
 │   ├── portal/
 │   │   ├── login/page.tsx            # 用户登录页
+│   │   ├── areaRoom/page.tsx         # 区域找房（筛选+列表+分页）
+│   │   ├── subwayRoom/page.tsx       # 地铁找房（筛选+列表+分页）
 │   │   ├── account/
 │   │   │   └── orders/page.tsx       # 个人中心 - 我的订单（软删除）
 │   │   ├── layout.tsx
@@ -161,6 +163,7 @@ rent-room/
 │   │   ├── RoomRow.tsx               # 列表页房源行（横排桌面 / 堆叠移动端）
 │   │   ├── CommunityRow.tsx          # 小区列表行（同 RoomRow，无右侧价格列）
 │   │   ├── BrokerCard.tsx            # 房源详情经纪人卡片（头像+信息+两按钮）
+│   │   ├── AdSidebar.tsx             # 找房页右侧广告占位（桌面端 w-58，移动端隐藏）
 │   │   └── RoomFilterBar.tsx         # 筛选栏（桌面三行展开 / 移动端 chip+底部抽屉）
 │   ├── AppLoading.tsx
 │   ├── BaiduMapPicker.tsx            # 百度地图选点组件（双向联动）
@@ -213,7 +216,7 @@ rent-room/
 ```
 
 ## 实现状态
-管理平台：登录 ✅、个人资料 ✅、管理员管理 ✅、用户管理 ✅、小区管理 ✅、轮播图管理 ✅、房屋设施管理 ✅、房源管理 ✅、收藏管理 ✅、预约管理 ✅、通知管理 ✅、合同管理 ✅、其余模块 ⬜。用户平台：登录 ✅、首页 ✅、我的订单 ✅、其余模块 ⬜。数据库：`admin` 表 ✅、`user` 表 ✅、`community` 表 ✅、`carousel` 表 ✅、`facility` 表 ✅、`room` 表 ✅、`collection` 表 ✅、`appointment` 表 ✅、`notification` 表 ✅、`contract` 表 ✅、`order` 表 ✅、`wallet_record` 表 ✅。Portal API：轮播图 ✅、房源列表 ✅、小区列表 ✅、其余 ⬜。
+管理平台：登录 ✅、个人资料 ✅、管理员管理 ✅、用户管理 ✅、小区管理 ✅、轮播图管理 ✅、房屋设施管理 ✅、房源管理 ✅、收藏管理 ✅、预约管理 ✅、通知管理 ✅、合同管理 ✅、其余模块 ⬜。用户平台：登录 ✅、首页 ✅、区域找房 ✅、地铁找房 ✅、我的订单 ✅、其余模块 ⬜。数据库：`admin` 表 ✅、`user` 表 ✅、`community` 表 ✅、`carousel` 表 ✅、`facility` 表 ✅、`room` 表 ✅、`collection` 表 ✅、`appointment` 表 ✅、`notification` 表 ✅、`contract` 表 ✅、`order` 表 ✅、`wallet_record` 表 ✅。Portal API：轮播图 ✅、房源列表（含 district/subwayLine/price/rentType 筛选）✅、小区列表 ✅、其余 ⬜。
 
 ## 协作约定
 - 回复用中文，以 **My lord** 开头
