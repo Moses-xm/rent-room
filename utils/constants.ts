@@ -106,10 +106,6 @@ export const PORTAL_AUTH_BG = "/prototype/assets/bg.jpg";
 export const PORTAL_MINE_BANNER = "/prototype/assets/banner.png";
 
 // ── Portal Filter Options ─────────────────────────────────────────────────────
-export const PORTAL_DISTRICTS = [
-  "全部", "上城", "下城", "滨江", "拱墅", "萧山", "余杭", "西湖", "钱塘",
-];
-
 export const PORTAL_SUBWAY_LINES = [
   "全部", "1号线", "2号线", "4号线", "5号线", "6号线", "7号线", "16号线",
 ];

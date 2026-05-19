@@ -1,15 +1,19 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useBodyScrollLock } from "@/utils/use-body-scroll-lock";
 import {
-  PORTAL_DISTRICTS,
   PORTAL_SUBWAY_LINES,
   PORTAL_PRICE_RANGES,
   PORTAL_ROOM_BED_OPTIONS,
   DIRECTION_OPTIONS,
   RENT_TYPE_OPTIONS,
 } from "@/utils/constants";
+import {
+  getDistrictsForCity,
+  getPortalCity,
+  PORTAL_CITY_CHANGED_EVENT,
+} from "@/utils/portal-city";
 
 export interface RoomFilter {
   district?: string;
@@ -110,10 +114,24 @@ export function RoomFilterBar({
 }: RoomFilterBarProps) {
   const [sheetOpen, setSheetOpen] = useState(false);
   const [tempFilter, setTempFilter] = useState<RoomFilter>(value);
+  const [districts, setDistricts] = useState<string[]>(() =>
+    getDistrictsForCity(getPortalCity())
+  );
 
   useBodyScrollLock(sheetOpen);
 
-  const locationOptions = type === "area" ? PORTAL_DISTRICTS : PORTAL_SUBWAY_LINES;
+  useEffect(() => {
+    const sync = () => setDistricts(getDistrictsForCity(getPortalCity()));
+    window.addEventListener(PORTAL_CITY_CHANGED_EVENT, sync);
+    window.addEventListener("storage", sync);
+    return () => {
+      window.removeEventListener(PORTAL_CITY_CHANGED_EVENT, sync);
+      window.removeEventListener("storage", sync);
+    };
+  }, []);
+
+  const districtOptions = ["全部", ...districts];
+  const locationOptions = type === "area" ? districtOptions : PORTAL_SUBWAY_LINES;
   const locationLabel = type === "area" ? "区域" : "线路";
   const locationKey = type === "area" ? "district" : "subwayLine";
   const currentLocation =
