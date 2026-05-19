@@ -174,54 +174,57 @@ export function RoomFilterBar({
       </FilterRow>
 
       {/* 更多筛选 */}
-      <FilterRow label="更多" align="center">
-        <div className="flex flex-wrap items-center gap-x-3 gap-y-2 flex-1">
-          <FilterSelect
-            value={value.roomType ?? ""}
-            onChange={(v) => onChange({ ...value, roomType: v || undefined })}
-            options={ROOM_TYPE_OPTIONS.map((o) => ({ value: o, label: o }))}
-            placeholder="房屋类型"
-            className="min-w-28"
-          />
-
-          <FilterSelect
-            value={value.direction ?? ""}
-            onChange={(v) => onChange({ ...value, direction: v || undefined })}
-            options={DIRECTION_OPTIONS.map((o) => ({ value: o, label: o }))}
-            placeholder="朝向"
-            className="min-w-24"
-          />
-
-          <label className="flex items-center gap-1 cursor-pointer text-sm text-text-2">
-            <input
-              type="checkbox"
-              checked={!!value.nearSubway}
-              onChange={(e) =>
-                onChange({ ...value, nearSubway: e.target.checked ? true : undefined })
-              }
+      <FilterRow label="更多">
+        <div className="flex flex-col gap-y-4 w-full sm:flex-row sm:items-center sm:gap-x-5 sm:gap-y-0">
+          {/* 下拉组：最小屏平分宽度，其余固定最小宽 */}
+          <div className="flex gap-2">
+            <FilterSelect
+              value={value.roomType ?? ""}
+              onChange={(v) => onChange({ ...value, roomType: v || undefined })}
+              options={ROOM_TYPE_OPTIONS.map((o) => ({ value: o, label: o }))}
+              placeholder="房屋类型"
+              className="flex-1 min-w-0 sm:flex-none sm:min-w-28"
             />
-            近地铁
-          </label>
-
-          <label className="flex items-center gap-1 cursor-pointer text-sm text-text-2">
-            <input
-              type="checkbox"
-              checked={!!value.hasElevator}
-              onChange={(e) =>
-                onChange({ ...value, hasElevator: e.target.checked ? true : undefined })
-              }
+            <FilterSelect
+              value={value.direction ?? ""}
+              onChange={(v) => onChange({ ...value, direction: v || undefined })}
+              options={DIRECTION_OPTIONS.map((o) => ({ value: o, label: o }))}
+              placeholder="朝向"
+              className="flex-1 min-w-0 sm:flex-none sm:min-w-24"
             />
-            电梯房
-          </label>
+          </div>
+          {/* 复选框 + 清除按钮：sm+ 占满剩余空间以便按钮靠右 */}
+          <div className="flex items-center gap-3 sm:flex-1">
+            <label className="flex items-center gap-1 cursor-pointer text-sm text-text-2">
+              <input
+                type="checkbox"
+                checked={!!value.nearSubway}
+                onChange={(e) =>
+                  onChange({ ...value, nearSubway: e.target.checked ? true : undefined })
+                }
+              />
+              近地铁
+            </label>
+            <label className="flex items-center gap-1 cursor-pointer text-sm text-text-2">
+              <input
+                type="checkbox"
+                checked={!!value.hasElevator}
+                onChange={(e) =>
+                  onChange({ ...value, hasElevator: e.target.checked ? true : undefined })
+                }
+              />
+              电梯房
+            </label>
+            {hasActiveFilter(value) && (
+              <button
+                onClick={() => onChange({})}
+                className="cursor-pointer ml-auto text-xs text-text-muted hover:text-(--color-accent) border border-border px-2.5 py-0.5 rounded whitespace-nowrap"
+              >
+                清除筛选
+              </button>
+            )}
+          </div>
         </div>
-        {hasActiveFilter(value) && (
-          <button
-            onClick={() => onChange({})}
-            className="cursor-pointer shrink-0 ml-auto text-xs text-text-muted hover:text-(--color-accent) border border-border px-2.5 py-0.5 rounded whitespace-nowrap"
-          >
-            清除筛选
-          </button>
-        )}
       </FilterRow>
     </div>
   );
