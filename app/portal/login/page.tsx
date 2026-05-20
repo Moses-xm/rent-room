@@ -29,13 +29,24 @@ export default function PortalLoginPage() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [showPwd, setShowPwd] = useState(false);
-  const [remember, setRemember] = useState(true);
+  const [remember, setRemember] = useState(false);
   const [sliderVerified, setSliderVerified] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const sliderKeyRef = useRef(0); // reset key
 
   useEffect(() => {
     if (getPortalToken()) router.replace(PORTAL_HOME_PATH);
+    const saved = localStorage.getItem("portal_remember");
+    if (saved) {
+      try {
+        const { username: u, password: p } = JSON.parse(saved);
+        setUsername(u || "");
+        setPassword(p || "");
+        setRemember(true);
+      } catch {
+        localStorage.removeItem("portal_remember");
+      }
+    }
   }, [router]);
 
   const resetSlider = () => {
@@ -59,6 +70,11 @@ export default function PortalLoginPage() {
       if (!res.token) throw new Error("登录成功但未收到凭证");
       setPortalToken(res.token);
       if (res.profile) setPortalProfile(res.profile);
+      if (remember) {
+        localStorage.setItem("portal_remember", JSON.stringify({ username: username.trim(), password }));
+      } else {
+        localStorage.removeItem("portal_remember");
+      }
       toast.success(res.message || "登录成功");
       const redirect = searchParams.get("redirect");
       router.replace(redirect || PORTAL_HOME_PATH);

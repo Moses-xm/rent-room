@@ -37,10 +37,11 @@ export function SliderCaptcha({ verified, onVerified, disabled = false }: Props)
           : "border-[#d9d9d9] bg-[#f5f5f5]"
       } ${disabled ? "opacity-60 pointer-events-none" : ""}`}
     >
-      {/* green fill when verified */}
-      {verified && (
-        <div className="absolute inset-0 bg-[var(--color-primary-brand)] opacity-10 pointer-events-none" />
-      )}
+      {/* fill track */}
+      <div
+        className="pointer-events-none absolute inset-y-0 left-0 bg-(--color-primary-brand) opacity-10"
+        style={{ width: `${value}%` }}
+      />
 
       {/* center text */}
       <div className="absolute inset-0 flex items-center justify-center text-sm text-[#aaa] pointer-events-none select-none px-12">
@@ -64,7 +65,7 @@ export function SliderCaptcha({ verified, onVerified, disabled = false }: Props)
 
       {/* visible thumb button */}
       <div
-        className="pointer-events-none absolute top-0 z-20 flex h-9.5 w-10 items-center justify-center bg-white border-r border-[#d9d9d9] text-[#999] text-base shadow-sm transition-[left]"
+        className="pointer-events-none absolute top-0 z-20 flex h-9.5 w-10 items-center justify-center bg-white border-r border-[#d9d9d9] text-[#999] text-base shadow-sm"
         style={{ left: `calc((100% - 40px) * ${value / 100})` }}
       >
         {verified ? (
