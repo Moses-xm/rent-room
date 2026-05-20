@@ -4,6 +4,10 @@ import { useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
 import {
+  User, Heart, CalendarCheck, Home, FileText, ShoppingCart, Bell,
+  type LucideProps,
+} from "lucide-react";
+import {
   clearPortalAuth,
   getPortalProfile,
   PORTAL_AUTH_CHANGED_EVENT,
@@ -12,6 +16,18 @@ import {
 } from "@/utils/portal-auth";
 import { resolveUploadedFileUrl } from "@/lib/upload-path";
 import { PORTAL_MINE_MENU, PORTAL_MINE_BANNER } from "@/utils/constants";
+
+type IconComponent = React.ComponentType<LucideProps>;
+
+const MINE_ICON_MAP: Record<string, IconComponent> = {
+  "/portal/account/info":         User,
+  "/portal/account/collection":   Heart,
+  "/portal/account/appointment":  CalendarCheck,
+  "/portal/account/room":         Home,
+  "/portal/account/contract":     FileText,
+  "/portal/account/orders":       ShoppingCart,
+  "/portal/account/notification": Bell,
+};
 
 function getGreeting() {
   const h = new Date().getHours();
@@ -66,7 +82,9 @@ export function MineShell({
       <div className="w-full h-13.75 bg-primary shadow-sm">
         <div className="flex items-center justify-between max-w-295 mx-auto h-13.75 px-4 lg:px-0">
           <div className="flex items-center gap-3 text-[#f7faf1]">
-            <span className="text-[27px] font-medium">雅阁租房</span>
+            <Link href="/portal" className="text-[27px] font-medium hover:opacity-80 transition-opacity">
+              雅阁租房
+            </Link>
             <span className="text-xl">|</span>
             <span className="text-[22px] font-medium">个人中心</span>
           </div>
@@ -121,18 +139,19 @@ export function MineShell({
         {/* 移动端：水平滚动 Tab */}
         <div className="flex lg:hidden overflow-x-auto bg-white -mx-4 px-2 mb-4 border-b border-[#eee]">
           {PORTAL_MINE_MENU.map(({ href, label }) => {
-            const isActive =
-              pathname === href || pathname.startsWith(href + "/");
+            const isActive = pathname === href || pathname.startsWith(href + "/");
+            const Icon = MINE_ICON_MAP[href];
             return (
               <Link
                 key={href}
                 href={href}
-                className={`shrink-0 px-4 py-3 text-sm border-b-2 whitespace-nowrap transition-colors ${
+                className={`shrink-0 flex items-center gap-1.5 px-3.5 py-3 text-sm border-b-2 whitespace-nowrap transition-colors ${
                   isActive
                     ? "text-primary border-primary"
                     : "text-[#666] border-transparent"
                 }`}
               >
+                {Icon && <Icon className="w-3.5 h-3.5 shrink-0" />}
                 {label}
               </Link>
             );
@@ -144,15 +163,16 @@ export function MineShell({
           {/* 侧边菜单 */}
           <aside className="hidden lg:block w-50 shrink-0 self-start">
             {PORTAL_MINE_MENU.map(({ href, label }) => {
-              const isActive =
-                pathname === href || pathname.startsWith(href + "/");
+              const isActive = pathname === href || pathname.startsWith(href + "/");
+              const Icon = MINE_ICON_MAP[href];
               return (
                 <Link
                   key={href}
                   href={href}
                   className={`p-mine-item${isActive ? " active" : ""}`}
                 >
-                  ▸ {label}
+                  {Icon && <Icon className="w-4 h-4 shrink-0" />}
+                  <span>{label}</span>
                 </Link>
               );
             })}

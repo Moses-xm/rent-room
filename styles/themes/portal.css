@@ -74,12 +74,13 @@
 
 /* 个人中心侧边菜单项 */
 [data-platform="portal"] .p-mine-item {
-  display: block;
+  display: flex;
+  align-items: center;
+  gap: 8px;
   height: 50px;
   padding-left: 19px;
   color: #666;
   font-size: 16px;
-  line-height: 50px;
   background: #fff;
   border-left: 3px solid transparent;
   text-decoration: none;
