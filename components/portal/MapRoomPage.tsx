@@ -514,9 +514,24 @@ export function MapRoomPage() {
         >
           {/* Filter bar */}
           <div className="px-3 pt-2.5 pb-2 border-b border-[#e6e6e6] bg-white shrink-0">
-            <div className="text-xs text-[#999] mb-2">
-              在地图内找到{' '}
-              <span className="text-[#333] font-medium">{total}</span> 套在租房源
+            <div className="flex items-center justify-between mb-2">
+              <div className="text-xs text-[#999]">
+                在地图内找到{' '}
+                <span className="text-[#333] font-medium">{total}</span> 套在租房源
+              </div>
+              {(selectedDistrict || selectedPrice || rentType || bedrooms) && (
+                <button
+                  className="text-xs text-[#62ab00] cursor-pointer hover:text-[#4e8a00] transition-colors shrink-0"
+                  onClick={() => {
+                    setSelectedDistrict('');
+                    setSelectedPrice('');
+                    setRentType('');
+                    setBedrooms('');
+                  }}
+                >
+                  清除筛选 ×
+                </button>
+              )}
             </div>
             <div className="flex gap-1.5 flex-wrap">
               <FilterSelect
