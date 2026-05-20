@@ -9,9 +9,13 @@ export async function GET(req: NextRequest) {
     const page = parseInt(searchParams.get('page') || '1');
     const limit = parseInt(searchParams.get('limit') || '10');
     const district = searchParams.get('district') || '';
+    const city = searchParams.get('city') || '';
     const skip = (page - 1) * limit;
 
-    const where = district ? { district } : {};
+    const where = {
+      ...(city ? { city } : {}),
+      ...(district ? { district } : {}),
+    };
 
     const [total, items] = await Promise.all([
       prisma.community.count({ where }),

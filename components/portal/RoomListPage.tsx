@@ -11,7 +11,6 @@ import { portalRequest } from "@/utils/portal-request";
 import {
   type RoomItem,
   type RoomsResponse,
-  PAGE_SIZE,
   buildRoomTags,
   buildSubTitle,
   buildAddress,
@@ -55,7 +54,7 @@ export function RoomListPage({ filterType, breadcrumb }: RoomListPageProps) {
   const [total, setTotal] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
   const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState(PAGE_SIZE);
+  const [pageSize, setPageSize] = useState(10);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {

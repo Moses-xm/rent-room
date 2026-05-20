@@ -897,8 +897,8 @@ import AppLoading from '@/components/AppLoading';
 /portal                          # 首页（轮播图 + 热门推荐 + 搜索）
 /portal/areaRoom                 # 区域找房（筛选+列表+分页）✅
 /portal/subwayRoom               # 地铁找房（筛选+列表+分页）✅
-/portal/cmyRoom                  # 小区找房列表
-/portal/cmyRoom/[id]             # 小区房源列表
+/portal/cmyRoom                  # 小区找房列表 ✅
+/portal/cmyRoom/[id]             # 小区房源列表 ✅
 /portal/login                    # 用户登录
 /portal/register                 # 用户注册
 /portal/room/[id]                # 房源详情
@@ -935,7 +935,8 @@ Portal API（`app/api/portal/`）：
 |------|------|------|
 | `GET /api/portal/carousels` | 已发布轮播图，按 sortOrder 升序 | ✅ |
 | `GET /api/portal/rooms` | 房源列表，支持 sort=latest\|hot、district、minPrice、maxPrice、rentType、page | ✅ |
-| `GET /api/portal/communities` | 小区列表，支持 district、page，返回含 roomCount | ✅ |
+| `GET /api/portal/communities` | 小区列表，支持 city、district、page，返回含 roomCount | ✅ |
+| `GET /api/portal/communities/[id]` | 小区详情 + 该小区已发布房源（支持分页） | ✅ |
 
 ### 房源搜索与筛选
 

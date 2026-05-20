@@ -27,8 +27,6 @@ export interface RoomsResponse {
   totalPages: number;
 }
 
-export const PAGE_SIZE = 10;
-
 export function buildRoomTags(room: RoomItem) {
   const tags: { color: "red" | "green" | "blue" | "yellow"; label: string }[] = [];
   const typeOpt = RENT_TYPE_OPTIONS.find((o) => o.value === room.rentType);
