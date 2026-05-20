@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { MapApiLoaderHOC } from 'react-bmapgl';
 import { BAIDU_MAP_AK } from '@/utils/constants';
 
@@ -35,6 +35,107 @@ interface Props {
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const B = () => (window as any).BMapGL;
 
+const DISTRICT_ZOOM_THRESHOLD = 13;
+
+// ── Overlay factories (module-level to avoid React Compiler `this` restriction) ──
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function createDistrictCircle(BMapGL: any, point: any, size: number, isSelected: boolean, districtName: string, roomCount: number, onClick: () => void) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  function DistrictCircle(this: any) {
+    this._point = point;
+    this._div = null;
+    this._map = null;
+  }
+  DistrictCircle.prototype = Object.create(BMapGL.Overlay.prototype);
+  DistrictCircle.prototype.constructor = DistrictCircle;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  DistrictCircle.prototype.initialize = function (m: any) {
+    this._map = m;
+    const div = document.createElement('div');
+    div.style.cssText = [
+      'position:absolute',
+      `width:${size}px`,
+      `height:${size}px`,
+      'border-radius:50%',
+      `background:${isSelected ? 'rgba(74,129,1,0.92)' : 'rgba(98,171,0,0.85)'}`,
+      'color:#fff',
+      'display:flex',
+      'flex-direction:column',
+      'align-items:center',
+      'justify-content:center',
+      'cursor:pointer',
+      'text-align:center',
+      'box-shadow:0 2px 10px rgba(0,0,0,0.28)',
+      'transform:translate(-50%,-50%)',
+      'user-select:none',
+      'transition:background 0.15s',
+    ].join(';');
+    div.innerHTML = `<div style="font-size:13px;font-weight:bold;line-height:1.3;">${districtName}</div><div style="font-size:11px;opacity:0.9;">${roomCount}套</div>`;
+    div.addEventListener('click', onClick);
+    div.addEventListener('mouseenter', () => { div.style.background = 'rgba(74,129,1,0.92)'; });
+    div.addEventListener('mouseleave', () => { div.style.background = isSelected ? 'rgba(74,129,1,0.92)' : 'rgba(98,171,0,0.85)'; });
+    m.getPanes().markerPane.appendChild(div);
+    this._div = div;
+    return div;
+  };
+  DistrictCircle.prototype.draw = function () {
+    if (!this._div || !this._map) return;
+    const pixel = this._map.pointToOverlayPixel(this._point);
+    this._div.style.left = pixel.x + 'px';
+    this._div.style.top = pixel.y + 'px';
+  };
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return new (DistrictCircle as any)();
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function createCommunityMarker(BMapGL: any, point: any, isSelected: boolean, cmyName: string, onClick: () => void) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  function CommunityMarker(this: any) {
+    this._point = point;
+    this._div = null;
+    this._map = null;
+  }
+  CommunityMarker.prototype = Object.create(BMapGL.Overlay.prototype);
+  CommunityMarker.prototype.constructor = CommunityMarker;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  CommunityMarker.prototype.initialize = function (m: any) {
+    this._map = m;
+    const div = document.createElement('div');
+    div.style.cssText = [
+      'position:absolute',
+      `background:${isSelected ? '#4a8101' : '#62ab00'}`,
+      'color:#fff',
+      'padding:4px 10px',
+      'border-radius:4px',
+      'font-size:12px',
+      'font-weight:500',
+      'cursor:pointer',
+      'white-space:nowrap',
+      'box-shadow:0 1px 6px rgba(0,0,0,0.25)',
+      'transform:translate(-50%,-50%)',
+      'user-select:none',
+      'transition:background 0.15s',
+    ].join(';');
+    div.textContent = cmyName;
+    div.addEventListener('click', onClick);
+    div.addEventListener('mouseenter', () => { div.style.background = '#4a8101'; });
+    div.addEventListener('mouseleave', () => { div.style.background = isSelected ? '#4a8101' : '#62ab00'; });
+    m.getPanes().markerPane.appendChild(div);
+    this._div = div;
+    return div;
+  };
+  CommunityMarker.prototype.draw = function () {
+    if (!this._div || !this._map) return;
+    const pixel = this._map.pointToOverlayPixel(this._point);
+    this._div.style.left = pixel.x + 'px';
+    this._div.style.top = pixel.y + 'px';
+  };
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return new (CommunityMarker as any)();
+}
+
 function MapRoomMapInner({
   city,
   zoom,
@@ -51,16 +152,16 @@ function MapRoomMapInner({
   const mapRef = useRef<any>(null);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const overlaysRef = useRef<any[]>([]);
-  const programmaticZoomRef = useRef(false);
   const onZoomChangeRef = useRef(onZoomChange);
   const onDistrictClickRef = useRef(onDistrictClick);
   const onCommunityClickRef = useRef(onCommunityClick);
+  const [geocodedDistricts, setGeocodedDistricts] = useState<DistrictItem[]>([]);
 
   useEffect(() => { onZoomChangeRef.current = onZoomChange; });
   useEffect(() => { onDistrictClickRef.current = onDistrictClick; });
   useEffect(() => { onCommunityClickRef.current = onCommunityClick; });
 
-  // Initialize map once
+  // ── 1. Init map (once) ────────────────────────────────────────────────────────
   useEffect(() => {
     if (!containerRef.current) return;
     const BMapGL = B();
@@ -68,43 +169,22 @@ function MapRoomMapInner({
     mapRef.current = map;
     map.enableScrollWheelZoom();
     map.addControl(new BMapGL.ZoomControl());
-
-    // Center on city via geocoder
-    new BMapGL.Geocoder().getPoint(
-      city,
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (point: any) => {
-        if (point && mapRef.current) {
-          mapRef.current.centerAndZoom(new BMapGL.Point(point.lng, point.lat), 12);
-        }
-      },
-      '',
-    );
-
+    // User-initiated zoom → notify parent; parent state is the single source of truth
     map.addEventListener('zoomend', () => {
-      if (programmaticZoomRef.current) {
-        programmaticZoomRef.current = false;
-        return;
-      }
       onZoomChangeRef.current(Math.round(map.getZoom()));
     });
-
-    return () => {
-      mapRef.current = null;
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    return () => { mapRef.current = null; };
   }, []);
 
-  // Recenter when city changes
+  // ── 2. Recenter on city when city prop changes ────────────────────────────────
   useEffect(() => {
-    if (!mapRef.current) return;
+    if (!mapRef.current || !city) return;
     const BMapGL = B();
     new BMapGL.Geocoder().getPoint(
       city,
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (point: any) => {
         if (point && mapRef.current) {
-          programmaticZoomRef.current = true;
           mapRef.current.centerAndZoom(new BMapGL.Point(point.lng, point.lat), 12);
         }
       },
@@ -112,143 +192,89 @@ function MapRoomMapInner({
     );
   }, [city]);
 
-  // Sync zoom from parent → map
+  // ── 3. Geocode accurate district center points ────────────────────────────────
+  useEffect(() => {
+    const BMapGL = B();
+    Promise.all(
+      districts.map(
+        (d) =>
+          new Promise<DistrictItem>((resolve) => {
+            new BMapGL.Geocoder().getPoint(
+              `${city}${d.name}`,
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              (point: any) => {
+                resolve({ ...d, lat: point ? point.lat : d.lat, lng: point ? point.lng : d.lng });
+              },
+              city,
+            );
+          }),
+      ),
+    ).then(setGeocodedDistricts);
+  }, [districts, city]);
+
+  // ── 4. Sync zoom: parent state → map ─────────────────────────────────────────
+  // Parent state is the single source of truth for zoom.
+  // This effect is the only place we call map.setZoom().
   useEffect(() => {
     if (!mapRef.current) return;
-    const currentZoom = Math.round(mapRef.current.getZoom());
-    if (currentZoom !== zoom) {
-      programmaticZoomRef.current = true;
+    if (Math.round(mapRef.current.getZoom()) !== zoom) {
       mapRef.current.setZoom(zoom);
     }
   }, [zoom]);
 
-  // Redraw overlays when data changes
+  // ── 5. Pan to selected district center ───────────────────────────────────────
+  // Triggered by selectedDistrict prop change (from click or FilterSelect).
+  // panTo does not change zoom; zoom is managed exclusively by effect 4.
+  useEffect(() => {
+    if (!mapRef.current || !selectedDistrict || geocodedDistricts.length === 0) return;
+    const d = geocodedDistricts.find((gd) => gd.name === selectedDistrict);
+    if (!d) return;
+    const BMapGL = B();
+    mapRef.current.panTo(new BMapGL.Point(d.lng, d.lat));
+  }, [selectedDistrict, geocodedDistricts]);
+
+  // ── 6. Redraw overlays ────────────────────────────────────────────────────────
+  // Zoom threshold decides district circles vs community markers.
+  // Click handlers only call parent callbacks — no direct map manipulation here.
   useEffect(() => {
     if (!mapRef.current) return;
     const BMapGL = B();
     const map = mapRef.current;
 
-    // Clear previous overlays
     for (const o of overlaysRef.current) map.removeOverlay(o);
     overlaysRef.current = [];
 
-    // ── District circles ──────────────────────────────────────────
-    for (const d of districts) {
-      if (!d.lat && !d.lng) continue;
-      const point = new BMapGL.Point(d.lng, d.lat);
-      const isSelected = selectedDistrict === d.name;
-      const size = Math.min(Math.max(52, d.roomCount * 4 + 44), 90);
-      const districtName = d.name;
-      const roomCount = d.roomCount;
-
-      // Build overlay using prototype chain (compatible with BMapGL Overlay system)
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      function DistrictCircle(this: any) {
-        this._point = point;
-        this._div = null;
-        this._map = null;
+    if (zoom < DISTRICT_ZOOM_THRESHOLD) {
+      // ── District circles ────────────────────────────────────────────────────
+      for (const d of geocodedDistricts) {
+        if (!d.lat && !d.lng) continue;
+        const point = new BMapGL.Point(d.lng, d.lat);
+        const isSelected = selectedDistrict === d.name;
+        const size = Math.min(Math.max(52, d.roomCount * 4 + 44), 90);
+        const name = d.name;
+        const overlay = createDistrictCircle(
+          BMapGL, point, size, isSelected, name, d.roomCount,
+          () => onDistrictClickRef.current(name),
+        );
+        map.addOverlay(overlay);
+        overlaysRef.current.push(overlay);
       }
-      DistrictCircle.prototype = Object.create(BMapGL.Overlay.prototype);
-      DistrictCircle.prototype.constructor = DistrictCircle;
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      DistrictCircle.prototype.initialize = function (m: any) {
-        this._map = m;
-        const div = document.createElement('div');
-        div.style.cssText = [
-          'position:absolute',
-          `width:${size}px`,
-          `height:${size}px`,
-          'border-radius:50%',
-          `background:${isSelected ? 'rgba(74,129,1,0.92)' : 'rgba(98,171,0,0.85)'}`,
-          'color:#fff',
-          'display:flex',
-          'flex-direction:column',
-          'align-items:center',
-          'justify-content:center',
-          'cursor:pointer',
-          'text-align:center',
-          'box-shadow:0 2px 10px rgba(0,0,0,0.28)',
-          'transform:translate(-50%,-50%)',
-          'user-select:none',
-          'transition:background 0.15s',
-        ].join(';');
-        div.innerHTML = `<div style="font-size:13px;font-weight:bold;line-height:1.3;">${districtName}</div><div style="font-size:11px;opacity:0.9;">${roomCount}套</div>`;
-        div.addEventListener('click', () => onDistrictClickRef.current(districtName));
-        div.addEventListener('mouseenter', () => { div.style.background = 'rgba(74,129,1,0.92)'; });
-        div.addEventListener('mouseleave', () => { div.style.background = isSelected ? 'rgba(74,129,1,0.92)' : 'rgba(98,171,0,0.85)'; });
-        m.getPanes().markerPane.appendChild(div);
-        this._div = div;
-        return div;
-      };
-      DistrictCircle.prototype.draw = function () {
-        if (!this._div || !this._map) return;
-        const pixel = this._map.pointToOverlayPixel(this._point);
-        this._div.style.left = pixel.x + 'px';
-        this._div.style.top = pixel.y + 'px';
-      };
-
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const overlay = new (DistrictCircle as any)();
-      map.addOverlay(overlay);
-      overlaysRef.current.push(overlay);
-    }
-
-    // ── Community markers ─────────────────────────────────────────
-    for (const c of communities) {
-      if (!c.lat && !c.lng) continue;
-      const point = new BMapGL.Point(c.lng, c.lat);
-      const isSelected = selectedCmyId === c.id;
-      const cmyName = c.name;
-      const cmyId = c.id;
-
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      function CommunityMarker(this: any) {
-        this._point = point;
-        this._div = null;
-        this._map = null;
+    } else {
+      // ── Community markers ───────────────────────────────────────────────────
+      for (const c of communities) {
+        if (!c.lat && !c.lng) continue;
+        const point = new BMapGL.Point(c.lng, c.lat);
+        const isSelected = selectedCmyId === c.id;
+        const id = c.id;
+        const overlay = createCommunityMarker(
+          BMapGL, point, isSelected, c.name,
+          () => onCommunityClickRef.current(id),
+        );
+        map.addOverlay(overlay);
+        overlaysRef.current.push(overlay);
       }
-      CommunityMarker.prototype = Object.create(BMapGL.Overlay.prototype);
-      CommunityMarker.prototype.constructor = CommunityMarker;
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      CommunityMarker.prototype.initialize = function (m: any) {
-        this._map = m;
-        const div = document.createElement('div');
-        div.style.cssText = [
-          'position:absolute',
-          `background:${isSelected ? '#4a8101' : '#62ab00'}`,
-          'color:#fff',
-          'padding:4px 10px',
-          'border-radius:4px',
-          'font-size:12px',
-          'font-weight:500',
-          'cursor:pointer',
-          'white-space:nowrap',
-          'box-shadow:0 1px 6px rgba(0,0,0,0.25)',
-          'transform:translate(-50%,-50%)',
-          'user-select:none',
-          'transition:background 0.15s',
-        ].join(';');
-        div.textContent = cmyName;
-        div.addEventListener('click', () => onCommunityClickRef.current(cmyId));
-        div.addEventListener('mouseenter', () => { div.style.background = '#4a8101'; });
-        div.addEventListener('mouseleave', () => { div.style.background = isSelected ? '#4a8101' : '#62ab00'; });
-        m.getPanes().markerPane.appendChild(div);
-        this._div = div;
-        return div;
-      };
-      CommunityMarker.prototype.draw = function () {
-        if (!this._div || !this._map) return;
-        const pixel = this._map.pointToOverlayPixel(this._point);
-        this._div.style.left = pixel.x + 'px';
-        this._div.style.top = pixel.y + 'px';
-      };
-
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const overlay = new (CommunityMarker as any)();
-      map.addOverlay(overlay);
-      overlaysRef.current.push(overlay);
     }
-  }, [districts, communities, selectedDistrict, selectedCmyId]);
+  }, [geocodedDistricts, communities, zoom, selectedDistrict, selectedCmyId]);
 
   return <div ref={containerRef} style={{ width: '100%', height: '100%' }} />;
 }

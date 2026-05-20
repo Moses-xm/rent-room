@@ -60,7 +60,7 @@ interface PreviewDetail {
   } | null;
 }
 
-const COMMUNITY_ZOOM = 14;
+const COMMUNITY_ZOOM = 13;
 
 // ── Skeleton ──────────────────────────────────────────────────────────────────
 
@@ -447,14 +447,10 @@ export function MapRoomPage() {
     setPreviewIdx(null);
   }, []);
 
-  // Determine which overlays to show based on zoom
-  const showCommunities = zoom >= COMMUNITY_ZOOM;
-  const visibleCommunities = showCommunities
-    ? selectedDistrict
-      ? mapData.communities.filter((c) => c.district === selectedDistrict)
-      : mapData.communities
-    : [];
-  const visibleDistricts = showCommunities ? [] : mapData.districts;
+  // Communities filtered by selected district (zoom-based show/hide handled inside MapRoomMap)
+  const visibleCommunities = selectedDistrict
+    ? mapData.communities.filter((c) => c.district === selectedDistrict)
+    : mapData.communities;
 
   // Price filter options
   const priceOptions = PORTAL_PRICE_RANGES.slice(1).map((r) => ({
@@ -492,7 +488,7 @@ export function MapRoomPage() {
           <MapRoomMap
             city={city}
             zoom={zoom}
-            districts={visibleDistricts}
+            districts={mapData.districts}
             communities={visibleCommunities}
             selectedDistrict={selectedDistrict}
             selectedCmyId={selectedCmyId}
@@ -539,7 +535,7 @@ export function MapRoomPage() {
                 onChange={(v: string) => {
                   setSelectedDistrict(v);
                   setSelectedCmyId(null);
-                  if (v) setZoom(COMMUNITY_ZOOM);
+                  setZoom(v ? COMMUNITY_ZOOM : 12);
                 }}
                 options={mapData.districts.map((d) => ({ value: d.name, label: d.name }))}
                 placeholder="选择区域"
