@@ -36,12 +36,13 @@ export function buildRoomTags(room: RoomItem) {
   if (liftOpt) tags.push({ color: "blue", label: liftOpt.label });
   if (room.community?.subwayLine) {
     const raw = room.community.subwayLine;
-    let label = raw;
+    let lines = raw;
     try {
       const parsed = JSON.parse(raw);
-      if (Array.isArray(parsed)) label = parsed.join(" / ");
+      if (Array.isArray(parsed)) lines = parsed.join(" / ");
     } catch {}
-    tags.push({ color: "yellow", label });
+    tags.push({ color: "green", label: "近地铁" });
+    tags.push({ color: "yellow", label: lines });
   }
   return tags;
 }
@@ -51,7 +52,7 @@ export function buildSubTitle(room: RoomItem) {
   if (room.bedroom) parts.push(`${room.bedroom}室${room.parlour}厅`);
   if (room.area) parts.push(`${room.area}平方米`);
   if (room.floors) parts.push(`共${room.floors}层`);
-  return parts.join("  |  ");
+  return parts.join("|");
 }
 
 export function buildAddress(room: RoomItem) {

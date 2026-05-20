@@ -6,6 +6,7 @@ type CommunitySnap = {
   district: string;
   street: string | null;
   streetNumber: string | null;
+  subwayLine: string | null;
   lng: number;
   lat: number;
 };
@@ -99,6 +100,7 @@ export function serializeRoom(r: RoomRecord) {
           district: r.community.district,
           street: r.community.street,
           streetNumber: r.community.streetNumber,
+          subwayLine: r.community.subwayLine,
           lng: r.community.lng,
           lat: r.community.lat,
         }

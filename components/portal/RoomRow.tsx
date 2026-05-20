@@ -40,7 +40,18 @@ export function RoomRow({
         </div>
         {(subTitle || broker) && (
           <div className="text-sm mt-3 lg:mt-0 flex items-center gap-5 truncate">
-            {subTitle && <span className="truncate">{subTitle}</span>}
+            {subTitle && (
+                <span className="truncate">
+                  {subTitle.split("|").map((part, i, arr) => (
+                    <span key={i}>
+                      {part}
+                      {i < arr.length - 1 && (
+                        <span className="mx-2 text-border">|</span>
+                      )}
+                    </span>
+                  ))}
+                </span>
+              )}
             {broker && (
               <span className="flex items-center gap-0.5 shrink-0 text-text-muted">
                 <svg xmlns="http://www.w3.org/2000/svg" className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor">
