@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Bell, Trash2, X } from "lucide-react";
+import { Bell, X } from "lucide-react";
 import { portalRequest } from "@/utils/portal-request";
 import { fmtDateTime } from "@/utils/format";
 import { NOTIFICATION_TYPE_LABEL } from "@/utils/constants";
@@ -22,9 +22,13 @@ type ListResponse = {
   totalPages: number;
 };
 
+type ConfirmState =
+  | { type: "single"; id: number; title: string }
+  | { type: "all" }
+  | null;
+
 const LIMIT = 20;
 
-// 不同类型的颜色标记
 const TYPE_COLOR: Record<number, string> = {
   1: "bg-sky-500",
   2: "bg-rose-500",
@@ -46,7 +50,7 @@ export function NotificationBell() {
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(false);
-  const [clearConfirm, setClearConfirm] = useState(false);
+  const [confirm, setConfirm] = useState<ConfirmState>(null);
   const panelRef = useRef<HTMLDivElement>(null);
 
   const fetchUnread = useCallback(async () => {
@@ -77,20 +81,18 @@ export function NotificationBell() {
     }
   }, []);
 
-  // 初始化：拉未读数，每 60s 轮询一次
   useEffect(() => {
     fetchUnread();
     const timer = setInterval(fetchUnread, 60_000);
     return () => clearInterval(timer);
   }, [fetchUnread]);
 
-  // 点击面板外关闭
   useEffect(() => {
     if (!open) return;
     const handler = (e: MouseEvent) => {
       if (panelRef.current && !panelRef.current.contains(e.target as Node)) {
         setOpen(false);
-        setClearConfirm(false);
+        setConfirm(null);
       }
     };
     document.addEventListener("mousedown", handler);
@@ -103,10 +105,9 @@ export function NotificationBell() {
       fetchList(1);
     }
     setOpen((v) => !v);
-    setClearConfirm(false);
+    setConfirm(null);
   };
 
-  // 标记单条已读
   const markRead = async (item: NotificationItem) => {
     if (item.isRead) return;
     try {
@@ -118,7 +119,6 @@ export function NotificationBell() {
     }
   };
 
-  // 全部已读
   const markAllRead = async () => {
     try {
       await portalRequest("/portal/notification", { method: "PATCH", silent: true });
@@ -129,34 +129,28 @@ export function NotificationBell() {
     }
   };
 
-  // 删除单条
-  const deleteOne = async (id: number, e: React.MouseEvent) => {
-    e.stopPropagation();
+  const handleConfirm = async () => {
+    if (!confirm) return;
     try {
-      await portalRequest(`/portal/notification/${id}`, { method: "DELETE", silent: true });
-      const deleted = list.find((n) => n.id === id);
-      setList((prev) => prev.filter((n) => n.id !== id));
-      setTotal((v) => v - 1);
-      if (deleted && !deleted.isRead) setUnread((v) => Math.max(0, v - 1));
+      if (confirm.type === "single") {
+        await portalRequest(`/portal/notification/${confirm.id}`, { method: "DELETE", silent: true });
+        const deleted = list.find((n) => n.id === confirm.id);
+        setList((prev) => prev.filter((n) => n.id !== confirm.id));
+        setTotal((v) => v - 1);
+        if (deleted && !deleted.isRead) setUnread((v) => Math.max(0, v - 1));
+      } else {
+        await portalRequest("/portal/notification", { method: "DELETE", silent: true });
+        setList([]);
+        setTotal(0);
+        setUnread(0);
+      }
     } catch {
       // ignore
+    } finally {
+      setConfirm(null);
     }
   };
 
-  // 清空全部
-  const clearAll = async () => {
-    try {
-      await portalRequest("/portal/notification", { method: "DELETE", silent: true });
-      setList([]);
-      setTotal(0);
-      setUnread(0);
-      setClearConfirm(false);
-    } catch {
-      // ignore
-    }
-  };
-
-  // 加载更多
   const loadMore = () => {
     const next = page + 1;
     setPage(next);
@@ -175,7 +169,7 @@ export function NotificationBell() {
       >
         <Bell className="w-5 h-5" />
         {unread > 0 && (
-          <span className="absolute -top-0.5 -right-0.5 min-w-[16px] h-4 px-0.5 bg-[#e74c3c] text-white text-[10px] font-bold leading-4 rounded-full flex items-center justify-center">
+          <span className="absolute -top-0.5 -right-0.5 min-w-4 h-4 px-0.5 bg-[#e74c3c] text-white text-[10px] font-bold leading-4 rounded-full flex items-center justify-center">
             {unread > 99 ? "99+" : unread}
           </span>
         )}
@@ -183,14 +177,15 @@ export function NotificationBell() {
 
       {/* 通知面板 */}
       {open && (
-        <div className="absolute right-0 top-full mt-2 w-80 bg-white border border-[#e6e6e6] shadow-xl z-50 flex flex-col max-h-[480px]">
+        <div className="absolute right-0 top-full mt-2 w-80 bg-white border border-[#e6e6e6] shadow-xl z-50 flex flex-col max-h-120">
+
           {/* 头部 */}
           <div className="flex items-center justify-between px-4 py-3 border-b border-[#f0f0f0] shrink-0">
             <span className="text-sm font-semibold text-[#333]">
               消息通知
               {total > 0 && <span className="ml-1.5 text-xs text-[#999] font-normal">共 {total} 条</span>}
             </span>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-3">
               {unread > 0 && (
                 <button
                   onClick={markAllRead}
@@ -199,30 +194,13 @@ export function NotificationBell() {
                   全部已读
                 </button>
               )}
-              {total > 0 && !clearConfirm && (
+              {total > 0 && (
                 <button
-                  onClick={() => setClearConfirm(true)}
+                  onClick={() => setConfirm({ type: "all" })}
                   className="text-xs text-[#999] hover:text-[#e74c3c] cursor-pointer transition-colors"
                 >
                   清空
                 </button>
-              )}
-              {clearConfirm && (
-                <div className="flex items-center gap-1.5">
-                  <span className="text-xs text-[#e74c3c]">确认清空？</span>
-                  <button
-                    onClick={clearAll}
-                    className="text-xs text-[#e74c3c] font-semibold hover:opacity-75 cursor-pointer"
-                  >
-                    确认
-                  </button>
-                  <button
-                    onClick={() => setClearConfirm(false)}
-                    className="text-xs text-[#999] hover:text-[#333] cursor-pointer"
-                  >
-                    取消
-                  </button>
-                </div>
               )}
             </div>
           </div>
@@ -244,12 +222,9 @@ export function NotificationBell() {
                       item.isRead ? "bg-white hover:bg-[#fafafa]" : "bg-[#fffdf0] hover:bg-[#fff9e0]"
                     }`}
                   >
-                    {/* 类型色点 */}
                     <div className="shrink-0 mt-1">
                       <span className={`block w-2 h-2 rounded-full ${TYPE_COLOR[item.type] ?? "bg-slate-400"}`} />
                     </div>
-
-                    {/* 内容 */}
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-1.5 mb-0.5">
                         <span className={`text-[10px] px-1.5 py-0.5 rounded font-medium ${
@@ -271,10 +246,11 @@ export function NotificationBell() {
                         {fmtDateTime(item.createdAt)}
                       </p>
                     </div>
-
-                    {/* 删除按钮（hover 显示） */}
                     <button
-                      onClick={(e) => deleteOne(item.id, e)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setConfirm({ type: "single", id: item.id, title: item.title });
+                      }}
                       className="shrink-0 opacity-0 group-hover:opacity-100 transition-opacity text-[#ccc] hover:text-[#e74c3c] cursor-pointer mt-0.5"
                       title="删除"
                     >
@@ -283,7 +259,6 @@ export function NotificationBell() {
                   </div>
                 ))}
 
-                {/* 加载更多 */}
                 {hasMore && (
                   <button
                     onClick={loadMore}
@@ -299,6 +274,36 @@ export function NotificationBell() {
               </>
             )}
           </div>
+
+          {/* 二次确认覆盖层 */}
+          {confirm && (
+            <div className="absolute inset-0 bg-white/90 flex items-center justify-center z-10">
+              <div className="mx-4 w-full bg-white border border-[#e6e6e6] shadow-lg rounded-lg p-5 text-center">
+                <p className="text-sm font-semibold text-[#333] mb-1">
+                  {confirm.type === "all" ? "清空全部通知？" : "删除该通知？"}
+                </p>
+                <p className="text-xs text-[#999] mb-4 leading-relaxed">
+                  {confirm.type === "all"
+                    ? "所有通知将被永久删除，无法恢复。"
+                    : `「${confirm.title}」将被永久删除，无法恢复。`}
+                </p>
+                <div className="flex gap-2 justify-center">
+                  <button
+                    onClick={() => setConfirm(null)}
+                    className="h-8 px-4 text-xs border border-[#d9d9d9] text-[#555] hover:bg-[#f5f5f5] transition-colors cursor-pointer rounded"
+                  >
+                    取消
+                  </button>
+                  <button
+                    onClick={handleConfirm}
+                    className="h-8 px-4 text-xs bg-[#e74c3c] text-white hover:opacity-90 transition-opacity cursor-pointer rounded"
+                  >
+                    确认删除
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       )}
     </div>
