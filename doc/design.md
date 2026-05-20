@@ -1291,7 +1291,7 @@ API Key 存放在环境变量 `NEXT_PUBLIC_BAIDU_MAP_AK`（客户端可访问）
 | 首页 | ⬜ 待实现 | `/portal` |
 | 用户注册/登录 | ⬜ 待实现 | `/portal/register`, `/portal/login` |
 | 房源列表/搜索 | ⬜ 待实现 | `/portal/search` |
-| 房源详情 | ⬜ 待实现 | `/portal/room/[id]` |
+| 房源详情 | ✅ 已实现 | `/portal/room/[id]` |
 | 小区详情 | ⬜ 待实现 | `/portal/community/[id]` |
 | 地图找房 | ⬜ 待实现 | `/portal/map` |
 | 个人中心 - 基础 | ⬜ 待实现 | `/portal/profile/info`, `/portal/profile/collection`, `/portal/profile/rooms` |

@@ -639,7 +639,7 @@ PortalShell
 ⬜ Step 14   登录/注册
 ✅ Step 10   区域找房 / 地铁找房（areaRoom / subwayRoom）
 ⬜ Step 11   小区找房
-⬜ Step 12   房源详情
+✅ Step 12   房源详情
 ⬜ Step 13   地图找房
 ⬜ Step 15   出租页面
 ⬜ Step 16   个人中心各页
