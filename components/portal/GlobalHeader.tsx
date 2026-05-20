@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Menu, UserCircle2 } from "lucide-react";
+import { Menu } from "lucide-react";
 import { NotificationBell } from "@/components/portal/NotificationBell";
 import {
   clearPortalAuth,
@@ -117,12 +117,14 @@ export function GlobalHeader({ onMenuToggle }: { onMenuToggle: () => void }) {
                   onClick={() => setPopoverOpen((v) => !v)}
                   className="flex items-center gap-1.5 cursor-pointer hover:opacity-80 transition-opacity"
                 >
-                  <div className="w-7 h-7 rounded-full overflow-hidden border border-[#e0e0e0] shrink-0 flex items-center justify-center">
+                  <div className="w-7 h-7 rounded-full overflow-hidden shrink-0 flex items-center justify-center">
                     {avatarUrl ? (
                       // eslint-disable-next-line @next/next/no-img-element
                       <img src={avatarUrl} alt={displayName} className="w-full h-full object-cover" />
                     ) : (
-                      <UserCircle2 className="w-5 h-5 text-[#aaa]" />
+                      <div className="w-full h-full rounded-full bg-primary-tint-2 flex items-center justify-center text-primary text-xs font-semibold">
+                        {(displayName ?? "?").charAt(0).toUpperCase()}
+                      </div>
                     )}
                   </div>
                   <span className="text-sm text-[#333]">{displayName}</span>
