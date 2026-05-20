@@ -81,6 +81,7 @@ rent-room/
 │   │   │   ├── carousels/route.ts    # GET 已发布轮播图列表
 │   │   │   ├── rooms/route.ts        # GET 房源列表（sort=latest|hot，支持筛选）
 │   │   │   ├── communities/route.ts  # GET 小区列表（支持 district 筛选）
+│   │   │   ├── mapRoom/route.ts      # GET 地图找房（districts+communities with lat/lng+roomCount）
 │   │   │   └── orders/
 │   │   │       ├── route.ts          # GET 当前用户订单列表（过滤软删除）
 │   │   │       └── [id]/route.ts     # DELETE 软删除（设 payerDeleted/payeeDeleted）
@@ -141,6 +142,7 @@ rent-room/
 │   │   ├── login/page.tsx            # 用户登录页
 │   │   ├── areaRoom/page.tsx         # 区域找房（筛选+列表+分页）
 │   │   ├── subwayRoom/page.tsx       # 地铁找房（筛选+列表+分页）
+│   │   ├── mapRoom/page.tsx          # 地图找房（百度地图+房源列表+预览）
 │   │   ├── account/
 │   │   │   └── orders/page.tsx       # 个人中心 - 我的订单（软删除）
 │   │   ├── layout.tsx
@@ -158,6 +160,8 @@ rent-room/
 │   │   ├── AuthShell.tsx             # 登录/注册布局（背景图+居中卡片）
 │   │   ├── MineShell.tsx             # 个人中心布局（顶栏+横幅+侧边菜单+内容区）
 │   │   ├── EmptyState.tsx            # 空状态插图组件（信封插图+文案，支持 text prop）
+│   │   ├── MapRoomMap.tsx            # 地图找房地图组件（BMapGL 自定义 Overlay：区县圆/小区标签）
+│   │   ├── MapRoomPage.tsx           # 地图找房整页（自定义全屏布局+房源列表+预览面板）
 │   ├── RoomImage.tsx             # 图片容错占位封装（onError → 斜线占位 div）
 │   │   ├── RoomTags.tsx              # 颜色标签组（red/green/blue/yellow 四色）
 │   │   ├── HomeCard.tsx              # 首页房源/小区卡片（4 列 grid）
@@ -220,7 +224,7 @@ rent-room/
 ```
 
 ## 实现状态
-管理平台：登录 ✅、个人资料 ✅、管理员管理 ✅、用户管理 ✅、小区管理 ✅、轮播图管理 ✅、房屋设施管理 ✅、房源管理 ✅、收藏管理 ✅、预约管理 ✅、通知管理 ✅、合同管理 ✅、其余模块 ⬜。用户平台：登录 ✅、首页 ✅、区域找房 ✅、地铁找房 ✅、小区找房 ✅、小区房源列表 ✅、房源详情 ✅、我的订单 ✅、其余模块 ⬜。数据库：`admin` 表 ✅、`user` 表 ✅、`community` 表 ✅、`carousel` 表 ✅、`facility` 表 ✅、`room` 表 ✅、`collection` 表 ✅、`appointment` 表 ✅、`notification` 表 ✅、`contract` 表 ✅、`order` 表 ✅、`wallet_record` 表 ✅。Portal API：轮播图 ✅、房源列表（含 district/subwayLine/price/rentType 筛选）✅、房源详情（含设施、发布者、浏览计数）✅、小区列表（含 city/district 筛选）✅、小区详情+房源 ✅、其余 ⬜。
+管理平台：登录 ✅、个人资料 ✅、管理员管理 ✅、用户管理 ✅、小区管理 ✅、轮播图管理 ✅、房屋设施管理 ✅、房源管理 ✅、收藏管理 ✅、预约管理 ✅、通知管理 ✅、合同管理 ✅、其余模块 ⬜。用户平台：登录 ✅、首页 ✅、区域找房 ✅、地铁找房 ✅、小区找房 ✅、小区房源列表 ✅、房源详情 ✅、地图找房 ✅、我的订单 ✅、其余模块 ⬜。数据库：`admin` 表 ✅、`user` 表 ✅、`community` 表 ✅、`carousel` 表 ✅、`facility` 表 ✅、`room` 表 ✅、`collection` 表 ✅、`appointment` 表 ✅、`notification` 表 ✅、`contract` 表 ✅、`order` 表 ✅、`wallet_record` 表 ✅。Portal API：轮播图 ✅、房源列表（含 district/subwayLine/price/rentType/cmyId 筛选）✅、房源详情（含设施、发布者、浏览计数）✅、小区列表（含 city/district 筛选）✅、小区详情+房源 ✅、地图找房（districts+communities）✅、其余 ⬜。
 
 ## 协作约定
 - 回复用中文，以 **My lord** 开头

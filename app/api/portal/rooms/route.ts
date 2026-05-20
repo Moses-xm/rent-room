@@ -33,6 +33,7 @@ export async function GET(req: NextRequest) {
     const direction = searchParams.get('direction') || '';
     const nearSubway = searchParams.get('nearSubway') === 'true';
     const hasElevator = searchParams.get('hasElevator') === 'true';
+    const cmyId = searchParams.get('cmyId') || '';
     const skip = (page - 1) * limit;
 
     const bedroomMap: Record<string, object> = {
@@ -52,6 +53,7 @@ export async function GET(req: NextRequest) {
 
     const where = {
       isPublished: 2,
+      ...(cmyId ? { cmyId: Number(cmyId) } : {}),
       ...(Object.keys(communityFilter).length > 0 ? { community: communityFilter } : {}),
       ...(rentType ? { rentType: Number(rentType) } : {}),
       ...(roomType ? { roomType } : {}),
