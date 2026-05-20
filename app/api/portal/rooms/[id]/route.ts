@@ -3,6 +3,19 @@ import { prisma } from '@/lib/prisma';
 import { serializeRoom } from '@/lib/room';
 import { resolveUploadedFileUrl } from '@/lib/upload-path';
 
+export async function POST(
+  _req: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const { id } = await params;
+  const roomId = parseInt(id);
+  if (isNaN(roomId)) {
+    return NextResponse.json({ success: false, message: '参数错误' }, { status: 400 });
+  }
+  await prisma.room.update({ where: { id: roomId }, data: { views: { increment: 1 } } }).catch(() => {});
+  return NextResponse.json({ success: true });
+}
+
 export async function GET(
   _req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -70,9 +83,6 @@ export async function GET(
       const parsed = JSON.parse(room.images || '[]');
       if (Array.isArray(parsed)) imageList = parsed;
     } catch {}
-
-    // 递增浏览量（fire-and-forget）
-    prisma.room.update({ where: { id: roomId }, data: { views: { increment: 1 } } }).catch(() => {});
 
     const serialized = serializeRoom(room);
 

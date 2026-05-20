@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
 import Link from "next/link";
@@ -228,6 +228,7 @@ export default function RoomDetailPage() {
   const [room, setRoom] = useState<RoomDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
+  const lastCountedId = useRef<string | null>(null);
 
   const fetchRoom = useCallback(async () => {
     setLoading(true);
@@ -247,6 +248,12 @@ export default function RoomDetailPage() {
   useEffect(() => {
     fetchRoom();
   }, [fetchRoom]);
+
+  useEffect(() => {
+    if (lastCountedId.current === id) return;
+    lastCountedId.current = id;
+    portalRequest(`/portal/rooms/${id}`, { method: "POST", silent: true }).catch(() => {});
+  }, [id]);
 
   if (loading) return <PortalShell><DetailSkeleton /></PortalShell>;
 
