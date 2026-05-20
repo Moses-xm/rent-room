@@ -12,7 +12,7 @@ import {
 import { Eye, EyeOff, Lock, User, X } from "lucide-react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { FormEvent, useEffect, useRef, useState } from "react";
+import { FormEvent, Suspense, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 
 type LoginResponse = {
@@ -22,7 +22,7 @@ type LoginResponse = {
   profile?: { username: string; nickname?: string; avatar?: string };
 };
 
-export default function PortalLoginPage() {
+function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -170,5 +170,13 @@ export default function PortalLoginPage() {
         </div>
       </div>
     </AuthShell>
+  );
+}
+
+export default function PortalLoginPage() {
+  return (
+    <Suspense>
+      <LoginForm />
+    </Suspense>
   );
 }
