@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Menu, UserCircle2 } from "lucide-react";
+import { NotificationBell } from "@/components/portal/NotificationBell";
 import {
   clearPortalAuth,
   getPortalProfile,
@@ -109,8 +110,9 @@ export function GlobalHeader({ onMenuToggle }: { onMenuToggle: () => void }) {
           {/* 右：用户区域 */}
           <div className="shrink-0 flex items-center text-sm text-[#333] pl-6">
             {profile ? (
-              /* 已登录：头像 + 用户名，点击展开 popover */
-              <div ref={popoverRef} className="relative">
+              /* 已登录：铃铛 + 头像 + 用户名 */
+              <><NotificationBell />
+              <div ref={popoverRef} className="relative ml-3">
                 <button
                   onClick={() => setPopoverOpen((v) => !v)}
                   className="flex items-center gap-1.5 cursor-pointer hover:opacity-80 transition-opacity"
@@ -147,7 +149,7 @@ export function GlobalHeader({ onMenuToggle }: { onMenuToggle: () => void }) {
                     </button>
                   </div>
                 )}
-              </div>
+              </div></>
             ) : (
               /* 未登录 */
               <>

@@ -48,10 +48,32 @@ export const APPOINTMENT_STATUS_OPTIONS = [
 
 // ── Notification ──────────────────────────────────────────────────────────────
 export const NOTIFICATION_TYPE_OPTIONS = [
-  { value: 1, label: '新预约' },
-  { value: 2, label: '预约取消' },
-  { value: 3, label: '预约完成' },
+  { value: 1,  label: '新预约' },
+  { value: 2,  label: '预约取消' },
+  { value: 3,  label: '预约完成' },
+  { value: 4,  label: '签约/续租' },
+  { value: 5,  label: '付款成功' },
+  { value: 6,  label: '收款成功' },
+  { value: 7,  label: '即将到期' },
+  { value: 8,  label: '合法退房' },
+  { value: 9,  label: '逾期强退' },
+  { value: 10, label: '提前退房' },
+  { value: 11, label: '退房通知' },
 ];
+
+export const NOTIFICATION_TYPE_LABEL: Record<number, string> = {
+  1:  '新预约',
+  2:  '预约取消',
+  3:  '预约完成',
+  4:  '签约/续租',
+  5:  '付款成功',
+  6:  '收款成功',
+  7:  '即将到期',
+  8:  '合法退房',
+  9:  '逾期强退',
+  10: '提前退房',
+  11: '退房通知',
+};
 
 export const NOTIFICATION_READ_OPTIONS = [
   { value: 'true',  label: '已读' },
