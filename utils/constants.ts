@@ -12,6 +12,7 @@ export const MAP_ZOOM_DISTRICT = 15;  // shows district / street level
 export const MUNICIPALITY_PROVINCES = new Set(['北京市', '天津市', '上海市', '重庆市']);
 
 // ── Pagination ────────────────────────────────────────────────────────────────
+export const DEFAULT_PAGE_SIZE = 10;
 export const DEFAULT_PAGE_SIZE_OPTIONS = [5, 10, 20, 50];
 
 // ── Room ──────────────────────────────────────────────────────────────────────

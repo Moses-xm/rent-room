@@ -9,6 +9,7 @@ import { AdSidebar } from "@/components/portal/AdSidebar";
 import { EmptyState } from "@/components/portal/EmptyState";
 import Pagination from "@/components/Pagination";
 import { portalRequest } from "@/utils/portal-request";
+import { DEFAULT_PAGE_SIZE } from "@/utils/constants";
 import {
   type RoomItem,
   buildRoomTags,
@@ -76,7 +77,7 @@ export default function CommunityRoomsPage() {
   const [total, setTotal] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
   const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState(PAGE_SIZE);
+  const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE);
   const [loading, setLoading] = useState(true);
 
   const fetchData = useCallback(async (p: number, ps: number) => {

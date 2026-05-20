@@ -8,6 +8,7 @@ import { AdSidebar } from "@/components/portal/AdSidebar";
 import { EmptyState } from "@/components/portal/EmptyState";
 import { RoomFilterBar, type RoomFilter } from "@/components/portal/RoomFilterBar";
 import Pagination from "@/components/Pagination";
+import { DEFAULT_PAGE_SIZE } from "@/utils/constants";
 import { portalRequest } from "@/utils/portal-request";
 import { getPortalCity, PORTAL_CITY_CHANGED_EVENT } from "@/utils/portal-city";
 
@@ -58,7 +59,7 @@ export default function CmyRoomPage() {
   const [total, setTotal] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
   const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState(10);
+  const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {

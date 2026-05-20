@@ -8,6 +8,7 @@ import { RoomRow } from "@/components/portal/RoomRow";
 import { AdSidebar } from "@/components/portal/AdSidebar";
 import Pagination from "@/components/Pagination";
 import { portalRequest } from "@/utils/portal-request";
+import { DEFAULT_PAGE_SIZE } from "@/utils/constants";
 import {
   type RoomItem,
   type RoomsResponse,
@@ -54,7 +55,7 @@ export function RoomListPage({ filterType, breadcrumb }: RoomListPageProps) {
   const [total, setTotal] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
   const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState(10);
+  const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
