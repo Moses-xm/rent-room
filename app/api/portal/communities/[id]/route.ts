@@ -28,6 +28,22 @@ export async function GET(
     const page = parseInt(searchParams.get('page') || '1');
     const limit = parseInt(searchParams.get('limit') || '10');
     const skip = (page - 1) * limit;
+    const minPrice = searchParams.get('minPrice');
+    const maxPrice = searchParams.get('maxPrice');
+    const rentType = searchParams.get('rentType');
+    const bedrooms = searchParams.get('bedrooms') || '';
+    const roomType = searchParams.get('roomType') || '';
+    const direction = searchParams.get('direction') || '';
+    const nearSubway = searchParams.get('nearSubway') === 'true';
+    const hasElevator = searchParams.get('hasElevator') === 'true';
+
+    const bedroomMap: Record<string, object> = {
+      '一室': { equals: 1 },
+      '二室': { equals: 2 },
+      '三室': { equals: 3 },
+      '四室': { equals: 4 },
+      '五室及以上': { gte: 5 },
+    };
 
     const community = await prisma.community.findUnique({
       where: { id: communityId },
@@ -37,7 +53,24 @@ export async function GET(
       return NextResponse.json({ success: false, message: '小区不存在' }, { status: 404 });
     }
 
-    const roomWhere = { cmyId: communityId, isPublished: 2 };
+    const roomWhere = {
+      cmyId: communityId,
+      isPublished: 2,
+      ...(rentType ? { rentType: Number(rentType) } : {}),
+      ...(roomType ? { roomType } : {}),
+      ...(direction ? { direction } : {}),
+      ...(hasElevator ? { lift: 2 } : {}),
+      ...(bedrooms && bedroomMap[bedrooms] ? { bedroom: bedroomMap[bedrooms] } : {}),
+      ...((minPrice || maxPrice)
+        ? {
+            price: {
+              ...(minPrice ? { gte: Number(minPrice) } : {}),
+              ...(maxPrice ? { lte: Number(maxPrice) } : {}),
+            },
+          }
+        : {}),
+      ...(nearSubway ? { community: { subwayLine: { not: null, notIn: [''] } } } : {}),
+    };
 
     const [total, rooms] = await Promise.all([
       prisma.room.count({ where: roomWhere }),
@@ -50,7 +83,7 @@ export async function GET(
           community: {
             select: {
               id: true, name: true, province: true, city: true,
-              district: true, street: true, streetNumber: true, lng: true, lat: true,
+              district: true, street: true, streetNumber: true, subwayLine: true, lng: true, lat: true,
             },
           },
           publisher: { select: publisherSelect },

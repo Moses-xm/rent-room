@@ -14,8 +14,10 @@ import {
   type RoomItem,
   buildRoomTags,
   buildSubTitle,
+  buildAddress,
   getBroker,
 } from "@/utils/portal-room";
+import { RoomFilterBar, type RoomFilter } from "@/components/portal/RoomFilterBar";
 
 interface CommunityDetail {
   id: number;
@@ -79,13 +81,22 @@ export default function CommunityRoomsPage() {
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE);
   const [loading, setLoading] = useState(true);
+  const [filter, setFilter] = useState<RoomFilter>({});
 
-  const fetchData = useCallback(async (p: number, ps: number) => {
+  const fetchData = useCallback(async (p: number, ps: number, f: RoomFilter) => {
     setLoading(true);
     try {
       const params = new URLSearchParams();
       params.set("page", String(p));
       params.set("limit", String(ps));
+      if (f.minPrice !== undefined) params.set("minPrice", String(f.minPrice));
+      if (f.maxPrice !== undefined) params.set("maxPrice", String(f.maxPrice));
+      if (f.rentType !== undefined) params.set("rentType", String(f.rentType));
+      if (f.bedrooms) params.set("bedrooms", f.bedrooms);
+      if (f.roomType) params.set("roomType", f.roomType);
+      if (f.direction) params.set("direction", f.direction);
+      if (f.nearSubway) params.set("nearSubway", "true");
+      if (f.hasElevator) params.set("hasElevator", "true");
 
       const res = await portalRequest<CommunityRoomsResponse>(
         `/portal/communities/${id}?${params.toString()}`,
@@ -106,8 +117,13 @@ export default function CommunityRoomsPage() {
   }, [id]);
 
   useEffect(() => {
-    fetchData(page, pageSize);
-  }, [page, pageSize, fetchData]);
+    fetchData(page, pageSize, filter);
+  }, [page, pageSize, filter, fetchData]);
+
+  function handleFilterChange(f: RoomFilter) {
+    setFilter(f);
+    setPage(1);
+  }
 
   function handlePageChange(p: number) {
     setPage(p);
@@ -141,16 +157,30 @@ export default function CommunityRoomsPage() {
               {(community.street || community.streetNumber) && (
                 <span>{[community.street, community.streetNumber].filter(Boolean).join(" ")}</span>
               )}
-              {community.subwayLine && (
-                <span className="text-[#6682ae] bg-[#f0f4f8] px-2 py-0.5 rounded-full text-xs">
-                  {community.subwayLine}
-                </span>
-              )}
+              {community.subwayLine && (() => {
+                let label = community.subwayLine;
+                try {
+                  const parsed = JSON.parse(community.subwayLine);
+                  if (Array.isArray(parsed)) label = parsed.join(" / ");
+                } catch {}
+                return (
+                  <span className="text-[#6682ae] bg-[#f0f4f8] px-2 py-0.5 rounded-full text-xs">
+                    {label}
+                  </span>
+                );
+              })()}
             </div>
           </div>
         ) : null}
 
-        <div className="flex flex-col lg:flex-row lg:gap-5">
+        <RoomFilterBar
+          type="area"
+          value={filter}
+          onChange={handleFilterChange}
+          hideLocation
+        />
+
+        <div className="flex flex-col lg:flex-row lg:gap-5 mt-5">
           <div className="flex-1 min-w-0">
             {loading ? (
               <RoomListSkeleton />
@@ -170,6 +200,7 @@ export default function CommunityRoomsPage() {
                     tags={buildRoomTags(room)}
                     subTitle={buildSubTitle(room)}
                     broker={getBroker(room)}
+                    description={buildAddress(room)}
                     price={room.price}
                   />
                 ))}

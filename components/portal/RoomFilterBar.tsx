@@ -34,6 +34,7 @@ interface RoomFilterBarProps {
   value: RoomFilter;
   onChange: (v: RoomFilter) => void;
   locationOnly?: boolean;
+  hideLocation?: boolean;
   className?: string;
 }
 
@@ -90,6 +91,7 @@ export function RoomFilterBar({
   value,
   onChange,
   locationOnly = false,
+  hideLocation = false,
   className = "",
 }: RoomFilterBarProps) {
   const [districts, setDistricts] = useState<string[]>(() =>
@@ -135,16 +137,18 @@ export function RoomFilterBar({
   return (
     <div className={`border border-border mt-5 px-2.5 ${className}`}>
       {/* 区域 / 线路 */}
-      <FilterRow label={locationLabel}>
-        {locationOptions.map((opt) => (
-          <FilterChip
-            key={opt}
-            label={opt}
-            active={opt === "全部" ? !currentLocation : currentLocation === opt}
-            onClick={() => setLocation(opt)}
-          />
-        ))}
-      </FilterRow>
+      {!hideLocation && (
+        <FilterRow label={locationLabel}>
+          {locationOptions.map((opt) => (
+            <FilterChip
+              key={opt}
+              label={opt}
+              active={opt === "全部" ? !currentLocation : currentLocation === opt}
+              onClick={() => setLocation(opt)}
+            />
+          ))}
+        </FilterRow>
+      )}
 
       {!locationOnly && (
         <>
