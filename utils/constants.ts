@@ -109,12 +109,13 @@ export const PORTAL_NAV_MENU = [
 ];
 
 export const PORTAL_MINE_MENU = [
-  { label: "我的资料", href: "/portal/account/info"        },
-  { label: "我的收藏", href: "/portal/account/collection"  },
-  { label: "我的预约", href: "/portal/account/appointment" },
-  { label: "我的房源", href: "/portal/account/room"        },
-  { label: "我的合同", href: "/portal/account/contract"    },
-  { label: "我的订单", href: "/portal/account/orders"      },
+  { label: "我的资料", href: "/portal/account/info"         },
+  { label: "我的收藏", href: "/portal/account/collection"   },
+  { label: "我的预约", href: "/portal/account/appointment"  },
+  { label: "我的房源", href: "/portal/account/room"         },
+  { label: "我的合同", href: "/portal/account/contract"     },
+  { label: "我的订单", href: "/portal/account/orders"       },
+  { label: "我的通知", href: "/portal/account/notification" },
 ];
 
 export const PORTAL_FOOTER_LINKS = ["关于我们", "联系我们", "用户协议", "隐私政策"];
@@ -160,3 +161,59 @@ export const WALLET_DATE_RANGE_OPTIONS = [
   { value: '4months', label: '近四个月' },
   { value: 'all',     label: '全部记录' },
 ];
+
+// ── Portal 个人中心 ────────────────────────────────────────────────────────────
+
+export const GENDER_LABEL: Record<number, string> = { 1: '男', 2: '女', 3: '保密' };
+
+export const IDENTITY_LABEL: Record<number, string> = { 1: '普通用户', 2: '房东' };
+
+export const MINE_SKELETON_ROWS = 5;
+
+/** 预约状态 → 文字色 + 背景色（Tailwind） */
+export const APPOINTMENT_STATUS_STYLE: Record<number, string> = {
+  1: 'text-blue-500 bg-blue-50',
+  2: 'text-green-600 bg-green-50',
+  3: 'text-[#999] bg-[#f5f5f5]',
+  4: 'text-orange-400 bg-orange-50',
+};
+
+/** 房源发布状态 → label + 样式 */
+export const ROOM_PUBLISHED_STYLE: Record<number, { label: string; cls: string }> = {
+  1: { label: '未发布', cls: 'text-[#999] bg-[#f5f5f5]' },
+  2: { label: '已发布', cls: 'text-green-600 bg-green-50' },
+};
+
+/** 房源出租状态 → label + 样式 */
+export const ROOM_RENTED_STYLE: Record<number, { label: string; cls: string }> = {
+  1: { label: '未租出', cls: 'text-blue-500 bg-blue-50' },
+  2: { label: '已租出', cls: 'text-[#999] bg-[#f5f5f5]' },
+};
+
+/** 合同状态 → label + 样式 */
+export const CONTRACT_STATUS_STYLE: Record<number, { label: string; cls: string }> = {
+  1: { label: '进行中', cls: 'text-green-600 bg-green-50' },
+  2: { label: '已完成', cls: 'text-[#999] bg-[#f5f5f5]' },
+};
+
+/** 订单类型 → 文字色 + 背景色（Tailwind） */
+export const ORDER_TYPE_STYLE: Record<number, string> = {
+  1: 'text-blue-500 bg-blue-50',
+  2: 'text-green-600 bg-green-50',
+  3: 'text-orange-500 bg-orange-50',
+};
+
+/** 通知类型 → 文字色 + 背景色（Tailwind） */
+export const NOTIFICATION_TYPE_COLOR: Record<number, string> = {
+  1:  'bg-blue-100 text-blue-600',
+  2:  'bg-red-100 text-red-500',
+  3:  'bg-green-100 text-green-600',
+  4:  'bg-purple-100 text-purple-600',
+  5:  'bg-emerald-100 text-emerald-600',
+  6:  'bg-teal-100 text-teal-600',
+  7:  'bg-orange-100 text-orange-500',
+  8:  'bg-green-100 text-green-700',
+  9:  'bg-red-100 text-red-600',
+  10: 'bg-yellow-100 text-yellow-600',
+  11: 'bg-gray-100 text-gray-600',
+};

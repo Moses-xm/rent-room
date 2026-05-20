@@ -906,12 +906,13 @@ import AppLoading from '@/components/AppLoading';
 /portal/sharedRoom/createRoom    # 发布房源（需登录）
 /portal/sharedRoom/createCmy     # 创建小区（需登录）
 /portal/sharedRoom/success       # 提交成功
-/portal/account/info             # 我的资料
-/portal/account/collection       # 我的收藏
-/portal/account/appointment      # 我的预约
-/portal/account/room             # 我的房源
-/portal/account/contract         # 我的合同
+/portal/account/info             # 我的资料 ✅
+/portal/account/collection       # 我的收藏 ✅
+/portal/account/appointment      # 我的预约 ✅
+/portal/account/room             # 我的房源 ✅
+/portal/account/contract         # 我的合同 ✅
 /portal/account/orders           # 我的订单 ✅
+/portal/account/notification     # 我的通知 ✅
 ```
 
 ### 认证
@@ -1294,12 +1295,13 @@ API Key 存放在环境变量 `NEXT_PUBLIC_BAIDU_MAP_AK`（客户端可访问）
 | 房源详情 | ✅ 已实现 | `/portal/room/[id]` |
 | 小区详情 | ⬜ 待实现 | `/portal/community/[id]` |
 | 地图找房 | ⬜ 待实现 | `/portal/map` |
-| 个人中心 - 基础 | ⬜ 待实现 | `/portal/profile/info`, `/portal/profile/collection`, `/portal/profile/rooms` |
-| 个人中心 - 预约 | ⬜ 待实现 | `/portal/profile/appointment` | 含"我预约的"和"收到的预约"双 Tab |
-| 个人中心 - 消息 | ⬜ 待实现 | `/portal/profile/notification` | 通知中心，含未读 badge |
-| 个人中心 - 合同 | ⬜ 待实现 | `/portal/profile/contract` | 含续租/付款/退房操作 |
-| 个人中心 - 订单 | ⬜ 待实现 | `/portal/profile/order` | 付款/收款双 Tab |
-| 个人中心 - 钱包 | ⬜ 待实现 | `/portal/profile/wallet` | 余额、充值、消费记录 |
+| 个人中心 - 资料 | ✅ 已实现 | `/portal/account/info` | 查看/编辑昵称、手机、邮箱、性别 |
+| 个人中心 - 收藏 | ✅ 已实现 | `/portal/account/collection` | 收藏房源列表，可取消收藏 |
+| 个人中心 - 预约 | ✅ 已实现 | `/portal/account/appointment` | 我发起的预约，可软删除 |
+| 个人中心 - 房源 | ✅ 已实现 | `/portal/account/room` | 我发布的房源，显示发布/出租状态 |
+| 个人中心 - 合同 | ✅ 已实现 | `/portal/account/contract` | 我的合同列表，含退房状态 |
+| 个人中心 - 订单 | ✅ 已实现 | `/portal/account/orders` | 我的支付订单，可软删除 |
+| 个人中心 - 通知 | ✅ 已实现 | `/portal/account/notification` | 通知列表：展开详情/标已读/批量已读/批量删除/清空 |
 | 发布房源 | ⬜ 待实现 | `/portal/publish` |
 | 租房交易 | ⬜ 待实现 | 在房源详情页弹窗发起 |
 
