@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { MapApiLoaderHOC } from 'react-bmapgl';
 import { BAIDU_MAP_AK } from '@/utils/constants';
 
@@ -23,6 +23,7 @@ export interface CommunityItem {
 interface Props {
   city: string;
   zoom: number;
+  centerKey?: number;
   districts: DistrictItem[];
   communities: CommunityItem[];
   selectedDistrict: string;
@@ -139,6 +140,7 @@ function createCommunityMarker(BMapGL: any, point: any, isSelected: boolean, cmy
 function MapRoomMapInner({
   city,
   zoom,
+  centerKey,
   districts,
   communities,
   selectedDistrict,
@@ -155,11 +157,21 @@ function MapRoomMapInner({
   const onZoomChangeRef = useRef(onZoomChange);
   const onDistrictClickRef = useRef(onDistrictClick);
   const onCommunityClickRef = useRef(onCommunityClick);
+  const pendingProgrammaticZoomRef = useRef<number | null>(null);
   const [geocodedDistricts, setGeocodedDistricts] = useState<DistrictItem[]>([]);
 
   useEffect(() => { onZoomChangeRef.current = onZoomChange; });
   useEffect(() => { onDistrictClickRef.current = onDistrictClick; });
   useEffect(() => { onCommunityClickRef.current = onCommunityClick; });
+
+  const markProgrammaticZoom = useCallback((targetZoom: number) => {
+    pendingProgrammaticZoomRef.current = targetZoom;
+    window.setTimeout(() => {
+      if (pendingProgrammaticZoomRef.current === targetZoom) {
+        pendingProgrammaticZoomRef.current = null;
+      }
+    }, 900);
+  }, []);
 
   // ── 1. Init map (once) ────────────────────────────────────────────────────────
   useEffect(() => {
@@ -171,12 +183,23 @@ function MapRoomMapInner({
     map.addControl(new BMapGL.ZoomControl());
     // User-initiated zoom → notify parent; parent state is the single source of truth
     map.addEventListener('zoomend', () => {
-      onZoomChangeRef.current(Math.round(map.getZoom()));
+      const currentZoom = Math.round(map.getZoom());
+      const pendingZoom = pendingProgrammaticZoomRef.current;
+
+      if (pendingZoom !== null) {
+        if (currentZoom === pendingZoom) {
+          pendingProgrammaticZoomRef.current = null;
+          onZoomChangeRef.current(currentZoom);
+        }
+        return;
+      }
+
+      onZoomChangeRef.current(currentZoom);
     });
     return () => { mapRef.current = null; };
   }, []);
 
-  // ── 2. Recenter on city when city prop changes ────────────────────────────────
+  // ── 2. Recenter on city when city prop changes (or centerKey increments) ─────
   useEffect(() => {
     if (!mapRef.current || !city) return;
     const BMapGL = B();
@@ -185,12 +208,14 @@ function MapRoomMapInner({
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (point: any) => {
         if (point && mapRef.current) {
+          markProgrammaticZoom(12);
           mapRef.current.centerAndZoom(new BMapGL.Point(point.lng, point.lat), 12);
         }
       },
       '',
     );
-  }, [city]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [city, centerKey]);
 
   // ── 3. Geocode accurate district center points ────────────────────────────────
   useEffect(() => {
@@ -218,19 +243,25 @@ function MapRoomMapInner({
   useEffect(() => {
     if (!mapRef.current) return;
     if (Math.round(mapRef.current.getZoom()) !== zoom) {
+      markProgrammaticZoom(zoom);
       mapRef.current.setZoom(zoom);
     }
-  }, [zoom]);
+  }, [zoom, markProgrammaticZoom]);
 
-  // ── 5. Pan to selected district center ───────────────────────────────────────
-  // Triggered by selectedDistrict prop change (from click or FilterSelect).
-  // panTo does not change zoom; zoom is managed exclusively by effect 4.
+  // ── 5. Center + zoom to selected district ────────────────────────────────────
+  // Uses centerAndZoom to atomically set both center and zoom, avoiding a race
+  // condition where panTo() cancels an in-progress setZoom() animation in BMapGL.
+  // zoom is intentionally omitted from deps: we only want to re-run on district
+  // change, not on every manual scroll. The closure captures the correct zoom
+  // value because setZoom + setSelectedDistrict always batch in the same render.
   useEffect(() => {
     if (!mapRef.current || !selectedDistrict || geocodedDistricts.length === 0) return;
     const d = geocodedDistricts.find((gd) => gd.name === selectedDistrict);
     if (!d) return;
     const BMapGL = B();
-    mapRef.current.panTo(new BMapGL.Point(d.lng, d.lat));
+    markProgrammaticZoom(zoom);
+    mapRef.current.centerAndZoom(new BMapGL.Point(d.lng, d.lat), zoom);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedDistrict, geocodedDistricts]);
 
   // ── 6. Redraw overlays ────────────────────────────────────────────────────────

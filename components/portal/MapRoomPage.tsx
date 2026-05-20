@@ -327,6 +327,7 @@ export function MapRoomPage() {
 
   // Map zoom (controlled)
   const [zoom, setZoom] = useState(12);
+  const [centerKey, setCenterKey] = useState(0);
 
   // Filters
   const [selectedDistrict, setSelectedDistrict] = useState('');
@@ -488,6 +489,7 @@ export function MapRoomPage() {
           <MapRoomMap
             city={city}
             zoom={zoom}
+            centerKey={centerKey}
             districts={mapData.districts}
             communities={visibleCommunities}
             selectedDistrict={selectedDistrict}
@@ -520,9 +522,12 @@ export function MapRoomPage() {
                   className="text-xs text-[#62ab00] cursor-pointer hover:text-[#4e8a00] transition-colors shrink-0"
                   onClick={() => {
                     setSelectedDistrict('');
+                    setSelectedCmyId(null);
                     setSelectedPrice('');
                     setRentType('');
                     setBedrooms('');
+                    setZoom(12);
+                    setCenterKey((k) => k + 1);
                   }}
                 >
                   清除筛选 ×
