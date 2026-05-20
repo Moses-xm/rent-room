@@ -217,6 +217,34 @@ body {
   cursor: grab;
 }
 
+/* ─── Portal 登录页滑块 ──────────────────────────────────── */
+.portal-slider::-webkit-slider-runnable-track {
+  height: 38px;
+  background: transparent;
+}
+.portal-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 38px;
+  width: 40px;
+  background: transparent;
+  border: 0;
+  cursor: grab;
+}
+.portal-slider:active::-webkit-slider-thumb { cursor: grabbing; }
+.portal-slider::-moz-range-track {
+  height: 38px;
+  background: transparent;
+  border: 0;
+}
+.portal-slider::-moz-range-thumb {
+  height: 38px;
+  width: 40px;
+  background: transparent;
+  border: 0;
+  cursor: grab;
+}
+
 /* ─── 语义排版工具类 ─────────────────────────────────────────
    通过 @layer utilities 注册，与 Tailwind 工具类同层，
    不存在优先级异常。引用 :root 排版令牌，平台主题可覆盖。
