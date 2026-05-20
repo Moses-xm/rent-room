@@ -39,6 +39,7 @@ export async function GET(
             realname: true,
             avatar: true,
             phone: true,
+            email: true,
           },
         },
       },

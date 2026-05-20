@@ -9,6 +9,7 @@ interface BrokerCardProps {
   name: string;
   avatarUrl?: string;
   info?: InfoItem[];
+  isRented?: boolean;
   onAppointment?: () => void;
   onContact?: () => void;
 }
@@ -17,6 +18,7 @@ export function BrokerCard({
   name,
   avatarUrl,
   info = [],
+  isRented = false,
   onAppointment,
   onContact,
 }: BrokerCardProps) {
@@ -34,7 +36,7 @@ export function BrokerCard({
       {info.length > 0 && (
         <div className="space-y-0.5 mb-4">
           {info.map((item, i) => (
-            <div key={i} className="text-xs text-text-2 leading-[26px] truncate">
+            <div key={i} className="text-xs text-text-2 leading-6.5 truncate">
               <span className="text-text-muted">{item.label}：</span>
               {item.value}
             </div>
@@ -52,9 +54,10 @@ export function BrokerCard({
         </button>
         <button
           onClick={onContact}
-          className="w-full h-10 text-[15px] text-center border border-primary text-primary hover:bg-primary hover:text-white cursor-pointer transition-colors disabled:cursor-not-allowed"
+          disabled={isRented}
+          className="w-full h-10 text-[15px] text-center border border-primary text-primary hover:bg-primary hover:text-white cursor-pointer transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
         >
-          联系房东
+          {isRented ? "已租出" : "联系房东"}
         </button>
       </div>
     </div>

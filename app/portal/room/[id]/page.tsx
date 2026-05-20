@@ -4,12 +4,14 @@ import { useEffect, useState, useCallback } from "react";
 import { useParams } from "next/navigation";
 import dynamic from "next/dynamic";
 import Link from "next/link";
-import { ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
+import { ChevronLeft, ChevronRight, Loader2, Star } from "lucide-react";
 import { PortalShell } from "@/components/portal/PortalShell";
 import { RoomImage } from "@/components/portal/RoomImage";
+import { RoomTags } from "@/components/portal/RoomTags";
 import { BrokerCard } from "@/components/portal/BrokerCard";
 import { portalRequest } from "@/utils/portal-request";
 import { fmtDate } from "@/utils/format";
+import { buildRoomTags } from "@/utils/portal-room";
 import {
   BAIDU_MAP_AK,
   FONT_FAMILY,
@@ -66,6 +68,7 @@ interface RoomDetail {
     username: string;
     avatarUrl: string;
     phone: string | null;
+    email: string | null;
   } | null;
   facilities: FacilityItem[];
 }
@@ -82,8 +85,7 @@ const MDPreview = dynamic(
 const BaiduMapReadonly = dynamic(
   () =>
     import("react-bmapgl").then(({ Map, Marker, MapApiLoaderHOC }) => {
-      const B = () =>
-        (window as Window & { BMapGL: typeof BMapGL }).BMapGL;
+      const B = () => (window as Window & { BMapGL: typeof BMapGL }).BMapGL;
       const SafeMarker = Marker as unknown as React.ComponentType<{
         position: BMapGL.Point;
       }>;
@@ -91,12 +93,7 @@ const BaiduMapReadonly = dynamic(
       function ReadonlyMapInner({ lng, lat }: { lng: number; lat: number }) {
         const center = new (B()).Point(lng, lat);
         return (
-          <Map
-            center={center}
-            zoom={15}
-            style={{ width: "100%", height: "100%" }}
-            enableScrollWheelZoom
-          >
+          <Map center={center} zoom={15} style={{ width: "100%", height: "100%" }} enableScrollWheelZoom>
             <SafeMarker position={center} />
           </Map>
         );
@@ -131,31 +128,17 @@ function parseSubwayLines(raw: string | null | undefined): string {
 }
 
 /* ─── Section title ──────────────────────────────────────────────────────── */
-function SectionTitle({
-  title,
-  extra,
-}: {
-  title: string;
-  extra?: React.ReactNode;
-}) {
+function SectionTitle({ title, extra }: { title: string; extra?: React.ReactNode }) {
   return (
     <div className="flex items-center justify-between py-3.5 border-b border-border mb-4">
       <span className="text-base font-semibold text-text">{title}</span>
-      {extra && (
-        <span className="text-xs text-text-muted hidden sm:block">{extra}</span>
-      )}
+      {extra && <span className="text-xs text-text-muted hidden sm:block">{extra}</span>}
     </div>
   );
 }
 
 /* ─── Info cell ──────────────────────────────────────────────────────────── */
-function InfoCell({
-  label,
-  value,
-}: {
-  label: string;
-  value: React.ReactNode;
-}) {
+function InfoCell({ label, value }: { label: string; value: React.ReactNode }) {
   return (
     <div className="flex items-baseline gap-1.5 min-w-0">
       <span className="text-sm text-text-muted shrink-0">{label}：</span>
@@ -169,26 +152,15 @@ function DetailSkeleton() {
   return (
     <div className="max-w-295 mx-auto px-4 lg:px-0 py-5">
       <div className="h-4 w-48 skeleton-shimmer rounded mb-4" />
-      <div className="h-7 w-2/3 skeleton-shimmer rounded mb-5" />
+      <div className="h-7 w-2/3 skeleton-shimmer rounded mb-4" />
+      <div className="flex gap-4 mb-4">
+        {Array.from({ length: 4 }).map((_, i) => (
+          <div key={i} className="h-5 w-20 skeleton-shimmer rounded" />
+        ))}
+      </div>
       <div className="flex flex-col lg:flex-row lg:gap-5">
         <div className="flex-1 space-y-5">
           <div className="w-full h-60 lg:h-112.5 skeleton-shimmer" />
-          <div className="space-y-3">
-            <div className="h-5 w-1/3 skeleton-shimmer rounded" />
-            <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
-              {Array.from({ length: 6 }).map((_, i) => (
-                <div key={i} className="h-5 skeleton-shimmer rounded" />
-              ))}
-            </div>
-          </div>
-          <div className="grid grid-cols-4 lg:grid-cols-6 gap-4 pt-2">
-            {Array.from({ length: 8 }).map((_, i) => (
-              <div key={i} className="flex flex-col items-center gap-2">
-                <div className="w-14 h-14 rounded-full skeleton-shimmer" />
-                <div className="h-3 w-10 skeleton-shimmer rounded" />
-              </div>
-            ))}
-          </div>
         </div>
         <div className="mt-5 lg:mt-0 lg:w-65 shrink-0">
           <div className="h-80 skeleton-shimmer" />
@@ -205,32 +177,43 @@ function ImageCarousel({ images, name }: { images: string[]; name: string }) {
 
   return (
     <div className="relative w-full h-60 lg:h-112.5 overflow-hidden bg-surface group">
-      <RoomImage src={list[idx]} alt={name} className="w-full h-full object-cover" />
+      {/* 滑动轨道 */}
+      <div
+        className="flex h-full transition-transform duration-500 ease-in-out"
+        style={{
+          width: `${list.length * 100}%`,
+          transform: `translateX(-${(idx * 100) / list.length}%)`,
+        }}
+      >
+        {list.map((src, i) => (
+          <div key={i} className="h-full shrink-0" style={{ width: `${100 / list.length}%` }}>
+            <RoomImage src={src} alt={name} className="w-full h-full object-cover" />
+          </div>
+        ))}
+      </div>
+
       {list.length > 1 && (
         <>
           <button
             onClick={() => setIdx((i) => (i - 1 + list.length) % list.length)}
-            className="absolute left-2 top-1/2 -translate-y-1/2 w-9 h-9 bg-black/40 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
+            className="absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 bg-black/40 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer rounded-sm"
           >
-            <ChevronLeft size={20} />
+            <ChevronLeft size={18} />
           </button>
           <button
             onClick={() => setIdx((i) => (i + 1) % list.length)}
-            className="absolute right-2 top-1/2 -translate-y-1/2 w-9 h-9 bg-black/40 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
+            className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 bg-black/40 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer rounded-sm"
           >
-            <ChevronRight size={20} />
+            <ChevronRight size={18} />
           </button>
           <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5">
             {list.map((_, i) => (
               <button
                 key={i}
                 onClick={() => setIdx(i)}
-                className={`w-2 h-2 rounded-full cursor-pointer transition-colors ${i === idx ? "bg-white" : "bg-white/50"}`}
+                className={`w-2 h-2 rounded-full cursor-pointer transition-colors ${i === idx ? "bg-primary" : "bg-white/70"}`}
               />
             ))}
-          </div>
-          <div className="absolute bottom-3 right-3 text-xs text-white bg-black/40 px-2 py-0.5">
-            {idx + 1} / {list.length}
           </div>
         </>
       )}
@@ -276,13 +259,34 @@ export default function RoomDetailPage() {
     );
   }
 
+  const tags = buildRoomTags({
+    id: room.id,
+    name: room.name,
+    cover: "",
+    price: room.price,
+    rentType: room.rentType,
+    bedroom: room.bedroom,
+    parlour: room.parlour,
+    area: room.area,
+    floor: room.floor,
+    floors: room.floors,
+    direction: room.direction,
+    lift: room.lift,
+    community: room.community ?? undefined,
+  });
+
   const brokerName = room.publisher
     ? room.publisher.nickname || room.publisher.realname || room.publisher.username
     : "经纪人";
 
   const subwayLabel = parseSubwayLines(room.community?.subwayLine);
 
-  /* 房屋信息网格数据 */
+  const roomCodeExtra = [
+    `房屋编码：${room.roomCode}`,
+    room.publishTime ? `发布时间：${fmtDate(room.publishTime)}` : "",
+  ].filter(Boolean).join("，");
+
+  /* 房屋信息网格 */
   const infoItems: { label: string; value: React.ReactNode }[] = [
     { label: "户型", value: `${room.bedroom}室${room.parlour}厅${room.bathroom}卫` },
     { label: "面积", value: `${room.area}平方米` },
@@ -291,15 +295,13 @@ export default function RoomDetailPage() {
     { label: "类型", value: room.roomType || "—" },
     { label: "租赁", value: labelOf(RENT_TYPE_OPTIONS, room.rentType) },
     { label: "最短租期", value: `${room.minTenancy}个月` },
+    { label: "押付", value: `押${room.pledge}付${room.pay}` },
     ...(subwayLabel ? [{ label: "地铁", value: subwayLabel }] : []),
     ...(room.community
       ? [{
           label: "小区",
           value: (
-            <Link
-              href={`/portal/cmyRoom/${room.community.id}`}
-              className="text-primary hover:underline"
-            >
+            <Link href={`/portal/cmyRoom/${room.community.id}`} className="text-primary hover:underline">
               {room.community.name}
             </Link>
           ),
@@ -307,12 +309,12 @@ export default function RoomDetailPage() {
       : []),
   ];
 
-  const roomCodeExtra = [
-    `房屋编码：${room.roomCode}`,
-    room.publishTime ? `发布时间：${fmtDate(room.publishTime)}` : "",
-  ]
-    .filter(Boolean)
-    .join("，");
+  /* 经纪人信息行 */
+  const brokerInfo = [
+    { label: "用户名", value: room.publisher?.username ?? "—" },
+    ...(room.publisher?.phone ? [{ label: "电话", value: room.publisher.phone }] : []),
+    ...(room.publisher?.email ? [{ label: "邮箱", value: room.publisher.email }] : []),
+  ];
 
   return (
     <PortalShell>
@@ -330,20 +332,47 @@ export default function RoomDetailPage() {
               <span>›</span>
             </>
           )}
-          <span className="truncate max-w-[200px]">{room.name}</span>
+          <span className="truncate max-w-60">{room.name}</span>
         </nav>
 
-        {/* 房源标题 */}
-        <h1 className="text-xl lg:text-[24px] font-semibold text-text leading-snug tracking-wide mb-5">
+        {/* 标题 */}
+        <h1 className="text-xl lg:text-[24px] font-semibold text-text leading-snug tracking-wide mb-3">
           {room.name}
-          {room.isRented === 2 && (
-            <span className="ml-3 text-xs font-normal text-white bg-text-muted px-2 py-0.5 rounded-full align-middle">
-              已租出
-            </span>
-          )}
         </h1>
 
-        {/* 主内容双栏 */}
+        {/* 信息栏：价格 + 户型摘要 + 标签 + 浏览量 + 收藏 */}
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-2 mb-4 pb-4 border-b border-border">
+          {/* 价格 */}
+          <span className="text-[22px] font-bold text-(--color-accent-dark) leading-none">
+            {room.price.toLocaleString()}
+            <span className="text-sm font-normal text-text-muted ml-1">元/月</span>
+          </span>
+
+          <span className="text-text-muted text-sm hidden sm:inline">|</span>
+
+          {/* 户型摘要 */}
+          <span className="text-sm text-text-2">
+            {room.bedroom}室{room.parlour}厅
+          </span>
+
+          <span className="text-text-muted text-sm hidden sm:inline">|</span>
+
+          <span className="text-sm text-text-2">{room.area}平方米</span>
+
+          {/* 标签 */}
+          <RoomTags tags={tags.slice(0, 3)} />
+
+          {/* 右侧：浏览量 + 收藏 */}
+          <div className="ml-auto flex items-center gap-3">
+            <span className="text-xs text-text-muted">{room.views} 次浏览</span>
+            <button className="flex items-center gap-1 text-sm text-text-2 hover:text-(--color-accent) cursor-pointer transition-colors">
+              <Star size={14} />
+              收藏
+            </button>
+          </div>
+        </div>
+
+        {/* 主内容双栏：图片 + 经纪人并排 */}
         <div className="flex flex-col lg:flex-row lg:gap-5">
 
           {/* ── 左侧 ─────────────────────────────────────────────────────── */}
@@ -356,27 +385,15 @@ export default function RoomDetailPage() {
             />
 
             {/* ── 房屋信息 ──────────────────────────────────────────────── */}
-            <div className="mt-6">
+            <div className="mt-7">
               <SectionTitle title="房屋信息" extra={roomCodeExtra} />
-
-              {/* 价格行 */}
-              <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1 mb-5">
-                <span className="text-[28px] font-bold text-(--color-accent-dark) leading-none">
-                  {room.price.toLocaleString()}
-                </span>
-                <span className="text-base text-text-muted">元/月</span>
-                <span className="text-sm text-text-2 ml-2">
-                  押{room.pledge}付{room.pay}
-                </span>
-              </div>
 
               {/* 移动端显示编码 */}
               {roomCodeExtra && (
-                <div className="text-xs text-text-muted mb-4 sm:hidden">{roomCodeExtra}</div>
+                <div className="text-xs text-text-muted mb-3 sm:hidden">{roomCodeExtra}</div>
               )}
 
-              {/* 信息网格：移动端 2 列，桌面端 3 列 */}
-              <div className="grid grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-3.5">
+              <div className="grid grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-4">
                 {infoItems.map((item, i) => (
                   <InfoCell key={i} label={item.label} value={item.value} />
                 ))}
@@ -387,13 +404,17 @@ export default function RoomDetailPage() {
             {room.facilities.length > 0 && (
               <div className="mt-8">
                 <SectionTitle title="房屋配套" />
-                <div className="grid grid-cols-4 sm:grid-cols-6 lg:grid-cols-8 gap-x-4 gap-y-6">
+                <div className="flex flex-wrap">
                   {room.facilities.map((f) => (
-                    <div key={f.id} className="flex flex-col items-center gap-2">
-                      <div className="w-14 h-14 rounded-full border border-[#ddd] flex items-center justify-center text-text-muted">
-                        <i className={`${FONT_FAMILY} ${f.icon} text-2xl`} />
+                    <div key={f.id} className="flex items-end justify-center w-25 h-27.5">
+                      <div className="flex flex-col items-center justify-center">
+                        <div className="w-14 h-14 rounded-full border-2 border-[#666] flex items-center justify-center">
+                          <i className={`${FONT_FAMILY} ${f.icon} leading-none text-[#444]`} style={{ fontSize: 30 }} />
+                        </div>
+                        <div className="flex items-center justify-center w-25 h-8.5 text-sm text-text-2">
+                          {f.name}
+                        </div>
                       </div>
-                      <span className="text-xs text-text-2 text-center leading-tight">{f.name}</span>
                     </div>
                   ))}
                 </div>
@@ -426,20 +447,18 @@ export default function RoomDetailPage() {
           </div>
 
           {/* ── 右侧经纪人卡片 ────────────────────────────────────────── */}
-          <aside className="mt-6 lg:mt-0 lg:w-65 shrink-0">
+          <aside className="mt-5 lg:mt-0 lg:w-65 shrink-0">
             <div className="lg:sticky lg:top-5">
               <BrokerCard
                 name={brokerName}
                 avatarUrl={room.publisher?.avatarUrl}
-                info={[
-                  ...(room.publisher?.phone ? [{ label: "电话", value: room.publisher.phone }] : []),
-                  { label: "浏览", value: `${room.views} 次` },
-                ]}
+                info={brokerInfo}
+                isRented={room.isRented === 2}
               />
 
-              {/* 移动端地图（在经纪人卡片下方） */}
+              {/* 移动端地图 */}
               {room.community?.lng && room.community?.lat && (
-                <div className="mt-4 lg:hidden">
+                <div className="mt-5 lg:hidden">
                   <SectionTitle title="房源位置" />
                   <div className="w-full h-56 overflow-hidden">
                     <BaiduMapReadonly lng={room.community.lng} lat={room.community.lat} />
