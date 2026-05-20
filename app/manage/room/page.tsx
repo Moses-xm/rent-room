@@ -11,7 +11,7 @@ import DataTable, { type Column } from '@/components/DataTable';
 import Pagination from '@/components/Pagination';
 import AppLoading from '@/components/AppLoading';
 import { fmtDate } from '@/utils/format';
-import { RENT_TYPE_OPTIONS, ROOM_TYPE_OPTIONS, DIRECTION_OPTIONS, MUNICIPALITY_PROVINCES } from '@/utils/constants';
+import { RENT_TYPE_OPTIONS, ROOM_TYPE_OPTIONS, DIRECTION_OPTIONS, MUNICIPALITY_PROVINCES, DEFAULT_PAGE_SIZE } from '@/utils/constants';
 import FilterSelect from '@/components/FilterSelect';
 import { getManageCity, getManageProvince, MANAGE_CITY_CHANGED_EVENT } from '@/utils/manage-city';
 import areaData from '@/localData/area.json';
@@ -217,7 +217,7 @@ export default function RoomPage() {
   const [loading, setLoading] = useState(true);
   const [hasLoadedOnce, setHasLoadedOnce] = useState(false);
   const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState(10);
+  const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE);
 
   // 基础筛选
   const [query, setQuery] = useState('');

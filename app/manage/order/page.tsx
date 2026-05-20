@@ -11,7 +11,7 @@ import ConfirmDialog from '@/components/ConfirmDialog';
 import Pagination from '@/components/Pagination';
 import FilterSelect from '@/components/FilterSelect';
 
-import { ORDER_TYPE_OPTIONS } from '@/utils/constants';
+import { ORDER_TYPE_OPTIONS, DEFAULT_PAGE_SIZE } from '@/utils/constants';
 import { resolveUploadedFileUrl } from '@/lib/upload-path';
 
 /* ─── Types ───────────────────────────────────────────────────────────────── */
@@ -143,7 +143,7 @@ export default function OrderPage() {
 
   const [query, setQuery]             = useState('');
   const [debouncedQuery, setDebouncedQuery] = useState('');
-  const [pageSize, setPageSize]       = useState(10);
+  const [pageSize, setPageSize]       = useState(DEFAULT_PAGE_SIZE);
   const [page, setPage]               = useState(1);
   const [refreshKey, setRefreshKey]   = useState(0);
   const [typeFilter, setTypeFilter]     = useState('');

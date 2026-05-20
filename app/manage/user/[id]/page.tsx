@@ -19,6 +19,7 @@ import { fmtDateTime } from '@/utils/format';
 import {
   WALLET_RECORD_TYPE_OPTIONS,
   WALLET_DATE_RANGE_OPTIONS,
+  DEFAULT_PAGE_SIZE,
 } from '@/utils/constants';
 
 /* ─── Types ───────────────────────────────────────────────────────────────── */
@@ -274,7 +275,7 @@ function RechargeModal({
 function WalletRecordsSection({ userId }: { userId: number }) {
   const [dateRange, setDateRange] = useState('month');
   const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState(10);
+  const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE);
   const [records, setRecords] = useState<WalletRecord[]>([]);
   const [total, setTotal] = useState(0);
   const [totalPages, setTotalPages] = useState(0);

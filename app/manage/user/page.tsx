@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { resolveUploadedFileUrl } from '@/lib/upload-path';
 import { request } from '@/utils/request';
+import { DEFAULT_PAGE_SIZE } from '@/utils/constants';
 import { Plus, Search, Pencil, Trash2, Users, X } from 'lucide-react';
 import { toast } from 'sonner';
 import UserFormModal, { type ModalState, type UserFormData } from './user-form-modal';
@@ -116,7 +117,7 @@ export default function UserPage() {
   const [hasLoadedOnce, setHasLoadedOnce] = useState(false);
 
   const [query, setQuery] = useState('');
-  const [pageSize, setPageSize] = useState(10);
+  const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE);
   const [page, setPage] = useState(1);
   const [refreshKey, setRefreshKey] = useState(0);
 

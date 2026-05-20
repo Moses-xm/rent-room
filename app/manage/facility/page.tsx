@@ -13,7 +13,7 @@ import FacilityFormModal, {
   type FacilityFormData,
 } from './facility-form-modal';
 import { fmtDateTime } from '@/utils/format';
-import { FONT_FAMILY } from '@/utils/constants';
+import { FONT_FAMILY, DEFAULT_PAGE_SIZE } from '@/utils/constants';
 
 /* ─── Types ───────────────────────────────────────────────────────────────── */
 type Facility = {
@@ -53,7 +53,7 @@ export default function FacilityPage() {
 
   const [query, setQuery] = useState('');
   const [debouncedQuery, setDebouncedQuery] = useState('');
-  const [pageSize, setPageSize] = useState(10);
+  const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE);
   const [page, setPage] = useState(1);
   const [refreshKey, setRefreshKey] = useState(0);
 

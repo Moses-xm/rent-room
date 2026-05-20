@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Plus, Search, Pencil, Trash2, Heart, Home, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { request } from '@/utils/request';
+import { DEFAULT_PAGE_SIZE } from '@/utils/constants';
 import DataTable, { type Column } from '@/components/DataTable';
 import AppLoading from '@/components/AppLoading';
 import ConfirmDialog from '@/components/ConfirmDialog';
@@ -101,7 +102,7 @@ export default function CollectionPage() {
 
   const [query, setQuery] = useState('');
   const [debouncedQuery, setDebouncedQuery] = useState('');
-  const [pageSize, setPageSize] = useState(10);
+  const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE);
   const [page, setPage] = useState(1);
   const [refreshKey, setRefreshKey] = useState(0);
 

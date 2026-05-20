@@ -16,7 +16,7 @@ import NotificationFormModal, {
   type NotificationFormData,
 } from './notification-form-modal';
 import { fmtDateTime } from '@/utils/format';
-import { NOTIFICATION_TYPE_OPTIONS, NOTIFICATION_READ_OPTIONS } from '@/utils/constants';
+import { NOTIFICATION_TYPE_OPTIONS, NOTIFICATION_READ_OPTIONS, DEFAULT_PAGE_SIZE } from '@/utils/constants';
 
 /* ─── Types ───────────────────────────────────────────────────────────────── */
 type NotificationItem = {
@@ -120,7 +120,7 @@ export default function NotificationPage() {
 
   const [query, setQuery] = useState('');
   const [debouncedQuery, setDebouncedQuery] = useState('');
-  const [pageSize, setPageSize] = useState(10);
+  const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE);
   const [page, setPage] = useState(1);
   const [refreshKey, setRefreshKey] = useState(0);
   const [typeFilter, setTypeFilter] = useState('');

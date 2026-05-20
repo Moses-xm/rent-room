@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { resolveUploadedFileUrl } from '@/lib/upload-path';
 import { request } from '@/utils/request';
+import { DEFAULT_PAGE_SIZE } from '@/utils/constants';
 import {
   Plus,
   Search,
@@ -76,7 +77,7 @@ export default function AdminPage() {
   const [hasLoadedOnce, setHasLoadedOnce] = useState(false);
 
   const [query, setQuery] = useState('');
-  const [pageSize, setPageSize] = useState(10);
+  const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE);
   const [page, setPage] = useState(1);
   const [refreshKey, setRefreshKey] = useState(0);
 

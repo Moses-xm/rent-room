@@ -16,7 +16,7 @@ import AppointmentFormModal, {
   type AppointmentFormData,
 } from './appointment-form-modal';
 import { fmtDateTime } from '@/utils/format';
-import { APPOINTMENT_STATUS_OPTIONS } from '@/utils/constants';
+import { APPOINTMENT_STATUS_OPTIONS, DEFAULT_PAGE_SIZE } from '@/utils/constants';
 
 /* ─── Types ───────────────────────────────────────────────────────────────── */
 type AppointmentItem = {
@@ -98,7 +98,7 @@ export default function AppointmentPage() {
 
   const [query, setQuery] = useState('');
   const [debouncedQuery, setDebouncedQuery] = useState('');
-  const [pageSize, setPageSize] = useState(10);
+  const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE);
   const [page, setPage] = useState(1);
   const [refreshKey, setRefreshKey] = useState(0);
   const [statusFilter, setStatusFilter] = useState('');

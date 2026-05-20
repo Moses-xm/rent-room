@@ -15,7 +15,7 @@ import ConfirmDialog from '@/components/ConfirmDialog';
 import Pagination from '@/components/Pagination';
 import FilterSelect from '@/components/FilterSelect';
 import { fmtDate, fmtDateTime } from '@/utils/format';
-import { CONTRACT_STATUS_OPTIONS, CHECKOUT_OPTIONS } from '@/utils/constants';
+import { CONTRACT_STATUS_OPTIONS, CHECKOUT_OPTIONS, DEFAULT_PAGE_SIZE } from '@/utils/constants';
 import PayModal from './pay-modal';
 import RenewModal from './renew-modal';
 import CheckoutModal from './checkout-modal';
@@ -154,7 +154,7 @@ export default function ContractPage() {
 
   const [query, setQuery] = useState('');
   const [debouncedQuery, setDebouncedQuery] = useState('');
-  const [pageSize, setPageSize] = useState(10);
+  const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE);
   const [page, setPage] = useState(1);
   const [refreshKey, setRefreshKey] = useState(0);
   const [statusFilter, setStatusFilter] = useState('');
