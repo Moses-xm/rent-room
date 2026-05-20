@@ -33,21 +33,22 @@ interface RoomFilterBarProps {
   type: "area" | "subway";
   value: RoomFilter;
   onChange: (v: RoomFilter) => void;
+  locationOnly?: boolean;
   className?: string;
 }
 
 function FilterRow({
   label,
   children,
-  align = "start",
+  centerLabel = false,
 }: {
   label: string;
   children: React.ReactNode;
-  align?: "start" | "center";
+  centerLabel?: boolean;
 }) {
   return (
-    <div className={`flex py-2.5 border-b border-dashed border-border text-sm last:border-0 ${align === "center" ? "items-center" : "items-start"}`}>
-      <span className={`shrink-0 text-text-muted mr-2 ${align === "center" ? "" : "pt-0.5"}`}>{label}：</span>
+    <div className="flex items-baseline py-2.5 border-b border-dashed border-border text-sm last:border-0">
+      <span className={`shrink-0 text-text-muted mr-2 ${centerLabel ? "self-center" : ""}`}>{label}：</span>
       <div className="flex flex-wrap gap-x-5 gap-y-2 flex-1">{children}</div>
     </div>
   );
@@ -88,6 +89,7 @@ export function RoomFilterBar({
   type,
   value,
   onChange,
+  locationOnly = false,
   className = "",
 }: RoomFilterBarProps) {
   const [districts, setDistricts] = useState<string[]>(() =>
@@ -144,95 +146,97 @@ export function RoomFilterBar({
         ))}
       </FilterRow>
 
-      {/* 租金 */}
-      <FilterRow label="租金">
-        {PORTAL_PRICE_RANGES.map((r) => (
-          <FilterChip
-            key={r.label}
-            label={r.label}
-            active={value.minPrice === r.min && value.maxPrice === r.max}
-            onClick={() => setPrice(r.min, r.max)}
-          />
-        ))}
-      </FilterRow>
-
-      {/* 房型 */}
-      <FilterRow label="房型">
-        {["全部", ...PORTAL_ROOM_BED_OPTIONS].map((o) => (
-          <FilterChip
-            key={o}
-            label={o}
-            active={o === "全部" ? !value.bedrooms : value.bedrooms === o}
-            onClick={() => onChange({ ...value, bedrooms: o === "全部" ? undefined : o })}
-          />
-        ))}
-      </FilterRow>
-
-      {/* 类型 */}
-      <FilterRow label="类型">
-        {[{ value: 0, label: "全部" }, ...RENT_TYPE_OPTIONS].map((o) => (
-          <FilterChip
-            key={o.value}
-            label={o.label}
-            active={o.value === 0 ? !value.rentType : value.rentType === o.value}
-            onClick={() => onChange({ ...value, rentType: o.value === 0 ? undefined : o.value })}
-          />
-        ))}
-      </FilterRow>
-
-      {/* 更多筛选 */}
-      <FilterRow label="更多">
-        <div className="flex flex-col gap-y-4 w-full sm:flex-row sm:items-center sm:gap-x-5 sm:gap-y-0">
-          {/* 下拉组：最小屏平分宽度，其余固定最小宽 */}
-          <div className="flex gap-2">
-            <FilterSelect
-              value={value.roomType ?? ""}
-              onChange={(v) => onChange({ ...value, roomType: v || undefined })}
-              options={ROOM_TYPE_OPTIONS.map((o) => ({ value: o, label: o }))}
-              placeholder="房屋类型"
-              className="flex-1 min-w-0 sm:flex-none sm:min-w-28"
-            />
-            <FilterSelect
-              value={value.direction ?? ""}
-              onChange={(v) => onChange({ ...value, direction: v || undefined })}
-              options={DIRECTION_OPTIONS.map((o) => ({ value: o, label: o }))}
-              placeholder="朝向"
-              className="flex-1 min-w-0 sm:flex-none sm:min-w-24"
-            />
-          </div>
-          {/* 复选框 + 清除按钮：sm+ 占满剩余空间以便按钮靠右 */}
-          <div className="flex items-center gap-3 sm:flex-1">
-            <label className="flex items-center gap-1 cursor-pointer text-sm text-text-2">
-              <input
-                type="checkbox"
-                checked={!!value.nearSubway}
-                onChange={(e) =>
-                  onChange({ ...value, nearSubway: e.target.checked ? true : undefined })
-                }
+      {!locationOnly && (
+        <>
+          {/* 租金 */}
+          <FilterRow label="租金">
+            {PORTAL_PRICE_RANGES.map((r) => (
+              <FilterChip
+                key={r.label}
+                label={r.label}
+                active={value.minPrice === r.min && value.maxPrice === r.max}
+                onClick={() => setPrice(r.min, r.max)}
               />
-              近地铁
-            </label>
-            <label className="flex items-center gap-1 cursor-pointer text-sm text-text-2">
-              <input
-                type="checkbox"
-                checked={!!value.hasElevator}
-                onChange={(e) =>
-                  onChange({ ...value, hasElevator: e.target.checked ? true : undefined })
-                }
+            ))}
+          </FilterRow>
+
+          {/* 房型 */}
+          <FilterRow label="房型">
+            {["全部", ...PORTAL_ROOM_BED_OPTIONS].map((o) => (
+              <FilterChip
+                key={o}
+                label={o}
+                active={o === "全部" ? !value.bedrooms : value.bedrooms === o}
+                onClick={() => onChange({ ...value, bedrooms: o === "全部" ? undefined : o })}
               />
-              电梯房
-            </label>
-            {hasActiveFilter(value) && (
-              <button
-                onClick={() => onChange({})}
-                className="cursor-pointer ml-auto text-xs text-text-muted hover:text-(--color-accent) border border-border px-2.5 py-0.5 rounded whitespace-nowrap"
-              >
-                清除筛选
-              </button>
-            )}
-          </div>
-        </div>
-      </FilterRow>
+            ))}
+          </FilterRow>
+
+          {/* 类型 */}
+          <FilterRow label="类型">
+            {[{ value: 0, label: "全部" }, ...RENT_TYPE_OPTIONS].map((o) => (
+              <FilterChip
+                key={o.value}
+                label={o.label}
+                active={o.value === 0 ? !value.rentType : value.rentType === o.value}
+                onClick={() => onChange({ ...value, rentType: o.value === 0 ? undefined : o.value })}
+              />
+            ))}
+          </FilterRow>
+
+          {/* 更多筛选 */}
+          <FilterRow label="更多" centerLabel>
+            <div className="flex flex-col gap-y-4 w-full sm:flex-row sm:items-center sm:gap-x-5 sm:gap-y-0">
+              <div className="flex gap-2">
+                <FilterSelect
+                  value={value.roomType ?? ""}
+                  onChange={(v) => onChange({ ...value, roomType: v || undefined })}
+                  options={ROOM_TYPE_OPTIONS.map((o) => ({ value: o, label: o }))}
+                  placeholder="房屋类型"
+                  className="flex-1 min-w-0 sm:flex-none sm:min-w-28"
+                />
+                <FilterSelect
+                  value={value.direction ?? ""}
+                  onChange={(v) => onChange({ ...value, direction: v || undefined })}
+                  options={DIRECTION_OPTIONS.map((o) => ({ value: o, label: o }))}
+                  placeholder="朝向"
+                  className="flex-1 min-w-0 sm:flex-none sm:min-w-24"
+                />
+              </div>
+              <div className="flex items-center gap-3 sm:flex-1">
+                <label className="flex items-center gap-1 cursor-pointer text-sm text-text-2">
+                  <input
+                    type="checkbox"
+                    checked={!!value.nearSubway}
+                    onChange={(e) =>
+                      onChange({ ...value, nearSubway: e.target.checked ? true : undefined })
+                    }
+                  />
+                  近地铁
+                </label>
+                <label className="flex items-center gap-1 cursor-pointer text-sm text-text-2">
+                  <input
+                    type="checkbox"
+                    checked={!!value.hasElevator}
+                    onChange={(e) =>
+                      onChange({ ...value, hasElevator: e.target.checked ? true : undefined })
+                    }
+                  />
+                  电梯房
+                </label>
+                {hasActiveFilter(value) && (
+                  <button
+                    onClick={() => onChange({})}
+                    className="cursor-pointer ml-auto text-xs text-text-muted hover:text-(--color-accent) border border-border px-2.5 py-0.5 rounded whitespace-nowrap"
+                  >
+                    清除筛选
+                  </button>
+                )}
+              </div>
+            </div>
+          </FilterRow>
+        </>
+      )}
     </div>
   );
 }

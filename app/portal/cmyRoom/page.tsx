@@ -6,6 +6,7 @@ import { PortalShell } from "@/components/portal/PortalShell";
 import { CommunityRow } from "@/components/portal/CommunityRow";
 import { AdSidebar } from "@/components/portal/AdSidebar";
 import { EmptyState } from "@/components/portal/EmptyState";
+import { RoomFilterBar, type RoomFilter } from "@/components/portal/RoomFilterBar";
 import Pagination from "@/components/Pagination";
 import { portalRequest } from "@/utils/portal-request";
 import { getPortalCity, PORTAL_CITY_CHANGED_EVENT } from "@/utils/portal-city";
@@ -16,6 +17,7 @@ interface CommunityItem {
   district: string;
   street?: string | null;
   streetNumber?: string | null;
+  subwayLine?: string | null;
   coverUrl?: string;
   roomCount?: number;
 }
@@ -51,6 +53,7 @@ function CommunityListSkeleton() {
 
 export default function CmyRoomPage() {
   const [city, setCity] = useState(() => getPortalCity());
+  const [filter, setFilter] = useState<RoomFilter>({});
   const [communities, setCommunities] = useState<CommunityItem[]>([]);
   const [total, setTotal] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
@@ -61,19 +64,21 @@ export default function CmyRoomPage() {
   useEffect(() => {
     const sync = () => {
       setCity(getPortalCity());
+      setFilter({});
       setPage(1);
     };
     window.addEventListener(PORTAL_CITY_CHANGED_EVENT, sync);
     return () => window.removeEventListener(PORTAL_CITY_CHANGED_EVENT, sync);
   }, []);
 
-  const fetchCommunities = useCallback(async (p: number, ps: number, c: string) => {
+  const fetchCommunities = useCallback(async (p: number, ps: number, c: string, d: string) => {
     setLoading(true);
     try {
       const params = new URLSearchParams();
       params.set("page", String(p));
       params.set("limit", String(ps));
       if (c) params.set("city", c);
+      if (d) params.set("district", d);
 
       const res = await portalRequest<CommunitiesResponse>(
         `/portal/communities?${params.toString()}`,
@@ -92,8 +97,13 @@ export default function CmyRoomPage() {
   }, []);
 
   useEffect(() => {
-    fetchCommunities(page, pageSize, city);
-  }, [page, pageSize, city, fetchCommunities]);
+    fetchCommunities(page, pageSize, city, filter.district ?? "");
+  }, [page, pageSize, city, filter, fetchCommunities]);
+
+  function handleFilterChange(f: RoomFilter) {
+    setFilter(f);
+    setPage(1);
+  }
 
   function handlePageChange(p: number) {
     setPage(p);
@@ -114,6 +124,13 @@ export default function CmyRoomPage() {
           <span>小区找房</span>
         </nav>
 
+        <RoomFilterBar
+          type="area"
+          value={filter}
+          onChange={handleFilterChange}
+          locationOnly
+        />
+
         <div className="flex flex-col lg:flex-row lg:gap-5 mt-5">
           <div className="flex-1 min-w-0">
             {loading ? (
@@ -133,6 +150,7 @@ export default function CmyRoomPage() {
                     imageUrl={cmy.coverUrl}
                     district={cmy.district}
                     address={[cmy.street, cmy.streetNumber].filter(Boolean).join(" ")}
+                    subwayLine={cmy.subwayLine}
                     roomCount={cmy.roomCount}
                   />
                 ))}

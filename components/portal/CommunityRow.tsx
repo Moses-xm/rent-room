@@ -7,6 +7,7 @@ interface CommunityRowProps {
   imageUrl?: string;
   address?: string;
   district?: string;
+  subwayLine?: string | null;
   roomCount?: number;
   avgPrice?: number;
 }
@@ -17,6 +18,7 @@ export function CommunityRow({
   imageUrl,
   address,
   district,
+  subwayLine,
   roomCount,
   avgPrice,
 }: CommunityRowProps) {
@@ -37,7 +39,7 @@ export function CommunityRow({
         </div>
         {district && <div className="text-sm mt-1 truncate">{district}</div>}
         {address && <div className="text-sm mt-1 truncate text-text-muted">{address}</div>}
-        <div className="flex items-center gap-4 mt-2 text-sm">
+        <div className="flex items-center flex-wrap gap-x-4 gap-y-1 mt-2 text-sm">
           {roomCount !== undefined && <span>{roomCount} 套房源</span>}
           {avgPrice !== undefined && (
             <span>
@@ -45,6 +47,11 @@ export function CommunityRow({
               <span className="text-(--color-accent-dark) font-bold">
                 ¥{avgPrice.toLocaleString()}
               </span>
+            </span>
+          )}
+          {subwayLine && (
+            <span className="inline-flex items-center gap-1 text-primary text-xs bg-primary/10 px-1.5 py-0.5 rounded">
+              近地铁 · {subwayLine}
             </span>
           )}
         </div>
