@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { ChevronLeft, ChevronRight, Loader2, Star } from "lucide-react";
@@ -224,6 +224,7 @@ function ImageCarousel({ images, name }: { images: string[]; name: string }) {
 /* ─── Page ───────────────────────────────────────────────────────────────── */
 export default function RoomDetailPage() {
   const { id } = useParams<{ id: string }>();
+  const router = useRouter();
   const [room, setRoom] = useState<RoomDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
@@ -322,16 +323,16 @@ export default function RoomDetailPage() {
 
         {/* 面包屑 */}
         <nav className="text-xs text-text-muted mb-3 flex flex-wrap items-center gap-1">
+          <button
+            onClick={() => router.back()}
+            className="flex items-center gap-0.5 hover:text-(--color-accent) transition-colors cursor-pointer"
+          >
+            <ChevronLeft size={12} />
+            返回
+          </button>
+          <span className="mx-1">|</span>
           <Link href="/portal" className="hover:text-(--color-accent) transition-colors">雅阁租房</Link>
           <span>›</span>
-          {room.community && (
-            <>
-              <Link href={`/portal/cmyRoom/${room.community.id}`} className="hover:text-(--color-accent) transition-colors">
-                {room.community.name}
-              </Link>
-              <span>›</span>
-            </>
-          )}
           <span className="truncate max-w-60">{room.name}</span>
         </nav>
 
