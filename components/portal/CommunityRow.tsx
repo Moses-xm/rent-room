@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { RoomImage } from "@/components/portal/RoomImage";
+import { RoomTags, type RoomTag } from "@/components/portal/RoomTags";
 
 interface CommunityRowProps {
   href: string;
@@ -12,6 +13,14 @@ interface CommunityRowProps {
   avgPrice?: number;
 }
 
+function parseSubwayLines(raw: string): string {
+  try {
+    const parsed = JSON.parse(raw);
+    if (Array.isArray(parsed)) return parsed.join(" / ");
+  } catch {}
+  return raw.split(/[,，\/、]+/).map((s) => s.trim()).filter(Boolean).join(" / ");
+}
+
 export function CommunityRow({
   href,
   name,
@@ -22,6 +31,17 @@ export function CommunityRow({
   roomCount,
   avgPrice,
 }: CommunityRowProps) {
+  const locationText = [district, address].filter(Boolean).join("  ");
+
+  const tags: RoomTag[] = [
+    ...(subwayLine ? [
+      { color: "green" as const, label: "近地铁" },
+      { color: "yellow" as const, label: parseSubwayLines(subwayLine) },
+    ] : []),
+    ...(roomCount !== undefined ? [{ color: "blue" as const, label: `${roomCount}套房源` }] : []),
+    ...(avgPrice !== undefined ? [{ color: "red" as const, label: `均价¥${avgPrice.toLocaleString()}` }] : []),
+  ];
+
   return (
     <Link
       href={href}
@@ -32,29 +52,15 @@ export function CommunityRow({
         <RoomImage src={imageUrl} alt={name} className="w-full h-full object-cover" />
       </div>
 
-      {/* 信息 */}
-      <div className="flex-1 lg:pl-5 overflow-hidden text-text-2 mt-3 lg:mt-0">
+      {/* 信息：三行撑满缩略图高度 */}
+      <div className="flex-1 lg:pl-5 overflow-hidden text-text-2 mt-3 lg:mt-0 flex flex-col gap-3">
         <div className="font-bold text-text text-base truncate group-hover:text-(--color-accent) group-hover:underline">
           {name}
         </div>
-        {district && <div className="text-sm mt-1 truncate">{district}</div>}
-        {address && <div className="text-sm mt-1 truncate text-text-muted">{address}</div>}
-        <div className="flex items-center flex-wrap gap-x-4 gap-y-1 mt-2 text-sm">
-          {roomCount !== undefined && <span>{roomCount} 套房源</span>}
-          {avgPrice !== undefined && (
-            <span>
-              均价{" "}
-              <span className="text-(--color-accent-dark) font-bold">
-                ¥{avgPrice.toLocaleString()}
-              </span>
-            </span>
-          )}
-          {subwayLine && (
-            <span className="inline-flex items-center gap-1 text-primary text-xs bg-primary/10 px-1.5 py-0.5 rounded">
-              近地铁 · {subwayLine}
-            </span>
-          )}
-        </div>
+        {locationText && (
+          <div className="text-sm truncate text-text-muted">{locationText}</div>
+        )}
+        {tags.length > 0 && <RoomTags tags={tags} />}
       </div>
     </Link>
   );

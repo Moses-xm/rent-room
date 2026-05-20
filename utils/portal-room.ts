@@ -14,7 +14,7 @@ export interface RoomItem {
   floors: number;
   direction: string;
   lift: number;
-  community?: { name: string; district: string; street?: string | null; streetNumber?: string | null };
+  community?: { name: string; district: string; street?: string | null; streetNumber?: string | null; subwayLine?: string | null };
   publisher?: { nickname: string | null; realname: string | null; username: string } | null;
 }
 
@@ -34,6 +34,15 @@ export function buildRoomTags(room: RoomItem) {
   if (room.direction) tags.push({ color: "green", label: room.direction });
   const liftOpt = LIFT_OPTIONS.find((o) => o.value === room.lift);
   if (liftOpt) tags.push({ color: "blue", label: liftOpt.label });
+  if (room.community?.subwayLine) {
+    const raw = room.community.subwayLine;
+    let label = raw;
+    try {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed)) label = parsed.join(" / ");
+    } catch {}
+    tags.push({ color: "yellow", label });
+  }
   return tags;
 }
 

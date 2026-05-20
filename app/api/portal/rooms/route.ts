@@ -11,6 +11,7 @@ const communitySelect = {
   district: true,
   street: true,
   streetNumber: true,
+  subwayLine: true,
   lng: true,
   lat: true,
 };
