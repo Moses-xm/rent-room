@@ -6,7 +6,7 @@ import { serializeRoom } from '@/lib/room';
 
 const communitySelect = {
   id: true, name: true, province: true, city: true,
-  district: true, street: true, streetNumber: true, lng: true, lat: true,
+  district: true, street: true, streetNumber: true, subwayLine: true, lng: true, lat: true,
 };
 const publisherSelect = {
   id: true, username: true, nickname: true, realname: true, avatar: true, phone: true,
