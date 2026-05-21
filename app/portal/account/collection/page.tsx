@@ -8,6 +8,8 @@ import { portalRequest } from "@/utils/portal-request";
 import { resolveUploadedFileUrl } from "@/lib/upload-path";
 import { fmtDate } from "@/utils/format";
 import { MINE_SKELETON_ROWS } from "@/utils/constants";
+import Pagination from "@/components/Pagination";
+import ConfirmDialog from "@/components/ConfirmDialog";
 
 type CollectionItem = {
   id: number;
@@ -28,11 +30,13 @@ export default function CollectionPage() {
   const [loading, setLoading] = useState(true);
   const [hasLoaded, setHasLoaded] = useState(false);
   const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(10);
   const [total, setTotal] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
   const [deleting, setDeleting] = useState<number | null>(null);
+  const [confirmId, setConfirmId] = useState<number | null>(null);
 
-  const load = useCallback(async (p: number) => {
+  const load = useCallback(async (p: number, l: number) => {
     setLoading(true);
     try {
       const res = await portalRequest<{
@@ -40,11 +44,12 @@ export default function CollectionPage() {
         data: CollectionItem[];
         total: number;
         totalPages: number;
-      }>(`/portal/account/collections?page=${p}&limit=10`);
+      }>(`/portal/account/collections?page=${p}&limit=${l}`);
       setItems(res.data);
       setTotal(res.total);
       setTotalPages(res.totalPages);
       setPage(p);
+      setLimit(l);
     } catch {
     } finally {
       setLoading(false);
@@ -52,14 +57,16 @@ export default function CollectionPage() {
     }
   }, []);
 
-  useEffect(() => { load(1); }, [load]);
+  useEffect(() => { load(1, 10); }, [load]);
 
-  async function handleDelete(id: number) {
-    setDeleting(id);
+  async function handleDelete() {
+    if (confirmId === null) return;
+    setDeleting(confirmId);
     try {
-      await portalRequest(`/portal/account/collections?id=${id}`, { method: "DELETE" });
+      await portalRequest(`/portal/account/collections?id=${confirmId}`, { method: "DELETE" });
+      setConfirmId(null);
       toast.success("已取消收藏");
-      load(page);
+      load(page, limit);
     } catch {
     } finally {
       setDeleting(null);
@@ -84,7 +91,7 @@ export default function CollectionPage() {
           <div className="hidden lg:block">
             {Array.from({ length: MINE_SKELETON_ROWS }).map((_, i) => (
               <div key={i} className="grid grid-cols-[2fr_1fr_1fr_1fr_80px] px-5 py-4 border-b border-[#eee] items-center gap-3">
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-3 min-w-0">
                   <div className="skeleton-shimmer w-16 h-12 rounded shrink-0" />
                   <div className="skeleton-shimmer flex-1 h-4 rounded" />
                 </div>
@@ -125,7 +132,7 @@ export default function CollectionPage() {
                 >
                   <Link
                     href={`/portal/room/${item.room.id}`}
-                    className="flex items-center gap-3 group"
+                    className="flex items-center gap-3 group min-w-0"
                   >
                     {coverUrl ? (
                       // eslint-disable-next-line @next/next/no-img-element
@@ -141,13 +148,13 @@ export default function CollectionPage() {
                       {item.room.name}
                     </span>
                   </Link>
-                  <span className="text-text-2">{item.room.communityName}</span>
+                  <span className="text-text-2 truncate">{item.room.communityName}</span>
                   <span className="text-(--color-accent-dark) font-medium">
                     ¥{item.room.price}/月
                   </span>
                   <span className="text-text-muted">{fmtDate(item.createdAt)}</span>
                   <button
-                    onClick={() => handleDelete(item.id)}
+                    onClick={() => setConfirmId(item.id)}
                     disabled={deleting === item.id}
                     className="text-xs text-red-400 hover:text-red-600 cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
                   >
@@ -193,7 +200,7 @@ export default function CollectionPage() {
                       收藏于 {fmtDate(item.createdAt)}
                     </span>
                     <button
-                      onClick={() => handleDelete(item.id)}
+                      onClick={() => setConfirmId(item.id)}
                       disabled={deleting === item.id}
                       className="text-xs text-red-400 hover:text-red-600 cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
                     >
@@ -207,27 +214,27 @@ export default function CollectionPage() {
         </>
       )}
 
+      <ConfirmDialog
+        open={confirmId !== null}
+        title="取消收藏"
+        description="确认取消收藏该房源吗？"
+        confirmText="取消收藏"
+        danger
+        loading={deleting !== null}
+        onConfirm={handleDelete}
+        onClose={() => setConfirmId(null)}
+      />
+
       {/* 分页 */}
-      {hasLoaded && total > 0 && totalPages > 1 && (
-        <div className="flex items-center justify-center gap-2 py-4 border-t border-[#eee]">
-          <button
-            onClick={() => load(page - 1)}
-            disabled={page <= 1}
-            className="px-3 h-8 border border-border text-sm rounded cursor-pointer disabled:cursor-not-allowed disabled:opacity-40 hover:border-primary hover:text-primary"
-          >
-            上一页
-          </button>
-          <span className="text-sm text-text-muted">
-            {page} / {totalPages}
-          </span>
-          <button
-            onClick={() => load(page + 1)}
-            disabled={page >= totalPages}
-            className="px-3 h-8 border border-border text-sm rounded cursor-pointer disabled:cursor-not-allowed disabled:opacity-40 hover:border-primary hover:text-primary"
-          >
-            下一页
-          </button>
-        </div>
+      {hasLoaded && total > 0 && (
+        <Pagination
+          page={page}
+          pageSize={limit}
+          total={total}
+          totalPages={totalPages}
+          onPageChange={(p) => load(p, limit)}
+          onPageSizeChange={(l) => load(1, l)}
+        />
       )}
     </MineShell>
   );

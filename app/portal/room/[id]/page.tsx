@@ -5,11 +5,13 @@ import { useParams, useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { ChevronLeft, ChevronRight, Loader2, Star } from "lucide-react";
+import { toast } from "sonner";
 import { PortalShell } from "@/components/portal/PortalShell";
 import { RoomImage } from "@/components/portal/RoomImage";
 import { RoomTags } from "@/components/portal/RoomTags";
 import { BrokerCard } from "@/components/portal/BrokerCard";
 import { portalRequest } from "@/utils/portal-request";
+import { getPortalToken } from "@/utils/portal-auth";
 import { fmtDate } from "@/utils/format";
 import { buildRoomTags } from "@/utils/portal-room";
 import {
@@ -228,6 +230,8 @@ export default function RoomDetailPage() {
   const [room, setRoom] = useState<RoomDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
+  const [collected, setCollected] = useState(false);
+  const [collectLoading, setCollectLoading] = useState(false);
   const lastCountedId = useRef<string | null>(null);
 
   const fetchRoom = useCallback(async () => {
@@ -245,15 +249,52 @@ export default function RoomDetailPage() {
     }
   }, [id]);
 
+  const fetchCollectionStatus = useCallback(async () => {
+    if (!getPortalToken()) return;
+    try {
+      const res = await portalRequest<{ success: boolean; data: { collected: boolean } }>(
+        `/portal/rooms/${id}/collection`,
+        { silent: true }
+      );
+      setCollected(res.data.collected);
+    } catch {}
+  }, [id]);
+
   useEffect(() => {
     fetchRoom();
   }, [fetchRoom]);
+
+  useEffect(() => {
+    fetchCollectionStatus();
+  }, [fetchCollectionStatus]);
 
   useEffect(() => {
     if (lastCountedId.current === id) return;
     lastCountedId.current = id;
     portalRequest(`/portal/rooms/${id}`, { method: "POST", silent: true }).catch(() => {});
   }, [id]);
+
+  async function handleToggleCollect() {
+    if (!getPortalToken()) {
+      router.push(`/portal/login?redirect=${encodeURIComponent(`/portal/room/${id}`)}`);
+      return;
+    }
+    setCollectLoading(true);
+    try {
+      if (collected) {
+        await portalRequest(`/portal/rooms/${id}/collection`, { method: "DELETE" });
+        setCollected(false);
+        toast.success("已取消收藏");
+      } else {
+        await portalRequest(`/portal/rooms/${id}/collection`, { method: "POST" });
+        setCollected(true);
+        toast.success("收藏成功");
+      }
+    } catch {
+    } finally {
+      setCollectLoading(false);
+    }
+  }
 
   if (loading) return <PortalShell><DetailSkeleton /></PortalShell>;
 
@@ -373,9 +414,13 @@ export default function RoomDetailPage() {
           {/* 右侧：浏览量 + 收藏 */}
           <div className="ml-auto flex items-center gap-3">
             <span className="text-xs text-text-muted">{room.views} 次浏览</span>
-            <button className="flex items-center gap-1 text-sm text-text-2 hover:text-(--color-accent) cursor-pointer transition-colors">
-              <Star size={14} />
-              收藏
+            <button
+              onClick={handleToggleCollect}
+              disabled={collectLoading}
+              className={`flex items-center gap-1 text-sm cursor-pointer transition-colors disabled:cursor-not-allowed disabled:opacity-60 ${collected ? "text-(--color-accent)" : "text-text-2 hover:text-(--color-accent)"}`}
+            >
+              <Star size={14} fill={collected ? "currentColor" : "none"} />
+              {collected ? "已收藏" : "收藏"}
             </button>
           </div>
         </div>
