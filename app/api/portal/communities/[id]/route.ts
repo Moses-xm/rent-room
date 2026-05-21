@@ -11,6 +11,7 @@ const publisherSelect = {
   username: true,
   avatar: true,
   phone: true,
+  email: true,
 };
 
 export async function GET(

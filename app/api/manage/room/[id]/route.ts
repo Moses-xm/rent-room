@@ -20,7 +20,7 @@ const communitySelect = {
   district: true, street: true, streetNumber: true, subwayLine: true, lng: true, lat: true,
 };
 const publisherSelect = {
-  id: true, username: true, nickname: true, realname: true, avatar: true, phone: true,
+  id: true, username: true, nickname: true, realname: true, avatar: true, phone: true, email: true,
 };
 
 export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {

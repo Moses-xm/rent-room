@@ -6,6 +6,7 @@ import { MineShell } from "@/components/portal/MineShell";
 import { portalRequest } from "@/utils/portal-request";
 import { fmtDateTime, renderNotificationContent } from "@/utils/format";
 import { NOTIFICATION_TYPE_LABEL, NOTIFICATION_TYPE_COLOR } from "@/utils/constants";
+import ConfirmDialog from "@/components/ConfirmDialog";
 
 type NotificationItem = {
   id: number;
@@ -43,6 +44,12 @@ export default function NotificationPage() {
   const [markAllLoading, setMarkAllLoading] = useState(false);
   const [clearLoading, setClearLoading] = useState(false);
   const [singleLoading, setSingleLoading] = useState<number | null>(null);
+
+  // 二次确认弹窗
+  const [deleteConfirmId, setDeleteConfirmId] = useState<number | null>(null);
+  const [batchDeleteConfirm, setBatchDeleteConfirm] = useState(false);
+  const [batchMarkReadConfirm, setBatchMarkReadConfirm] = useState(false);
+  const [clearAllConfirm, setClearAllConfirm] = useState(false);
 
   const load = useCallback(async (p: number) => {
     setLoading(true);
@@ -86,7 +93,13 @@ export default function NotificationPage() {
   }
 
   // ── 单条：删除 ───────────────────────────────────────────
-  async function handleDeleteOne(id: number) {
+  function handleDeleteOne(id: number) {
+    setDeleteConfirmId(id);
+  }
+
+  async function confirmDeleteOne() {
+    if (deleteConfirmId === null) return;
+    const id = deleteConfirmId;
     setSingleLoading(id);
     try {
       await portalRequest(`/portal/notification/${id}`, { method: "DELETE" });
@@ -94,6 +107,7 @@ export default function NotificationPage() {
       setSelected((prev) => { const s = new Set(prev); s.delete(id); return s; });
       if (expandedId === id) setExpandedId(null);
       setTotal((t) => t - 1);
+      setDeleteConfirmId(null);
       toast.success("已删除");
     } catch {
     } finally {
@@ -119,8 +133,12 @@ export default function NotificationPage() {
   }
 
   // ── 批量标已读 ─────────────────────────────────────────
-  async function handleBatchMarkRead() {
+  function handleBatchMarkRead() {
     if (selected.size === 0) { toast.error("请先选择通知"); return; }
+    setBatchMarkReadConfirm(true);
+  }
+
+  async function confirmBatchMarkRead() {
     setBatchLoading(true);
     try {
       await portalRequest("/portal/notification/batch", {
@@ -131,6 +149,7 @@ export default function NotificationPage() {
         prev.map((n) => (selected.has(n.id) ? { ...n, isRead: true } : n))
       );
       setSelected(new Set());
+      setBatchMarkReadConfirm(false);
       toast.success("已标记为已读");
     } catch {
     } finally {
@@ -139,8 +158,12 @@ export default function NotificationPage() {
   }
 
   // ── 批量删除 ────────────────────────────────────────────
-  async function handleBatchDelete() {
+  function handleBatchDelete() {
     if (selected.size === 0) { toast.error("请先选择通知"); return; }
+    setBatchDeleteConfirm(true);
+  }
+
+  async function confirmBatchDelete() {
     setBatchLoading(true);
     try {
       await portalRequest("/portal/notification/batch", {
@@ -152,6 +175,7 @@ export default function NotificationPage() {
       setTotal((t) => t - ids.size);
       setSelected(new Set());
       if (expandedId !== null && ids.has(expandedId)) setExpandedId(null);
+      setBatchDeleteConfirm(false);
       toast.success(`已删除 ${ids.size} 条通知`);
     } catch {
     } finally {
@@ -173,8 +197,11 @@ export default function NotificationPage() {
   }
 
   // ── 清空全部 ────────────────────────────────────────────
-  async function handleClearAll() {
-    if (!confirm("确认清空全部通知？此操作不可恢复。")) return;
+  function handleClearAll() {
+    setClearAllConfirm(true);
+  }
+
+  async function confirmClearAll() {
     setClearLoading(true);
     try {
       await portalRequest("/portal/notification", { method: "DELETE" });
@@ -182,6 +209,7 @@ export default function NotificationPage() {
       setTotal(0);
       setSelected(new Set());
       setExpandedId(null);
+      setClearAllConfirm(false);
       toast.success("已清空全部通知");
     } catch {
     } finally {
@@ -417,6 +445,45 @@ export default function NotificationPage() {
           </button>
         </div>
       )}
+      <ConfirmDialog
+        open={deleteConfirmId !== null}
+        title="删除通知"
+        description="确认删除该条通知？删除后不可恢复。"
+        confirmText="删除"
+        danger
+        loading={singleLoading !== null}
+        onConfirm={confirmDeleteOne}
+        onClose={() => setDeleteConfirmId(null)}
+      />
+      <ConfirmDialog
+        open={batchMarkReadConfirm}
+        title="批量标为已读"
+        description={`确认将选中的 ${selected.size} 条通知标记为已读？`}
+        confirmText="标为已读"
+        loading={batchLoading}
+        onConfirm={confirmBatchMarkRead}
+        onClose={() => setBatchMarkReadConfirm(false)}
+      />
+      <ConfirmDialog
+        open={batchDeleteConfirm}
+        title="批量删除"
+        description={`确认删除选中的 ${selected.size} 条通知？删除后不可恢复。`}
+        confirmText="删除"
+        danger
+        loading={batchLoading}
+        onConfirm={confirmBatchDelete}
+        onClose={() => setBatchDeleteConfirm(false)}
+      />
+      <ConfirmDialog
+        open={clearAllConfirm}
+        title="清空全部通知"
+        description="确认清空所有通知？此操作不可恢复。"
+        confirmText="清空"
+        danger
+        loading={clearLoading}
+        onConfirm={confirmClearAll}
+        onClose={() => setClearAllConfirm(false)}
+      />
     </MineShell>
   );
 }

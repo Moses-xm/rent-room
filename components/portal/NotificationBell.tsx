@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import Link from "next/link";
 import { Bell, X } from "lucide-react";
 import { portalRequest } from "@/utils/portal-request";
 import { fmtDateTime } from "@/utils/format";
@@ -273,6 +274,17 @@ export function NotificationBell() {
                 )}
               </>
             )}
+          </div>
+
+          {/* 底部入口 */}
+          <div className="shrink-0 border-t border-[#f0f0f0]">
+            <Link
+              href="/portal/account/notification"
+              onClick={() => setOpen(false)}
+              className="block w-full py-2.5 text-xs text-center text-(--color-primary-brand) hover:bg-[#f9f9f9] transition-colors cursor-pointer"
+            >
+              查看全部通知
+            </Link>
           </div>
 
           {/* 二次确认覆盖层 */}

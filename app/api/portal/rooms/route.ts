@@ -82,6 +82,7 @@ export async function GET(req: NextRequest) {
       username: true,
       avatar: true,
       phone: true,
+      email: true,
     };
 
     const [total, items] = await Promise.all([
