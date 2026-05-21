@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 import { MineShell } from "@/components/portal/MineShell";
 import { portalRequest } from "@/utils/portal-request";
-import { fmtDateTime } from "@/utils/format";
+import { fmtDateTime, renderNotificationContent } from "@/utils/format";
 import { NOTIFICATION_TYPE_LABEL, NOTIFICATION_TYPE_COLOR } from "@/utils/constants";
 
 type NotificationItem = {
@@ -326,7 +326,7 @@ export default function NotificationPage() {
                     </div>
                     {!isExpanded && (
                       <p className="text-xs text-text-muted mt-1 truncate leading-relaxed">
-                        {item.content}
+                        {renderNotificationContent(item.content)}
                       </p>
                     )}
                   </div>
@@ -354,7 +354,7 @@ export default function NotificationPage() {
                       {fmtDateTime(item.createdAt)}
                     </div>
                     <div className="bg-[#f9f9f9] rounded p-3 text-sm text-text-2 leading-relaxed whitespace-pre-wrap">
-                      {item.content}
+                      {renderNotificationContent(item.content)}
                     </div>
                     {item.relatedType && item.relatedId && (
                       <div className="mt-2 text-xs text-text-muted">

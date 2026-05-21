@@ -34,7 +34,7 @@ export async function POST(
 
   const room = await prisma.room.findFirst({
     where: { id: roomId, isPublished: 2 },
-    select: { id: true, publisherId: true, isRented: true },
+    select: { id: true, name: true, publisherId: true, isRented: true },
   });
   if (!room) {
     return NextResponse.json({ success: false, message: '房源不存在或已下架' }, { status: 404 });
@@ -52,6 +52,9 @@ export async function POST(
   }
 
   try {
+    const tenantUser = await prisma.user.findUnique({ where: { id: auth.user.id }, select: { nickname: true, username: true } });
+    const tenantName = tenantUser?.nickname || auth.user.username;
+
     const appointment = await prisma.appointment.create({
       data: {
         userId: auth.user.id,
@@ -62,6 +65,19 @@ export async function POST(
         status: 1,
       },
     });
+
+    // 通知房东：有新预约（type=1）
+    await prisma.notification.create({
+      data: {
+        userId: room.publisherId,
+        type: 1,
+        title: '有用户预约看房',
+        content: `用户「${tenantName}」预约了您的房源「${room.name}」，预约看房时间：{{t:${appointmentTime.toISOString()}}}`,
+        relatedType: 'appointment',
+        relatedId: appointment.id,
+      },
+    });
+
     return NextResponse.json({ success: true, data: { id: appointment.id } });
   } catch {
     return NextResponse.json({ success: false, message: '预约失败，请稍后重试' }, { status: 500 });

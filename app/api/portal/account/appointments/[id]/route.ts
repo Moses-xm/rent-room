@@ -32,7 +32,10 @@ export async function PATCH(
   }
 
   try {
-    const record = await prisma.appointment.findUnique({ where: { id: apptId } });
+    const record = await prisma.appointment.findUnique({
+      where: { id: apptId },
+      include: { room: { select: { name: true } } },
+    });
     if (!record) {
       return NextResponse.json({ success: false, message: '预约不存在' }, { status: 404 });
     }
@@ -43,23 +46,56 @@ export async function PATCH(
       );
     }
 
+    const operatorUser = await prisma.user.findUnique({
+      where: { id: auth.user.id },
+      select: { nickname: true, username: true },
+    });
+    const operatorName = operatorUser?.nickname || auth.user.username;
+    const roomName = record.room.name;
+
     if (action === 'cancel') {
       if (record.userId !== auth.user.id) {
         return NextResponse.json({ success: false, message: '无权操作' }, { status: 403 });
       }
-      await prisma.appointment.update({
-        where: { id: apptId },
-        data: { status: 3, cancelledBy: auth.user.id },
-      });
+      await prisma.$transaction([
+        prisma.appointment.update({
+          where: { id: apptId },
+          data: { status: 3, cancelledBy: auth.user.id },
+        }),
+        // 通知房东：预约已取消（type=2）
+        prisma.notification.create({
+          data: {
+            userId: record.landlordId,
+            type: 2,
+            title: '预约已被取消',
+            content: `用户「${operatorName}」取消了对房源「${roomName}」的预约看房。`,
+            relatedType: 'appointment',
+            relatedId: apptId,
+          },
+        }),
+      ]);
     } else {
       // complete：房东操作
       if (record.landlordId !== auth.user.id) {
         return NextResponse.json({ success: false, message: '无权操作' }, { status: 403 });
       }
-      await prisma.appointment.update({
-        where: { id: apptId },
-        data: { status: 2, completedBy: auth.user.id },
-      });
+      await prisma.$transaction([
+        prisma.appointment.update({
+          where: { id: apptId },
+          data: { status: 2, completedBy: auth.user.id },
+        }),
+        // 通知租客：看房已标记完成（type=3）
+        prisma.notification.create({
+          data: {
+            userId: record.userId,
+            type: 3,
+            title: '看房已标记完成',
+            content: `房东「${operatorName}」已将您对房源「${roomName}」的预约看房标记为完成。`,
+            relatedType: 'appointment',
+            relatedId: apptId,
+          },
+        }),
+      ]);
     }
 
     return NextResponse.json({ success: true });

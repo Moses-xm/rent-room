@@ -5,6 +5,7 @@ import { X, Loader2, Link as LinkIcon } from 'lucide-react';
 import { Modal } from '@/components/Modal';
 import FilterSelect from '@/components/FilterSelect';
 import { resolveUploadedFileUrl } from '@/lib/upload-path';
+import { renderNotificationContent } from '@/utils/format';
 
 /* ─── Types ───────────────────────────────────────────────────────────────── */
 export type NotificationFormData = { isRead: boolean };
@@ -129,7 +130,7 @@ export default function NotificationFormModal({ state, onClose, onSaved }: Props
             <div>
               <p className="text-body-sm text-text-muted mb-1.5">通知内容</p>
               <p className="text-body text-text bg-surface border border-border rounded-sm px-3 py-2.5 leading-relaxed">
-                {item.content}
+                {renderNotificationContent(item.content)}
               </p>
             </div>
 
