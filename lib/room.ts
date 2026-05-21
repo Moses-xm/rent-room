@@ -18,6 +18,7 @@ type PublisherSnap = {
   realname: string | null;
   avatar: string | null;
   phone: string | null;
+  email: string | null;
 };
 
 type RoomRecord = {
@@ -113,6 +114,7 @@ export function serializeRoom(r: RoomRecord) {
           realname: r.publisher.realname,
           avatar: r.publisher.avatar,
           phone: r.publisher.phone,
+          email: r.publisher.email,
         }
       : null,
   };

@@ -57,7 +57,7 @@ export function BrokerCard({
           disabled={isRented}
           className="w-full h-10 text-[15px] text-center border border-primary text-primary hover:bg-primary hover:text-white cursor-pointer transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
         >
-          {isRented ? "已租出" : "联系房东"}
+          {isRented ? "已租出" : "立即租赁"}
         </button>
       </div>
     </div>
