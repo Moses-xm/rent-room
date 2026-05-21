@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Menu } from "lucide-react";
+import { LogoutConfirmDialog } from "@/components/portal/LogoutConfirmDialog";
 import { NotificationBell } from "@/components/portal/NotificationBell";
 import {
   clearPortalAuth,
@@ -164,32 +165,11 @@ export function GlobalHeader({ onMenuToggle }: { onMenuToggle: () => void }) {
         </div>
       </header>
 
-      {/* 退出登录二次确认 */}
-      {confirmOpen && (
-        <div
-          className="fixed inset-0 z-9999 flex items-center justify-center bg-black/40"
-          onMouseDown={(e) => { if (e.target === e.currentTarget) setConfirmOpen(false); }}
-        >
-          <div className="bg-white w-80 rounded-lg shadow-xl p-6 animate-in zoom-in-95 duration-200">
-            <h3 className="text-[15px] font-semibold text-[#333] mb-2">确认退出登录？</h3>
-            <p className="text-sm text-[#888] mb-5">退出后需要重新登录才能访问个人中心。</p>
-            <div className="flex gap-2 justify-end">
-              <button
-                onClick={() => setConfirmOpen(false)}
-                className="h-8.5 px-4 text-sm border border-[#d9d9d9] text-[#555] hover:bg-[#f5f5f5] transition-colors cursor-pointer rounded"
-              >
-                取消
-              </button>
-              <button
-                onClick={handleLogout}
-                className="h-8.5 px-4 text-sm bg-[#e74c3c] text-white hover:opacity-90 transition-opacity cursor-pointer rounded"
-              >
-                确认退出
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <LogoutConfirmDialog
+        open={confirmOpen}
+        onClose={() => setConfirmOpen(false)}
+        onConfirm={handleLogout}
+      />
     </>
   );
 }

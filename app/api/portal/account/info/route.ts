@@ -13,8 +13,8 @@ export async function GET(req: NextRequest) {
       select: {
         id: true, username: true, nickname: true, phone: true,
         email: true, gender: true, identity: true, avatar: true,
-        wallet: true, province: true, city: true, district: true,
-        address: true, createdAt: true,
+        wallet: true, payCode: true, province: true, city: true,
+        district: true, address: true, createdAt: true,
       },
     });
     if (!user) return NextResponse.json({ success: false, message: '用户不存在' }, { status: 404 });
@@ -31,7 +31,7 @@ export async function PUT(req: NextRequest) {
 
   try {
     const body = await req.json() as {
-      nickname?: string; phone?: string; email?: string; gender?: number; avatar?: string;
+      nickname?: string; phone?: string; email?: string; gender?: number; avatar?: string; payCode?: string;
     };
     const updated = await prisma.user.update({
       where: { id: auth.user.id },
@@ -41,11 +41,12 @@ export async function PUT(req: NextRequest) {
         email:    body.email    ?? undefined,
         gender:   typeof body.gender === 'number' ? body.gender : undefined,
         avatar:   body.avatar   !== undefined ? body.avatar : undefined,
+        payCode:  body.payCode  ?? undefined,
       },
       select: {
         id: true, username: true, nickname: true, phone: true,
         email: true, gender: true, identity: true, avatar: true,
-        wallet: true, createdAt: true,
+        wallet: true, payCode: true, createdAt: true,
       },
     });
     return NextResponse.json({ success: true, data: { ...updated, createdAt: updated.createdAt.toISOString() } });

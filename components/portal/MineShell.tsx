@@ -4,9 +4,11 @@ import { useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
 import {
-  User, Heart, CalendarCheck, Home, FileText, ShoppingCart, Bell,
+  User, Heart, CalendarCheck, Home, FileText, ShoppingCart, Bell, LogOut,
   type LucideProps,
 } from "lucide-react";
+import { IDENTITY_LABEL } from "@/utils/constants";
+import { LogoutConfirmDialog } from "@/components/portal/LogoutConfirmDialog";
 import {
   clearPortalAuth,
   getPortalProfile,
@@ -31,6 +33,7 @@ const MINE_ICON_MAP: Record<string, IconComponent> = {
 
 function getGreeting() {
   const h = new Date().getHours();
+  if (h < 6)  return "夜深了";
   if (h < 12) return "上午好";
   if (h < 18) return "下午好";
   return "晚上好";
@@ -47,6 +50,7 @@ export function MineShell({
   const router = useRouter();
   const [profile, setProfile] = useState<PortalProfile | null>(null);
   const [checked, setChecked] = useState(false);
+  const [confirmLogout, setConfirmLogout] = useState(false);
 
   useEffect(() => {
     const sync = () => {
@@ -77,7 +81,7 @@ export function MineShell({
   const displayName = profile.nickname ?? profile.username;
 
   return (
-    <div className="min-h-screen bg-[#f1f1f1]">
+    <div className="min-h-screen bg-[#f1f1f1] text-[#333]">
       {/* ── 顶栏（全宽绿色）────────────────────────── */}
       <div className="w-full h-13.75 bg-primary shadow-sm">
         <div className="flex items-center justify-between max-w-295 mx-auto h-13.75 px-4 lg:px-0">
@@ -89,12 +93,10 @@ export function MineShell({
             <span className="text-[22px] font-medium">个人中心</span>
           </div>
           <button
-            onClick={() => {
-              clearPortalAuth();
-              router.replace(PORTAL_LOGIN_PATH);
-            }}
-            className="text-white text-sm cursor-pointer"
+            onClick={() => setConfirmLogout(true)}
+            className="text-white text-sm cursor-pointer flex items-center gap-1.5 hover:opacity-80 transition-opacity"
           >
+            <LogOut className="w-4 h-4" />
             退出
           </button>
         </div>
@@ -102,9 +104,12 @@ export function MineShell({
 
       {/* ── 用户横幅（全宽）──────────────────────────── */}
       <div
-        className="w-full h-25"
+        className="w-full h-25 bg-primary"
         style={{
-          background: `url('${PORTAL_MINE_BANNER}') center center`,
+          backgroundImage: `url('${PORTAL_MINE_BANNER}')`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundRepeat: 'no-repeat',
         }}
       >
         <div className="flex items-center max-w-295 mx-auto h-25 px-4 lg:px-0">
@@ -113,23 +118,20 @@ export function MineShell({
             <img
               src={avatarUrl}
               alt={displayName}
-              className="w-17.5 h-17.5 rounded-full object-cover shrink-0"
+              className="w-17.5 h-17.5 rounded-full object-cover shrink-0 ring-2 ring-white/60"
             />
           ) : (
-            <div className="w-17.5 h-17.5 rounded-full bg-white/30 flex items-center justify-center text-white text-3xl font-semibold shrink-0">
+            <div className="w-17.5 h-17.5 rounded-full bg-primary-tint-2 flex items-center justify-center text-primary text-3xl font-semibold shrink-0 ring-2 ring-white/60">
               {displayName.charAt(0).toUpperCase()}
             </div>
           )}
-          <div className="ml-5 flex flex-col gap-1.5">
-            <div>
-              <span className="text-white text-base pr-1.5">
-                {getGreeting()}，{displayName}
-              </span>
-              <span className="text-white/75 text-sm">普通用户</span>
-            </div>
-            <div className="text-white/70 text-sm">
-              欢迎来到雅阁租房系统个人中心
-            </div>
+          <div className="ml-5 flex flex-col gap-1">
+            <span className="text-[#333] text-base font-medium">
+              {getGreeting()}，{displayName}
+            </span>
+            <span className="text-[#555] text-sm">
+              您的身份：{IDENTITY_LABEL[profile.identity ?? 1] ?? '用户'}
+            </span>
           </div>
         </div>
       </div>
@@ -187,6 +189,15 @@ export function MineShell({
           </main>
         </div>
       </div>
+
+      <LogoutConfirmDialog
+        open={confirmLogout}
+        onClose={() => setConfirmLogout(false)}
+        onConfirm={() => {
+          clearPortalAuth();
+          router.replace(PORTAL_LOGIN_PATH);
+        }}
+      />
     </div>
   );
 }

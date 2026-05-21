@@ -9,6 +9,7 @@ export type PortalProfile = {
   username: string;
   nickname?: string;
   avatar?: string;
+  identity?: number;
 };
 
 function normalizeStorageValue(value: string | null | undefined) {
@@ -34,7 +35,7 @@ export function getPortalProfile(): PortalProfile | null {
     const p = JSON.parse(raw) as Partial<PortalProfile>;
     const username = normalizeStorageValue(p?.username);
     if (!username) return null;
-    return { username, nickname: p.nickname || undefined, avatar: p.avatar || undefined };
+    return { username, nickname: p.nickname || undefined, avatar: p.avatar || undefined, identity: p.identity };
   } catch {
     return null;
   }

@@ -37,6 +37,7 @@ export async function POST(req: Request) {
         username: user.username,
         nickname: user.nickname ?? undefined,
         avatar: user.avatar ?? undefined,
+        identity: user.identity,
       },
     });
   } catch (error: unknown) {
