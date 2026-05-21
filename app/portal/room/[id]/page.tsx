@@ -10,6 +10,7 @@ import { PortalShell } from "@/components/portal/PortalShell";
 import { RoomImage } from "@/components/portal/RoomImage";
 import { RoomTags } from "@/components/portal/RoomTags";
 import { BrokerCard } from "@/components/portal/BrokerCard";
+import { AppointmentModal } from "@/components/portal/AppointmentModal";
 import { portalRequest } from "@/utils/portal-request";
 import { getPortalToken } from "@/utils/portal-auth";
 import { fmtDate } from "@/utils/format";
@@ -232,6 +233,7 @@ export default function RoomDetailPage() {
   const [notFound, setNotFound] = useState(false);
   const [collected, setCollected] = useState(false);
   const [collectLoading, setCollectLoading] = useState(false);
+  const [appointmentOpen, setAppointmentOpen] = useState(false);
   const lastCountedId = useRef<string | null>(null);
 
   const fetchRoom = useCallback(async () => {
@@ -273,6 +275,23 @@ export default function RoomDetailPage() {
     lastCountedId.current = id;
     portalRequest(`/portal/rooms/${id}`, { method: "POST", silent: true }).catch(() => {});
   }, [id]);
+
+  function handleOpenAppointment() {
+    if (!getPortalToken()) {
+      router.push(`/portal/login?redirect=${encodeURIComponent(`/portal/room/${id}`)}`);
+      return;
+    }
+    setAppointmentOpen(true);
+  }
+
+  async function handleAppointmentSubmit(appointmentTime: string, remark: string) {
+    await portalRequest(`/portal/rooms/${id}/appointment`, {
+      method: "POST",
+      json: { appointmentTime, remark: remark || undefined },
+    });
+    toast.success("预约成功，请等待房东确认");
+    setAppointmentOpen(false);
+  }
 
   async function handleToggleCollect() {
     if (!getPortalToken()) {
@@ -507,6 +526,7 @@ export default function RoomDetailPage() {
                 avatarUrl={room.publisher?.avatarUrl}
                 info={brokerInfo}
                 isRented={room.isRented === 2}
+                onAppointment={handleOpenAppointment}
               />
 
               {/* 移动端地图 */}
@@ -523,6 +543,11 @@ export default function RoomDetailPage() {
 
         </div>
       </div>
+      <AppointmentModal
+        open={appointmentOpen}
+        onClose={() => setAppointmentOpen(false)}
+        onSubmit={handleAppointmentSubmit}
+      />
     </PortalShell>
   );
 }

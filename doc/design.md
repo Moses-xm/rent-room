@@ -965,11 +965,11 @@ Portal API（`app/api/portal/`）：
 
 1. 点击"预约看房" → 弹出预约表单（需登录）
 2. 填写预约时间（日期+时间段）和备注（可选）
-3. 提交 → `POST /api/portal/appointment`
+3. 提交 → `POST /api/portal/rooms/[id]/appointment`
    - 自动从 token 获取 `userId`，从 `room.publisherId` 取 `landlordId`
+   - 校验房源已发布且未租出，且当前用户无待看房预约（`status=1`）
    - 创建 `appointment`（`status=1`）
-   - 同步为房东创建通知（`type=1`，"有人预约看房"）
-4. 成功后提示"预约成功，等待房东确认"
+4. 成功后提示"预约成功，请等待房东确认"
 
 #### 过期自动处理（懒过期）
 
@@ -981,11 +981,10 @@ Portal API（`app/api/portal/`）：
 
 | 方法 | 路径 | 说明 | 鉴权 |
 |------|------|------|------|
-| `POST` | `/api/portal/appointment` | 创建预约 | 登录用户 |
-| `GET` | `/api/portal/appointment?role=tenant\|landlord&status=&page=&limit=` | 查询预约列表（按角色） | 登录用户 |
-| `PATCH` | `/api/portal/appointment/[id]/cancel` | 取消预约 | 租客或房东 |
-| `PATCH` | `/api/portal/appointment/[id]/complete` | 标记完成 | 租客或房东 |
-| `DELETE` | `/api/portal/appointment/[id]` | 隐藏记录（软删除，仅对自己） | 租客或房东 |
+| `POST` | `/api/portal/rooms/[id]/appointment` | 创建预约（body: appointmentTime, remark?）| 登录用户 |
+| `GET` | `/api/portal/account/appointments` | 查询我的预约列表（支持分页，含房源封面/价格/面积/房东信息） | 登录用户 |
+| `PATCH` | `/api/portal/account/appointments/[id]` | 取消预约（status → 3，cancelledBy=userId） | 登录用户 |
+| `DELETE` | `/api/portal/account/appointments?id=` | 隐藏记录（软删除，仅对自己，不改 status） | 登录用户 |
 
 - `role=tenant`：查当前用户作为租客的预约（过滤 `userDeleted=false`）
 - `role=landlord`：查当前用户作为房东收到的预约（过滤 `landlordDeleted=false`）
