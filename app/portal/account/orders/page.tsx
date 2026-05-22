@@ -75,7 +75,7 @@ export default function OrdersPage() {
   return (
     <MineShell title="我的订单">
       {/* 桌面端表头 */}
-      <div className="hidden lg:grid grid-cols-[2fr_1fr_1fr_1fr_80px] text-sm text-text-muted px-5 py-3 border-b border-[#eee] bg-surface">
+      <div className="hidden lg:grid grid-cols-[2fr_1fr_1fr_1fr_80px] gap-3 text-sm text-text-muted px-5 py-3 border-b border-[#eee] bg-surface">
         <span>房源</span>
         <span>订单类型</span>
         <span>支付金额</span>
@@ -119,7 +119,7 @@ export default function OrdersPage() {
             {items.map((item) => (
               <div
                 key={item.id}
-                className="grid grid-cols-[2fr_1fr_1fr_1fr_80px] px-5 py-4 border-b border-[#eee] items-center text-sm hover:bg-surface"
+                className="grid grid-cols-[2fr_1fr_1fr_1fr_80px] gap-3 px-5 py-4 border-b border-[#eee] items-center text-sm hover:bg-surface"
               >
                 <Link
                   href={`/portal/room/${item.roomId}`}

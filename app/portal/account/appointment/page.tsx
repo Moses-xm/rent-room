@@ -147,7 +147,7 @@ function TenantList() {
 
   return (
     <>
-      <div className={`hidden lg:grid ${COLS} text-sm text-text-muted px-5 py-3 border-b border-[#eee] bg-surface`}>
+      <div className={`hidden lg:grid ${COLS} gap-3 text-sm text-text-muted px-5 py-3 border-b border-[#eee] bg-surface`}>
         <span>预约房源</span>
         <span>房东</span>
         <span>预约看房时间</span>
@@ -166,7 +166,7 @@ function TenantList() {
           {/* 桌面端 */}
           <div className="hidden lg:block">
             {items.map((item) => (
-              <div key={item.id} className={`grid ${COLS} px-5 py-4 border-b border-[#eee] items-center text-sm hover:bg-surface`}>
+              <div key={item.id} className={`grid ${COLS} gap-3 px-5 py-4 border-b border-[#eee] items-center text-sm hover:bg-surface`}>
                 <Link href={`/portal/room/${item.roomId}`} className="flex items-center gap-3 group min-w-0">
                   {item.roomCoverUrl ? (
                     // eslint-disable-next-line @next/next/no-img-element
@@ -369,7 +369,7 @@ function LandlordList() {
 
   return (
     <>
-      <div className={`hidden lg:grid ${COLS} text-sm text-text-muted px-5 py-3 border-b border-[#eee] bg-surface`}>
+      <div className={`hidden lg:grid ${COLS} gap-3 text-sm text-text-muted px-5 py-3 border-b border-[#eee] bg-surface`}>
         <span>预约房源</span>
         <span>预约用户</span>
         <span>预约看房时间</span>
@@ -388,7 +388,7 @@ function LandlordList() {
           {/* 桌面端 */}
           <div className="hidden lg:block">
             {items.map((item) => (
-              <div key={item.id} className={`grid ${COLS} px-5 py-4 border-b border-[#eee] items-center text-sm hover:bg-surface`}>
+              <div key={item.id} className={`grid ${COLS} gap-3 px-5 py-4 border-b border-[#eee] items-center text-sm hover:bg-surface`}>
                 <Link href={`/portal/room/${item.roomId}`} className="flex items-center gap-3 group min-w-0">
                   {item.roomCoverUrl ? (
                     // eslint-disable-next-line @next/next/no-img-element

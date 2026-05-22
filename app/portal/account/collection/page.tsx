@@ -6,7 +6,7 @@ import { toast } from "sonner";
 import { MineShell } from "@/components/portal/MineShell";
 import { portalRequest } from "@/utils/portal-request";
 import { resolveUploadedFileUrl } from "@/lib/upload-path";
-import { fmtDate } from "@/utils/format";
+import { fmtDateTime } from "@/utils/format";
 import { MINE_SKELETON_ROWS } from "@/utils/constants";
 import Pagination from "@/components/Pagination";
 import ConfirmDialog from "@/components/ConfirmDialog";
@@ -22,6 +22,7 @@ type CollectionItem = {
     rentType: number;
     area: number;
     communityName: string;
+    landlordName: string;
   };
 };
 
@@ -76,10 +77,9 @@ export default function CollectionPage() {
   return (
     <MineShell title="我的收藏">
       {/* 桌面端表头 */}
-      <div className="hidden lg:grid grid-cols-[2fr_1fr_1fr_1fr_80px] text-sm text-text-muted px-5 py-3 border-b border-[#eee] bg-surface">
+      <div className="hidden lg:grid grid-cols-[2fr_1fr_1fr_80px] gap-3 text-sm text-text-muted px-5 py-3 border-b border-[#eee] bg-surface">
         <span>房源</span>
-        <span>小区</span>
-        <span>租金</span>
+        <span>房东</span>
         <span>收藏时间</span>
         <span>操作</span>
       </div>
@@ -90,14 +90,16 @@ export default function CollectionPage() {
           {/* 桌面骨架 */}
           <div className="hidden lg:block">
             {Array.from({ length: MINE_SKELETON_ROWS }).map((_, i) => (
-              <div key={i} className="grid grid-cols-[2fr_1fr_1fr_1fr_80px] px-5 py-4 border-b border-[#eee] items-center gap-3">
+              <div key={i} className="grid grid-cols-[2fr_1fr_1fr_80px] gap-3 px-5 py-4 border-b border-[#eee] items-center">
                 <div className="flex items-center gap-3 min-w-0">
                   <div className="skeleton-shimmer w-16 h-12 rounded shrink-0" />
-                  <div className="skeleton-shimmer flex-1 h-4 rounded" />
+                  <div className="space-y-1.5 flex-1 min-w-0">
+                    <div className="skeleton-shimmer h-4 rounded" />
+                    <div className="skeleton-shimmer h-3 w-16 rounded" />
+                  </div>
                 </div>
                 <div className="skeleton-shimmer h-4 w-20 rounded" />
-                <div className="skeleton-shimmer h-4 w-16 rounded" />
-                <div className="skeleton-shimmer h-4 w-24 rounded" />
+                <div className="skeleton-shimmer h-4 w-32 rounded" />
                 <div className="skeleton-shimmer h-4 w-12 rounded" />
               </div>
             ))}
@@ -128,7 +130,7 @@ export default function CollectionPage() {
               return (
                 <div
                   key={item.id}
-                  className="grid grid-cols-[2fr_1fr_1fr_1fr_80px] px-5 py-4 border-b border-[#eee] items-center text-sm hover:bg-surface"
+                  className="grid grid-cols-[2fr_1fr_1fr_80px] gap-3 px-5 py-4 border-b border-[#eee] items-center text-sm hover:bg-surface"
                 >
                   <Link
                     href={`/portal/room/${item.room.id}`}
@@ -144,15 +146,15 @@ export default function CollectionPage() {
                     ) : (
                       <div className="w-16 h-12 bg-surface-2 rounded shrink-0" />
                     )}
-                    <span className="truncate text-text group-hover:text-(--color-accent) group-hover:underline">
-                      {item.room.name}
-                    </span>
+                    <div className="min-w-0">
+                      <div className="truncate text-text group-hover:text-(--color-accent) group-hover:underline">
+                        {item.room.name}
+                      </div>
+                      <div className="text-xs text-(--color-accent-dark) font-medium mt-0.5">¥{item.room.price}/月</div>
+                    </div>
                   </Link>
-                  <span className="text-text-2 truncate">{item.room.communityName}</span>
-                  <span className="text-(--color-accent-dark) font-medium">
-                    ¥{item.room.price}/月
-                  </span>
-                  <span className="text-text-muted">{fmtDate(item.createdAt)}</span>
+                  <span className="text-text-2 truncate">{item.room.landlordName}</span>
+                  <span className="text-text-muted">{fmtDateTime(item.createdAt)}</span>
                   <button
                     onClick={() => setConfirmId(item.id)}
                     disabled={deleting === item.id}
@@ -189,15 +191,15 @@ export default function CollectionPage() {
                       >
                         {item.room.name}
                       </Link>
-                      <div className="text-xs text-text-muted mt-1">{item.room.communityName}</div>
-                      <div className="text-sm text-(--color-accent-dark) font-medium mt-1">
+                      <div className="text-xs text-text-muted mt-0.5">房东：{item.room.landlordName}</div>
+                      <div className="text-sm text-(--color-accent-dark) font-medium mt-0.5">
                         ¥{item.room.price}/月
                       </div>
                     </div>
                   </div>
                   <div className="flex items-center justify-between mt-3 pt-2 border-t border-[#f5f5f5]">
                     <span className="text-xs text-text-muted">
-                      收藏于 {fmtDate(item.createdAt)}
+                      收藏于 {fmtDateTime(item.createdAt)}
                     </span>
                     <button
                       onClick={() => setConfirmId(item.id)}

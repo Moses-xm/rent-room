@@ -30,13 +30,40 @@ type TenantContractItem = {
 type LandlordContractItem = TenantContractItem & { tenantName: string };
 
 /* ─── Skeleton ───────────────────────────────────────────────────────────── */
-function ContractSkeleton() {
+function TenantContractSkeleton() {
   return (
     <>
       <div className="hidden lg:block">
         {Array.from({ length: 5 }).map((_, i) => (
-          <div key={i} className="grid grid-cols-[2fr_1fr_1.5fr_1fr_80px] px-5 py-4 border-b border-[#eee] items-center gap-3">
+          <div key={i} className="grid grid-cols-[2fr_1fr_1.5fr_1fr_80px] gap-3 px-5 py-4 border-b border-[#eee] items-center">
             <div className="skeleton-shimmer h-4 w-3/4 rounded" />
+            <div className="skeleton-shimmer h-4 w-20 rounded" />
+            <div className="skeleton-shimmer h-4 w-36 rounded" />
+            <div className="skeleton-shimmer h-5 w-14 rounded-full" />
+            <div className="skeleton-shimmer h-4 w-16 rounded" />
+          </div>
+        ))}
+      </div>
+      <div className="lg:hidden space-y-3 p-4">
+        {Array.from({ length: 3 }).map((_, i) => (
+          <div key={i} className="border border-[#eee] rounded p-3 space-y-2">
+            <div className="skeleton-shimmer h-4 w-3/4 rounded" />
+            <div className="skeleton-shimmer h-4 w-1/2 rounded" />
+          </div>
+        ))}
+      </div>
+    </>
+  );
+}
+
+function LandlordContractSkeleton() {
+  return (
+    <>
+      <div className="hidden lg:block">
+        {Array.from({ length: 5 }).map((_, i) => (
+          <div key={i} className="grid grid-cols-[2fr_1fr_1fr_1.5fr_1fr_80px] gap-3 px-5 py-4 border-b border-[#eee] items-center">
+            <div className="skeleton-shimmer h-4 w-3/4 rounded" />
+            <div className="skeleton-shimmer h-4 w-16 rounded" />
             <div className="skeleton-shimmer h-4 w-20 rounded" />
             <div className="skeleton-shimmer h-4 w-36 rounded" />
             <div className="skeleton-shimmer h-5 w-14 rounded-full" />
@@ -89,7 +116,7 @@ function TenantContractList() {
 
   return (
     <>
-      <div className="hidden lg:grid grid-cols-[2fr_1fr_1.5fr_1fr_80px] text-sm text-text-muted px-5 py-3 border-b border-[#eee] bg-surface">
+      <div className="hidden lg:grid grid-cols-[2fr_1fr_1.5fr_1fr_80px] gap-3 text-sm text-text-muted px-5 py-3 border-b border-[#eee] bg-surface">
         <span>合同房源</span>
         <span>签约时间</span>
         <span>租期</span>
@@ -97,7 +124,7 @@ function TenantContractList() {
         <span>每期房租</span>
       </div>
 
-      {loading && !hasLoaded && <ContractSkeleton />}
+      {loading && !hasLoaded && <TenantContractSkeleton />}
 
       {hasLoaded && items.length === 0 && (
         <div className="py-16 text-center text-text-muted text-sm">暂无合同记录</div>
@@ -111,7 +138,7 @@ function TenantContractList() {
               return (
                 <div
                   key={item.id}
-                  className="grid grid-cols-[2fr_1fr_1.5fr_1fr_80px] px-5 py-4 border-b border-[#eee] items-center text-sm hover:bg-surface"
+                  className="grid grid-cols-[2fr_1fr_1.5fr_1fr_80px] gap-3 px-5 py-4 border-b border-[#eee] items-center text-sm hover:bg-surface"
                 >
                   <Link
                     href={`/portal/room/${item.roomId}`}
@@ -222,7 +249,7 @@ function LandlordContractList() {
 
   return (
     <>
-      <div className="hidden lg:grid grid-cols-[2fr_1fr_1fr_1.5fr_1fr_80px] text-sm text-text-muted px-5 py-3 border-b border-[#eee] bg-surface">
+      <div className="hidden lg:grid grid-cols-[2fr_1fr_1fr_1.5fr_1fr_80px] gap-3 text-sm text-text-muted px-5 py-3 border-b border-[#eee] bg-surface">
         <span>合同房源</span>
         <span>租客</span>
         <span>签约时间</span>
@@ -231,7 +258,7 @@ function LandlordContractList() {
         <span>每期房租</span>
       </div>
 
-      {loading && !hasLoaded && <ContractSkeleton />}
+      {loading && !hasLoaded && <LandlordContractSkeleton />}
 
       {hasLoaded && items.length === 0 && (
         <div className="py-16 text-center text-text-muted text-sm">暂无租客合同记录</div>
@@ -245,7 +272,7 @@ function LandlordContractList() {
               return (
                 <div
                   key={item.id}
-                  className="grid grid-cols-[2fr_1fr_1fr_1.5fr_1fr_80px] px-5 py-4 border-b border-[#eee] items-center text-sm hover:bg-surface"
+                  className="grid grid-cols-[2fr_1fr_1fr_1.5fr_1fr_80px] gap-3 px-5 py-4 border-b border-[#eee] items-center text-sm hover:bg-surface"
                 >
                   <Link
                     href={`/portal/room/${item.roomId}`}

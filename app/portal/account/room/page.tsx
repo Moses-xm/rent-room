@@ -37,7 +37,7 @@ const ROOM_GATE_FEATURES = [
   { icon: Star,      label: "房东专属权益" },
 ];
 
-const COLS = "grid-cols-[2fr_1fr_1fr_1fr_1fr_auto]";
+const COLS = "grid-cols-[2fr_1fr_1fr_1fr_1fr_100px]";
 
 function ListSkeleton() {
   return (

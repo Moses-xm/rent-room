@@ -92,7 +92,7 @@ export default function MyCommunityPage() {
       </div>
 
       {/* 桌面端表头 */}
-      <div className="hidden lg:grid grid-cols-[2fr_1fr_1fr_1fr_auto] text-sm text-text-muted px-5 py-3 border-b border-[#eee] bg-surface">
+      <div className="hidden lg:grid grid-cols-[2fr_1fr_1fr_1fr_100px] text-sm text-text-muted px-5 py-3 border-b border-[#eee] bg-surface">
         <span>小区</span>
         <span>位置</span>
         <span>房源数</span>
@@ -104,7 +104,7 @@ export default function MyCommunityPage() {
       {loading && !hasLoaded && (
         <div className="hidden lg:block">
           {Array.from({ length: 4 }).map((_, i) => (
-            <div key={i} className="grid grid-cols-[2fr_1fr_1fr_1fr_auto] px-5 py-4 border-b border-[#eee] items-center gap-3">
+            <div key={i} className="grid grid-cols-[2fr_1fr_1fr_1fr_100px] px-5 py-4 border-b border-[#eee] items-center gap-3">
               <div className="flex items-center gap-3">
                 <div className="skeleton-shimmer w-14 h-10 rounded shrink-0" />
                 <div className="skeleton-shimmer flex-1 h-4 rounded" />
@@ -141,7 +141,7 @@ export default function MyCommunityPage() {
               return (
                 <div
                   key={item.id}
-                  className="grid grid-cols-[2fr_1fr_1fr_1fr_auto] px-5 py-4 border-b border-[#eee] items-center text-sm hover:bg-surface gap-3"
+                  className="grid grid-cols-[2fr_1fr_1fr_1fr_100px] px-5 py-4 border-b border-[#eee] items-center text-sm hover:bg-surface gap-3"
                 >
                   <div className="flex items-center gap-3 min-w-0">
                     {coverUrl ? (
@@ -152,7 +152,7 @@ export default function MyCommunityPage() {
                     )}
                     <Link
                       href={`/portal/account/community/${item.id}`}
-                      className="truncate text-text hover:text-primary hover:underline"
+                      className="truncate min-w-0 text-text hover:text-primary hover:underline"
                     >
                       {item.name}
                     </Link>
