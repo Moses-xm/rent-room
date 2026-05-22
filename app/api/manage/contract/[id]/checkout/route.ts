@@ -1,13 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { serializeContract } from '@/lib/contract';
 import { requireManageAuth } from '@/lib/manage-auth';
-import { prisma } from '@/lib/prisma';
-
-const INCLUDE = {
-  user:     { select: { id: true, username: true, nickname: true, avatar: true } },
-  room:     { select: { id: true, name: true, roomCode: true, cover: true, price: true, pledge: true, pay: true, minTenancy: true } },
-  landlord: { select: { id: true, username: true, nickname: true, avatar: true } },
-} as const;
+import { checkoutContract, ServiceError } from '@/lib/contract-service';
 
 type Params = { params: Promise<{ id: string }> };
 
@@ -20,76 +13,10 @@ export async function POST(req: NextRequest, { params }: Params) {
     const contractId = parseInt(id);
     if (isNaN(contractId)) return NextResponse.json({ success: false, message: '无效的合同 ID' }, { status: 400 });
 
-    const contract = await prisma.contract.findUnique({
-      where: { id: contractId },
-      include: { room: true, user: true, landlord: true },
-    });
-    if (!contract) return NextResponse.json({ success: false, message: '合同不存在' }, { status: 404 });
-    if (contract.isCheckout) return NextResponse.json({ success: false, message: '合同已退房' }, { status: 400 });
-    if (contract.status === 2) return NextResponse.json({ success: false, message: '合同已完成' }, { status: 400 });
-
-    // 判断合法/非法：payingPeriod 为空则合法（押金退还），否则非法（押金不退）
-    const payingPeriods = JSON.parse(contract.payingPeriod ?? '[]') as unknown[];
-    const isLegal       = payingPeriods.length === 0;
-    // 合法退房但合同尚未到期（已提前付清所有租金）
-    const isEarlyLegal  = isLegal && new Date() < contract.offlineTime;
-
-    const checkoutTime = new Date();
-    const tenantName   = contract.user?.nickname   || contract.user?.username   || '';
-    const roomName     = contract.room?.name ?? '';
-
-    const updated = await prisma.$transaction(async (tx) => {
-      await tx.room.update({ where: { id: contract.roomId }, data: { isRented: 1 } });
-
-      if (isLegal) {
-        // 合法退房：退押金
-        const refundOrder = await tx.order.create({
-          data: {
-            contractId, payerId: contract.landlordId, payeeId: contract.userId, roomId: contract.roomId,
-            type: 3, pledge: contract.pledge,
-          },
-        });
-        const refundedLandlord = await tx.user.update({ where: { id: contract.landlordId }, data: { wallet: { decrement: contract.pledge } }, select: { wallet: true } });
-        const refundedTenant   = await tx.user.update({ where: { id: contract.userId     }, data: { wallet: { increment: contract.pledge } }, select: { wallet: true } });
-        await tx.walletRecord.createMany({
-          data: [
-            { userId: contract.userId,     amount:  contract.pledge, type: 4, remark: `房源「${roomName}」押金退款`, orderId: refundOrder.id, balanceAfter: refundedTenant.wallet },
-            { userId: contract.landlordId, amount: -contract.pledge, type: 2, remark: `退还房源「${roomName}」押金给租客`, orderId: refundOrder.id, balanceAfter: refundedLandlord.wallet },
-          ],
-        });
-
-        const tenantContent = isEarlyLegal
-          ? `您已提前结清房源「${roomName}」的全部租金并退房，押金 ¥${contract.pledge.toFixed(2)} 已退回至您的钱包。`
-          : `您的租约已到期，房源「${roomName}」押金 ¥${contract.pledge.toFixed(2)} 已退回至您的钱包。`;
-        const landlordContent = isEarlyLegal
-          ? `租客 ${tenantName} 已提前结清所有租金并退出房源「${roomName}」，押金 ¥${contract.pledge.toFixed(2)} 已从您的钱包扣除退还给租客。`
-          : `租客 ${tenantName} 租约到期已退房「${roomName}」，押金 ¥${contract.pledge.toFixed(2)} 已从您的钱包扣除退还给租客。`;
-
-        await tx.notification.createMany({
-          data: [
-            { userId: contract.userId,     type: 8,  title: isEarlyLegal ? '退房成功，押金已退回（提前退房）' : '退房成功，押金已退回', content: tenantContent, relatedType: 'contract', relatedId: contractId },
-            { userId: contract.landlordId, type: 11, title: `租客 ${tenantName} 已退房`, content: landlordContent, relatedType: 'contract', relatedId: contractId },
-          ],
-        });
-      } else {
-        // 非法退房：押金不退
-        await tx.notification.createMany({
-          data: [
-            { userId: contract.userId,     type: 10, title: '提前退房确认，押金不予退还', content: `您已提前退出房源「${roomName}」，仍有未结清租金，按合同规定押金 ¥${contract.pledge.toFixed(2)} 不予退还。`, relatedType: 'contract', relatedId: contractId },
-            { userId: contract.landlordId, type: 11, title: `租客 ${tenantName} 已提前退房`, content: `租客 ${tenantName} 已提前退出您的房源「${roomName}」，仍有未结清租金，押金无需退还。`, relatedType: 'contract', relatedId: contractId },
-          ],
-        });
-      }
-
-      return tx.contract.update({
-        where: { id: contractId },
-        data: { status: 2, isCheckout: true, checkoutTime, refund: isLegal },
-        include: INCLUDE,
-      });
-    });
-
-    return NextResponse.json({ success: true, data: serializeContract(updated) });
+    const data = await checkoutContract({ contractId });
+    return NextResponse.json({ success: true, data });
   } catch (error: unknown) {
+    if (error instanceof ServiceError) return NextResponse.json({ success: false, message: error.message }, { status: error.status });
     const message = error instanceof Error ? error.message : '服务器内部错误';
     return NextResponse.json({ success: false, message }, { status: 500 });
   }

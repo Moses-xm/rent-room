@@ -6,6 +6,7 @@ export const PORTAL_ORDERS_PATH = '/portal/account/orders';
 export const PORTAL_AUTH_CHANGED_EVENT = 'portal-auth-changed';
 
 export type PortalProfile = {
+  id?: number;
   username: string;
   nickname?: string;
   avatar?: string;
@@ -35,7 +36,7 @@ export function getPortalProfile(): PortalProfile | null {
     const p = JSON.parse(raw) as Partial<PortalProfile>;
     const username = normalizeStorageValue(p?.username);
     if (!username) return null;
-    return { username, nickname: p.nickname || undefined, avatar: p.avatar || undefined, identity: p.identity };
+    return { id: p.id, username, nickname: p.nickname || undefined, avatar: p.avatar || undefined, identity: p.identity };
   } catch {
     return null;
   }

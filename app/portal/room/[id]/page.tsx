@@ -253,11 +253,12 @@ export default function RoomDetailPage() {
     setAppointmentOpen(true);
   }
 
-  function handleContact() {
+  function handleRent() {
     if (!getPortalToken()) {
       toast.error("请先登录后再租赁");
       return;
     }
+    router.push(`/portal/account/contract/new?roomId=${id}`);
   }
 
   async function handleAppointmentSubmit(appointmentTime: string, remark: string) {
@@ -503,7 +504,7 @@ export default function RoomDetailPage() {
                 info={brokerInfo}
                 isRented={room.isRented === 2}
                 onAppointment={handleOpenAppointment}
-                onContact={handleContact}
+                onRent={handleRent}
               />
 
               {/* 移动端地图 */}

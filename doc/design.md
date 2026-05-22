@@ -913,7 +913,9 @@ import AppLoading from '@/components/AppLoading';
 /portal/account/community        # 我的小区 ✅
 /portal/account/community/new    # 创建小区 ✅
 /portal/account/community/[id]/edit  # 编辑小区 ✅
-/portal/account/contract         # 我的合同 ✅
+/portal/account/contract         # 我的合同列表 ✅
+/portal/account/contract/new     # 创建合同（立即租赁入口）✅
+/portal/account/contract/[id]    # 合同详情（交租/续租/退房/删除）✅
 /portal/account/orders           # 我的订单 ✅
 /portal/account/notification     # 我的通知 ✅
 ```
@@ -987,7 +989,8 @@ Portal API（`app/api/portal/`）：
 - 设施展示（按整租/合租区分显示方式）
 - 地图定位（百度地图）
 - 房东信息
-- 操作按钮：收藏、预约看房、立即租房（需登录）
+- 操作按钮：收藏、预约看房、立即租赁（需登录）
+- **立即租赁** ✅：点击后跳转 `/portal/account/contract/new?roomId=xxx`；已租出时按钮变灰不可点
 
 ### 预约看房
 
@@ -1021,11 +1024,11 @@ Portal API（`app/api/portal/`）：
 - 取消/完成操作：校验操作者必须是该预约的 `userId` 或 `landlordId`；完成后同步向对方创建通知（`type=3`）；取消后同步向对方创建通知（`type=2`）
 - **互相完成**：任一方调用 `/complete` 均写入 `status=2`，`completedBy=当前userId`，对方会收到通知
 
-### 租房交易
+### 租房交易 ✅
 
 #### 下单流程
 
-1. 点击"立即租房" → 弹出租房确认弹窗（需登录）
+1. 点击"立即租赁" → 跳转到 `/portal/account/contract/new?roomId=xxx`（需登录）
 2. 选择租期（月数，须 ≥ `room.minTenancy` 且为 `room.pay` 的整数倍）和开始日期
 3. 系统自动计算：
    - 结束日期（`offlineTime = onlineTime + tenancy 月`）
@@ -1034,7 +1037,7 @@ Portal API（`app/api/portal/`）：
    - 将首期时间段放入 `paidPeriod`，其余放入 `payingPeriod`
 4. 展示账单明细，要求输入 6 位支付密码（`payCode`）
 5. 校验：余额充足 + 支付密码正确
-6. 提交 → `POST /api/portal/contract`
+6. 提交 → `POST /api/portal/account/contracts`
 7. 后端原子操作（事务）：
    - 验证房源 `isRented=1`（未租出，防并发重复租）
    - 扣减租客 `wallet`（首次付款金额）
@@ -1049,17 +1052,17 @@ Portal API（`app/api/portal/`）：
    - 为房东创建通知（`type=6`，"收款成功"）
 8. 成功后跳转合同详情页
 
-#### Portal API — 合同
+#### Portal API — 合同 ✅
 
 | 方法 | 路径 | 说明 | 鉴权 |
 |------|------|------|------|
-| `POST` | `/api/portal/contract` | 创建合同（含首次支付） | 登录用户 |
-| `GET` | `/api/portal/contract?role=tenant\|landlord&status=&page=&limit=` | 查询合同列表 | 登录用户 |
-| `GET` | `/api/portal/contract/[id]` | 合同详情 | 合同当事人 |
-| `POST` | `/api/portal/contract/[id]/pay` | 支付下一期房租 | 租客 |
-| `POST` | `/api/portal/contract/[id]/renew` | 续租 | 租客 |
-| `POST` | `/api/portal/contract/[id]/checkout` | 提前退房（非法退房） | 租客 |
-| `DELETE` | `/api/portal/contract/[id]` | 删除合同（仅 status=2 后可删，各删各自一侧） | 合同当事人 |
+| `POST` | `/api/portal/account/contracts` | 创建合同（含首次支付，当前用户为租客） | 登录用户 |
+| `GET` | `/api/portal/account/contracts?role=tenant\|landlord&page=&limit=` | 查询合同列表 | 登录用户 |
+| `GET` | `/api/portal/account/contracts/[id]` | 合同详情（含 myRole: tenant\|landlord） | 合同当事人 |
+| `DELETE` | `/api/portal/account/contracts/[id]` | 软删除合同（仅 isCheckout 后可删） | 合同当事人 |
+| `POST` | `/api/portal/account/contracts/[id]/pay` | 支付下一期房租（用户输入自己的 payCode） | 租客 |
+| `POST` | `/api/portal/account/contracts/[id]/renew` | 续租（无需支付密码，续租后另行交租）| 租客或房东 |
+| `POST` | `/api/portal/account/contracts/[id]/checkout` | 退房（合法/非法由 payingPeriod 自动判断） | 租客或房东 |
 
 **支付下一期（`POST /pay`）**：
 - 取 `payingPeriod[0]` 作为本期时间段

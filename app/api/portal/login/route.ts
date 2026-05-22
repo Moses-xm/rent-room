@@ -34,6 +34,7 @@ export async function POST(req: Request) {
       message: "登录成功",
       token,
       profile: {
+        id: user.id,
         username: user.username,
         nickname: user.nickname ?? undefined,
         avatar: user.avatar ?? undefined,

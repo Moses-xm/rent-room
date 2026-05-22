@@ -34,7 +34,7 @@ export async function POST(req: Request) {
       success: true,
       message: "注册成功",
       token,
-      profile: { username: user.username, identity: user.identity },
+      profile: { id: user.id, username: user.username, identity: user.identity },
     });
   } catch (error: unknown) {
     return NextResponse.json(

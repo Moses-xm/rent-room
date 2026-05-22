@@ -12,6 +12,7 @@ interface BrokerCardProps {
   isRented?: boolean;
   onAppointment?: () => void;
   onContact?: () => void;
+  onRent?: () => void;
 }
 
 export function BrokerCard({
@@ -21,6 +22,7 @@ export function BrokerCard({
   isRented = false,
   onAppointment,
   onContact,
+  onRent,
 }: BrokerCardProps) {
   return (
     <div className="border border-border p-5">
@@ -53,7 +55,7 @@ export function BrokerCard({
           预约看房
         </button>
         <button
-          onClick={onContact}
+          onClick={isRented ? onContact : (onRent ?? onContact)}
           disabled={isRented}
           className="w-full h-10 text-[15px] text-center border border-primary text-primary hover:bg-primary hover:text-white cursor-pointer transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
         >

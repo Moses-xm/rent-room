@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { requirePortalAuth } from '@/lib/portal-auth';
+import { createContract, ServiceError } from '@/lib/contract-service';
+
 
 // GET /api/portal/account/contracts?page=&limit=&role=tenant|landlord
 export async function GET(req: NextRequest) {
@@ -89,5 +91,31 @@ export async function GET(req: NextRequest) {
     });
   } catch {
     return NextResponse.json({ success: false, message: '获取合同失败' }, { status: 500 });
+  }
+}
+
+// POST /api/portal/account/contracts — 租客（当前登录用户）创建合同
+export async function POST(req: NextRequest) {
+  try {
+    const auth = await requirePortalAuth(req);
+    if (!auth.ok) return auth.response;
+
+    const body    = await req.json();
+    const roomId  = parseInt(body.roomId);
+    const tenancy = parseInt(body.tenancy);
+    const payCode = String(body.payCode || '');
+    const onlineTime = body.onlineTime;
+
+    if (!roomId || isNaN(roomId))                   return NextResponse.json({ success: false, message: '请提供房源 ID' }, { status: 400 });
+    if (!tenancy || isNaN(tenancy) || tenancy <= 0) return NextResponse.json({ success: false, message: '请输入有效租期' }, { status: 400 });
+    if (!onlineTime)                                return NextResponse.json({ success: false, message: '请选择开始日期' }, { status: 400 });
+    if (!payCode)                                   return NextResponse.json({ success: false, message: '请输入支付密码' }, { status: 400 });
+
+    const data = await createContract({ userId: auth.user.id, roomId, tenancy, onlineTime, payCode });
+    return NextResponse.json({ success: true, data });
+  } catch (error: unknown) {
+    if (error instanceof ServiceError) return NextResponse.json({ success: false, message: error.message }, { status: error.status });
+    const message = error instanceof Error ? error.message : '服务器内部错误';
+    return NextResponse.json({ success: false, message }, { status: 500 });
   }
 }
