@@ -37,7 +37,7 @@ function orderTypeLabel(t: number) {
 
 function InfoRow({ label, value, mono = false }: { label: string; value: React.ReactNode; mono?: boolean }) {
   return (
-    <div className="flex items-start justify-between gap-4 py-2.5 border-b border-[var(--color-border)] last:border-0">
+    <div className="flex items-start justify-between gap-4 py-2.5 border-b border-border last:border-0">
       <span className="text-sm text-text-muted shrink-0 w-24">{label}</span>
       <span className={`text-sm text-text text-right flex-1 ${mono ? "font-mono" : "font-medium"}`}>{value}</span>
     </div>
@@ -47,15 +47,15 @@ function InfoRow({ label, value, mono = false }: { label: string; value: React.R
 function PartyCard({ name, nickname, role }: { name: string | null; nickname: string | null; role: string }) {
   if (!name) return null;
   return (
-    <div className="flex items-center gap-3 p-3 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)]">
-      <div className="w-10 h-10 rounded-full grid place-items-center bg-[var(--color-primary-tint,#e6f4ea)] text-[var(--color-primary)] text-sm font-semibold border border-[var(--color-border)] shrink-0">
+    <div className="flex items-center gap-3 p-3 rounded-xl border border-border bg-surface">
+      <div className="w-10 h-10 rounded-full grid place-items-center bg-(--color-primary-tint,#e6f4ea) text-primary text-sm font-semibold border border-border shrink-0">
         {(nickname || name).charAt(0).toUpperCase()}
       </div>
       <div className="flex-1 min-w-0">
         <p className="text-sm font-medium text-text truncate">{name}</p>
         {nickname && <p className="text-xs text-text-muted truncate">{nickname}</p>}
       </div>
-      <span className="text-xs bg-white border border-[var(--color-border)] text-text-muted px-2 py-0.5 rounded-full shrink-0">
+      <span className="text-xs bg-white border border-border text-text-muted px-2 py-0.5 rounded-full shrink-0">
         {role}
       </span>
     </div>
@@ -170,7 +170,7 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
         <div className="grid lg:grid-cols-[1fr_280px] gap-4 items-start">
 
           {/* 左：订单信息 */}
-          <div className="bg-white border border-[var(--color-border)] rounded-xl p-5">
+          <div className="bg-white border border-border rounded-xl p-5">
             <div className="flex items-center gap-2 mb-4">
               <ShoppingCart size={15} className="text-text-muted" />
               <h2 className="text-sm font-semibold text-text">订单信息</h2>
@@ -225,7 +225,7 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
               <InfoRow
                 label="付款金额"
                 value={
-                  <span className="font-semibold text-[var(--color-accent-dark)]">
+                  <span className="font-semibold text-(--color-accent-dark)">
                     ¥{totalAmount.toFixed(2)}
                   </span>
                 }
@@ -241,7 +241,7 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
           <div className="space-y-3">
 
             {/* 当事人 */}
-            <div className="bg-white border border-[var(--color-border)] rounded-xl p-4">
+            <div className="bg-white border border-border rounded-xl p-4">
               <div className="flex items-center gap-2 mb-3">
                 <User size={14} className="text-text-muted" />
                 <h2 className="text-sm font-semibold text-text">当事人</h2>
@@ -254,13 +254,13 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
 
             {/* 合同租期 */}
             {(order.contractOnlineTime || order.contractOfflineTime) && (
-              <div className="bg-white border border-[var(--color-border)] rounded-xl p-4">
+              <div className="bg-white border border-border rounded-xl p-4">
                 <div className="flex items-center gap-2 mb-3">
                   <Calendar size={14} className="text-text-muted" />
                   <h2 className="text-sm font-semibold text-text">合同租期</h2>
                 </div>
                 {order.contractOnlineTime && (
-                  <div className="flex justify-between text-sm py-1.5 border-b border-[var(--color-border)] last:border-0">
+                  <div className="flex justify-between text-sm py-1.5 border-b border-border last:border-0">
                     <span className="text-text-muted">开始日期</span>
                     <span className="font-mono text-text">{fmtDate(order.contractOnlineTime)}</span>
                   </div>

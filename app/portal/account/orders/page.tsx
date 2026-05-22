@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
+import { Eye, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { MineShell } from "@/components/portal/MineShell";
 import { portalRequest } from "@/utils/portal-request";
@@ -177,18 +178,20 @@ export default function OrdersPage() {
                 </div>
 
                 {/* 操作 */}
-                <div className="flex flex-col gap-1">
+                <div className="flex items-center gap-0.5">
                   <Link
                     href={`/portal/account/orders/${item.id}`}
-                    className="text-xs text-primary hover:opacity-70 cursor-pointer text-left"
+                    title="查看详情"
+                    className="w-8 h-8 rounded grid place-items-center text-text-muted hover:text-primary hover:bg-surface transition-colors"
                   >
-                    查看详情
+                    <Eye size={15} />
                   </Link>
                   <button
                     onClick={() => setDeleteConfirmId(item.id)}
-                    className="text-xs text-red-400 hover:text-red-600 cursor-pointer text-left"
+                    title="删除"
+                    className="w-8 h-8 rounded grid place-items-center text-text-muted hover:text-red-500 hover:bg-red-50 transition-colors cursor-pointer"
                   >
-                    删除
+                    <Trash2 size={15} />
                   </button>
                 </div>
               </div>
@@ -232,20 +235,22 @@ export default function OrdersPage() {
                     </div>
                   </div>
                 </div>
-                <div className="flex items-center justify-between mt-3 pt-2 border-t border-[#f5f5f5] text-xs">
-                  <span className="text-text-muted">{fmtDate(item.createdAt)}</span>
-                  <div className="flex gap-3">
+                <div className="flex items-center justify-between mt-3 pt-2 border-t border-[#f5f5f5]">
+                  <span className="text-xs text-text-muted">{fmtDate(item.createdAt)}</span>
+                  <div className="flex items-center gap-0.5">
                     <Link
                       href={`/portal/account/orders/${item.id}`}
-                      className="text-primary hover:opacity-70 cursor-pointer"
+                      title="查看详情"
+                      className="w-8 h-8 rounded grid place-items-center text-text-muted hover:text-primary hover:bg-surface transition-colors"
                     >
-                      查看详情
+                      <Eye size={15} />
                     </Link>
                     <button
                       onClick={() => setDeleteConfirmId(item.id)}
-                      className="text-red-400 hover:text-red-600 cursor-pointer"
+                      title="删除"
+                      className="w-8 h-8 rounded grid place-items-center text-text-muted hover:text-red-500 hover:bg-red-50 transition-colors cursor-pointer"
                     >
-                      删除
+                      <Trash2 size={15} />
                     </button>
                   </div>
                 </div>
