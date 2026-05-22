@@ -14,6 +14,8 @@ export type AppointmentFormData = {
   appointmentTime: string; // ISO string
   status?: number;
   remark: string | null;
+  userDeleted?: boolean;
+  landlordDeleted?: boolean;
 };
 
 export type EditableAppointment = {
@@ -23,6 +25,8 @@ export type EditableAppointment = {
   appointmentTime: string;
   status: number;
   remark: string | null;
+  userDeleted: boolean;
+  landlordDeleted: boolean;
   user: { id: number; username: string; nickname: string | null } | null;
   room: { id: number; name: string; roomCode: string } | null;
 };
@@ -65,6 +69,8 @@ export default function AppointmentFormModal({ state, onClose, onSaved }: Props)
   const [appointmentTime, setAppointmentTime] = useState('');
   const [status, setStatus] = useState('1');
   const [remark, setRemark] = useState('');
+  const [userDeleted, setUserDeleted] = useState(false);
+  const [landlordDeleted, setLandlordDeleted] = useState(false);
   const [errors, setErrors] = useState<{ userId?: string; roomId?: string; appointmentTime?: string }>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -89,12 +95,16 @@ export default function AppointmentFormModal({ state, onClose, onSaved }: Props)
       setAppointmentTime(isoToDatetimeLocal(state.appointment.appointmentTime));
       setStatus(String(state.appointment.status));
       setRemark(state.appointment.remark ?? '');
+      setUserDeleted(state.appointment.userDeleted);
+      setLandlordDeleted(state.appointment.landlordDeleted);
     } else {
       setSelectedUserId(null);
       setSelectedRoomId(null);
       setAppointmentTime('');
       setStatus('1');
       setRemark('');
+      setUserDeleted(false);
+      setLandlordDeleted(false);
     }
 
     setLoadingOptions(true);
@@ -144,7 +154,7 @@ export default function AppointmentFormModal({ state, onClose, onSaved }: Props)
         roomId: selectedRoomId!,
         appointmentTime: new Date(appointmentTime).toISOString(),
         remark: remark.trim() || null,
-        ...(isEdit ? { status: parseInt(status) } : {}),
+        ...(isEdit ? { status: parseInt(status), userDeleted, landlordDeleted } : {}),
       };
       await onSaved(data, editingId);
       onClose();
@@ -343,6 +353,37 @@ export default function AppointmentFormModal({ state, onClose, onSaved }: Props)
                     className={inputCls}
                   />
                 </div>
+
+                {/* ── 代删操作（仅编辑模式）── */}
+                {isEdit && (
+                  <div className="space-y-2">
+                    <label className={labelCls}>代为删除</label>
+                    <div className="flex flex-col gap-2">
+                      <label className="flex items-center gap-3 cursor-pointer group">
+                        <input
+                          type="checkbox"
+                          checked={userDeleted}
+                          onChange={(e) => setUserDeleted(e.target.checked)}
+                          className="w-4 h-4 rounded border-border text-primary accent-primary cursor-pointer"
+                        />
+                        <span className="text-body text-text group-hover:text-text transition-colors select-none">
+                          帮租客删除（租客侧隐藏此记录）
+                        </span>
+                      </label>
+                      <label className="flex items-center gap-3 cursor-pointer group">
+                        <input
+                          type="checkbox"
+                          checked={landlordDeleted}
+                          onChange={(e) => setLandlordDeleted(e.target.checked)}
+                          className="w-4 h-4 rounded border-border text-primary accent-primary cursor-pointer"
+                        />
+                        <span className="text-body text-text group-hover:text-text transition-colors select-none">
+                          帮房东删除（房东侧隐藏此记录）
+                        </span>
+                      </label>
+                    </div>
+                  </div>
+                )}
               </>
             )}
           </div>

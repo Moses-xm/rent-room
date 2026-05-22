@@ -25,6 +25,8 @@ export async function PUT(req: Request, props: RouteProps) {
     const appointmentTime = body.appointmentTime ? new Date(body.appointmentTime) : null;
     const status = body.status !== undefined ? parseInt(body.status) : undefined;
     const remark = body.remark?.trim() ?? null;
+    const userDeleted = body.userDeleted !== undefined ? Boolean(body.userDeleted) : undefined;
+    const landlordDeleted = body.landlordDeleted !== undefined ? Boolean(body.landlordDeleted) : undefined;
 
     if (!userId || isNaN(userId)) {
       return NextResponse.json({ success: false, message: '请选择租客' }, { status: 400 });
@@ -65,6 +67,8 @@ export async function PUT(req: Request, props: RouteProps) {
         appointmentTime,
         remark,
         ...(status !== undefined ? { status } : {}),
+        ...(userDeleted !== undefined ? { userDeleted } : {}),
+        ...(landlordDeleted !== undefined ? { landlordDeleted } : {}),
       },
       include: INCLUDE,
     });

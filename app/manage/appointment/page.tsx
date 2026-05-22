@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
-import { Plus, Search, Pencil, Trash2, CalendarCheck, CheckCheck, X, Home } from 'lucide-react';
+import { Plus, Search, Pencil, Trash2, CalendarCheck, X, Home } from 'lucide-react';
 import { resolveUploadedFileUrl } from '@/lib/upload-path';
 import { toast } from 'sonner';
 import { request } from '@/utils/request';
@@ -27,6 +27,8 @@ type AppointmentItem = {
   appointmentTime: string;
   status: number;
   remark: string | null;
+  userDeleted: boolean;
+  landlordDeleted: boolean;
   createdAt: string;
   user: { id: number; username: string; nickname: string | null; avatar: string | null } | null;
   room: { id: number; name: string; roomCode: string; cover: string } | null;
@@ -171,17 +173,6 @@ export default function AppointmentPage() {
     setRefreshKey((k) => k + 1);
   };
 
-  const handleQuickStatus = async (item: AppointmentItem, newStatus: 2 | 3) => {
-    const label = newStatus === 2 ? '已完成' : '已取消';
-    try {
-      await request(`/manage/appointment/${item.id}`, { method: 'PATCH', json: { status: newStatus } });
-      toast.success(`预约已标记为${label}`);
-      setRefreshKey((k) => k + 1);
-    } catch {
-      // request() 已处理 toast 错误
-    }
-  };
-
   const confirmDelete = async () => {
     if (!deleteTarget || isDeleting) return;
     setIsDeleting(true);
@@ -290,26 +281,6 @@ export default function AppointmentPage() {
       align: 'right',
       render: (item) => (
         <div className="flex justify-end items-center gap-0.5">
-          {item.status === 1 && (
-            <>
-              <button
-                onClick={() => handleQuickStatus(item, 2)}
-                title="标记已完成"
-                className="w-8 h-8 rounded-sm grid place-items-center
-                           text-text-muted hover:text-emerald-600 hover:bg-emerald-50 transition-colors cursor-pointer"
-              >
-                <CheckCheck size={15} />
-              </button>
-              <button
-                onClick={() => handleQuickStatus(item, 3)}
-                title="取消预约"
-                className="w-8 h-8 rounded-sm grid place-items-center
-                           text-text-muted hover:text-danger hover:bg-danger-bg transition-colors cursor-pointer"
-              >
-                <X size={15} />
-              </button>
-            </>
-          )}
           <button
             onClick={() => setModalState({ mode: 'edit', appointment: item })}
             title="编辑预约"
@@ -506,24 +477,6 @@ export default function AppointmentPage() {
                   预约于 {fmtDateTime(item.appointmentTime)}
                 </p>
                 <div className="flex items-center gap-0.5 shrink-0">
-                  {item.status === 1 && (
-                    <>
-                      <button
-                        onClick={() => handleQuickStatus(item, 2)}
-                        title="标记已完成"
-                        className={`${cardBtnCls} hover:text-emerald-600 hover:bg-emerald-50`}
-                      >
-                        <CheckCheck size={16} />
-                      </button>
-                      <button
-                        onClick={() => handleQuickStatus(item, 3)}
-                        title="取消预约"
-                        className={`${cardBtnCls} hover:text-danger hover:bg-danger-bg`}
-                      >
-                        <X size={16} />
-                      </button>
-                    </>
-                  )}
                   <button
                     onClick={() => setModalState({ mode: 'edit', appointment: item })}
                     title="编辑"
