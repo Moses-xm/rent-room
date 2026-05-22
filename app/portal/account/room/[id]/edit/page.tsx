@@ -65,10 +65,85 @@ export default function EditRoomPage() {
     return (
       <MineShell title="编辑房源">
         <div className="px-5 py-5 space-y-4">
-          <div className="h-4 w-40 skeleton-shimmer rounded" />
-          {Array.from({ length: 6 }).map((_, i) => (
-            <div key={i} className="h-12 skeleton-shimmer rounded" />
-          ))}
+          {/* 面包屑 */}
+          <div className="h-4 w-32 skeleton-shimmer rounded" />
+
+          {/* 基础信息 */}
+          <div className="border border-[#eee] rounded-lg overflow-hidden">
+            <div className="h-11 skeleton-shimmer-warm" />
+            <div className="px-5 py-5">
+              <div className="h-10 skeleton-shimmer rounded" />
+            </div>
+          </div>
+
+          {/* 房源图片 */}
+          <div className="border border-[#eee] rounded-lg overflow-hidden">
+            <div className="h-11 skeleton-shimmer-warm" />
+            <div className="px-5 py-5 space-y-4">
+              <div className="h-20 skeleton-shimmer rounded" />
+              <div className="grid grid-cols-4 gap-3">
+                {Array.from({ length: 4 }).map((_, i) => (
+                  <div key={i} className="aspect-square skeleton-shimmer rounded" />
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* 所属小区 */}
+          <div className="border border-[#eee] rounded-lg overflow-hidden">
+            <div className="h-11 skeleton-shimmer-warm" />
+            <div className="px-5 py-5">
+              <div className="h-10 skeleton-shimmer rounded" />
+            </div>
+          </div>
+
+          {/* 租房信息 */}
+          <div className="border border-[#eee] rounded-lg overflow-hidden">
+            <div className="h-11 skeleton-shimmer-warm" />
+            <div className="px-5 py-5 space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="h-10 skeleton-shimmer rounded" />
+                <div className="h-10 skeleton-shimmer rounded" />
+              </div>
+              <div className="h-10 skeleton-shimmer rounded" />
+              <div className="grid grid-cols-2 gap-4">
+                <div className="h-10 skeleton-shimmer rounded" />
+                <div className="h-10 skeleton-shimmer rounded" />
+              </div>
+              <div className="h-10 skeleton-shimmer rounded" />
+              <div className="h-10 skeleton-shimmer rounded" />
+              <div className="grid grid-cols-2 gap-4">
+                <div className="h-10 skeleton-shimmer rounded" />
+                <div className="h-10 skeleton-shimmer rounded" />
+              </div>
+            </div>
+          </div>
+
+          {/* 房屋设施 */}
+          <div className="border border-[#eee] rounded-lg overflow-hidden">
+            <div className="h-11 skeleton-shimmer-warm" />
+            <div className="px-5 py-5">
+              <div className="grid grid-cols-4 sm:grid-cols-5 lg:grid-cols-6 gap-2">
+                {Array.from({ length: 12 }).map((_, i) => (
+                  <div key={i} className="h-16 skeleton-shimmer rounded" />
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* 房源描述 */}
+          <div className="border border-[#eee] rounded-lg overflow-hidden">
+            <div className="h-11 skeleton-shimmer-warm" />
+            <div className="px-5 py-5">
+              <div className="h-55 skeleton-shimmer rounded" />
+            </div>
+          </div>
+
+          {/* 操作按钮 */}
+          <div className="flex justify-end gap-3 pb-6">
+            <div className="h-10 w-16 skeleton-shimmer rounded" />
+            <div className="h-10 w-24 skeleton-shimmer rounded" />
+          </div>
         </div>
       </MineShell>
     );

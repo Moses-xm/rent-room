@@ -54,10 +54,64 @@ export default function EditCommunityPage() {
     return (
       <MineShell title="编辑小区">
         <div className="px-5 py-5 space-y-4">
-          <div className="h-4 w-40 skeleton-shimmer rounded" />
-          {Array.from({ length: 5 }).map((_, i) => (
-            <div key={i} className="h-12 skeleton-shimmer rounded" />
-          ))}
+          {/* 面包屑 */}
+          <div className="h-4 w-32 skeleton-shimmer rounded" />
+
+          <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 items-start">
+            {/* 左侧表单 */}
+            <div className="space-y-4">
+              {/* 基础信息 */}
+              <div className="border border-[#eee] rounded-lg overflow-hidden">
+                <div className="h-11 skeleton-shimmer-warm" />
+                <div className="px-5 py-5 space-y-4">
+                  <div className="h-10 skeleton-shimmer rounded" />
+                  <div className="h-20 skeleton-shimmer rounded" />
+                  <div className="h-10 skeleton-shimmer rounded" />
+                </div>
+              </div>
+
+              {/* 地址信息 */}
+              <div className="border border-[#eee] rounded-lg overflow-hidden">
+                <div className="h-11 skeleton-shimmer-warm" />
+                <div className="px-5 py-5 space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="h-10 skeleton-shimmer rounded" />
+                    <div className="h-10 skeleton-shimmer rounded" />
+                  </div>
+                  <div className="h-10 skeleton-shimmer rounded" />
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="h-10 skeleton-shimmer rounded" />
+                    <div className="h-10 skeleton-shimmer rounded" />
+                  </div>
+                </div>
+              </div>
+
+              {/* 坐标与交通 */}
+              <div className="border border-[#eee] rounded-lg overflow-hidden">
+                <div className="h-11 skeleton-shimmer-warm" />
+                <div className="px-5 py-5">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="h-10 skeleton-shimmer rounded" />
+                    <div className="h-10 skeleton-shimmer rounded" />
+                  </div>
+                </div>
+              </div>
+
+              {/* 操作按钮 */}
+              <div className="flex justify-end gap-3 pb-6">
+                <div className="h-10 w-16 skeleton-shimmer rounded" />
+                <div className="h-10 w-24 skeleton-shimmer rounded" />
+              </div>
+            </div>
+
+            {/* 右侧地图占位 */}
+            <div className="border border-[#eee] rounded-lg overflow-hidden">
+              <div className="h-11 skeleton-shimmer-warm" />
+              <div className="p-3">
+                <div className="h-120 skeleton-shimmer rounded" />
+              </div>
+            </div>
+          </div>
         </div>
       </MineShell>
     );

@@ -422,18 +422,87 @@ function LandlordVerifyForm({ info }: { info: UserInfo }) {
 function LandlordSkeleton() {
   return (
     <MineShell title="房东认证">
-      <div className="px-6 py-8 max-w-lg space-y-5">
-        <div className="flex flex-col items-center gap-3">
-          <div className="skeleton-shimmer-warm w-20 h-20 rounded-full" />
-          <div className="skeleton-shimmer h-4 w-28 rounded" />
-          <div className="skeleton-shimmer h-3 w-20 rounded opacity-60" />
-        </div>
-        {Array.from({ length: 5 }).map((_, i) => (
-          <div key={i} className="space-y-1.5">
-            <div className="skeleton-shimmer h-3.5 w-16 rounded" />
-            <div className="skeleton-shimmer h-10 w-full rounded" />
+      <div className="p-6 lg:p-8 grid grid-cols-1 lg:grid-cols-[3fr_2fr] gap-6 lg:gap-10 items-start">
+        {/* 左栏：表单骨架 */}
+        <div className="space-y-5 order-2 lg:order-1">
+          {/* 用户名只读行 */}
+          <div className="space-y-1.5">
+            <div className="skeleton-shimmer h-3.5 w-14 rounded" />
+            <div className="skeleton-shimmer h-10 w-40 rounded" />
           </div>
-        ))}
+          {/* 手机号 + 邮箱（双列） */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+            <div className="space-y-1.5">
+              <div className="skeleton-shimmer h-3.5 w-14 rounded" />
+              <div className="skeleton-shimmer h-10 rounded" />
+            </div>
+            <div className="space-y-1.5">
+              <div className="skeleton-shimmer h-3.5 w-10 rounded" />
+              <div className="skeleton-shimmer h-10 rounded" />
+            </div>
+          </div>
+          {/* 真实姓名 */}
+          <div className="space-y-1.5">
+            <div className="skeleton-shimmer h-3.5 w-16 rounded" />
+            <div className="skeleton-shimmer h-10 rounded" />
+          </div>
+          {/* 分隔线 + 选填区 */}
+          <div className="border-t border-[#f0f0f0] pt-4 space-y-5">
+            <div className="skeleton-shimmer h-3 w-20 rounded opacity-60" />
+            {/* 昵称 + 性别（双列） */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+              <div className="space-y-1.5">
+                <div className="skeleton-shimmer h-3.5 w-10 rounded" />
+                <div className="skeleton-shimmer h-10 rounded" />
+              </div>
+              <div className="space-y-1.5">
+                <div className="skeleton-shimmer h-3.5 w-10 rounded" />
+                <div className="skeleton-shimmer h-10 rounded" />
+              </div>
+            </div>
+            {/* 省市区（三列） */}
+            <div className="space-y-1.5">
+              <div className="skeleton-shimmer h-3.5 w-16 rounded" />
+              <div className="grid grid-cols-3 gap-3">
+                <div className="skeleton-shimmer h-10 rounded" />
+                <div className="skeleton-shimmer h-10 rounded" />
+                <div className="skeleton-shimmer h-10 rounded" />
+              </div>
+            </div>
+            {/* 详细地址 */}
+            <div className="space-y-1.5">
+              <div className="skeleton-shimmer h-3.5 w-16 rounded" />
+              <div className="skeleton-shimmer h-10 rounded" />
+            </div>
+          </div>
+          {/* 按钮 */}
+          <div className="flex gap-3 pt-2">
+            <div className="skeleton-shimmer h-10 w-16 rounded" />
+            <div className="skeleton-shimmer h-10 w-24 rounded" />
+          </div>
+        </div>
+
+        {/* 右栏：说明卡骨架 */}
+        <div className="order-1 lg:order-2 space-y-4">
+          <div className="p-4 lg:p-5 border border-[#eee] rounded-xl space-y-3">
+            <div className="skeleton-shimmer h-4 w-28 rounded" />
+            <div className="skeleton-shimmer h-3 w-full rounded opacity-70" />
+            <div className="skeleton-shimmer h-3 w-4/5 rounded opacity-60" />
+            <div className="grid grid-cols-2 lg:grid-cols-1 gap-2 mt-1">
+              {Array.from({ length: 4 }).map((_, i) => (
+                <div key={i} className="flex items-center gap-2">
+                  <div className="skeleton-shimmer w-6 h-6 rounded-md shrink-0" />
+                  <div className="skeleton-shimmer h-3 flex-1 rounded" />
+                </div>
+              ))}
+            </div>
+          </div>
+          <div className="hidden lg:block p-4 border border-[#eee] rounded-xl space-y-2">
+            <div className="skeleton-shimmer h-3.5 w-16 rounded" />
+            <div className="skeleton-shimmer h-3 w-full rounded opacity-70" />
+            <div className="skeleton-shimmer h-3 w-3/4 rounded opacity-60" />
+          </div>
+        </div>
       </div>
     </MineShell>
   );
