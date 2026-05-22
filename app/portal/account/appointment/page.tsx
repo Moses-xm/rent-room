@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { Suspense, useCallback, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { toast } from "sonner";
@@ -521,7 +521,7 @@ function LandlordList() {
 }
 
 /* ─── Page ───────────────────────────────────────────────────────────────── */
-export default function AppointmentPage() {
+function AppointmentContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const isLandlord = getPortalProfile()?.identity === 2;
@@ -564,5 +564,13 @@ export default function AppointmentPage() {
 
       {tab === "tenant" ? <TenantList /> : <LandlordList />}
     </MineShell>
+  );
+}
+
+export default function AppointmentPage() {
+  return (
+    <Suspense>
+      <AppointmentContent />
+    </Suspense>
   );
 }

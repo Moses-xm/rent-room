@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { Suspense, useCallback, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { MineShell } from "@/components/portal/MineShell";
@@ -326,7 +326,7 @@ function LandlordContractList() {
 }
 
 /* ─── Page ───────────────────────────────────────────────────────────────── */
-export default function ContractPage() {
+function ContractContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const isLandlord = getPortalProfile()?.identity === 2;
@@ -369,5 +369,13 @@ export default function ContractPage() {
 
       {tab === "tenant" ? <TenantContractList /> : <LandlordContractList />}
     </MineShell>
+  );
+}
+
+export default function ContractPage() {
+  return (
+    <Suspense>
+      <ContractContent />
+    </Suspense>
   );
 }
