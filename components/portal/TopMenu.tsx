@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { X } from "lucide-react";
@@ -14,44 +14,92 @@ function LandlordGateModal({
   state,
   onClose,
   onVerify,
+  onLogin,
 }: {
   state: GateState;
   onClose: () => void;
   onVerify: () => void;
+  onLogin: () => void;
 }) {
   if (!state) return null;
+
+  const isUnauth = state === "unauth";
+
   return (
     <Modal open onClose={onClose}>
       <div
-        className="bg-white rounded-lg shadow-xl w-[90vw] max-w-sm overflow-hidden"
+        className="bg-white rounded-2xl shadow-2xl w-[90vw] max-w-[360px] overflow-hidden"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex items-center justify-between px-5 py-4 border-b border-[#eee]">
-          <span className="text-base font-medium text-[#333]">提示</span>
-          <button onClick={onClose} className="text-[#999] hover:text-[#333] cursor-pointer transition-colors">
-            <X className="w-4 h-4" />
-          </button>
-        </div>
-        <div className="px-5 py-6 text-sm text-[#555] leading-relaxed">
-          {state === "unauth"
-            ? "请先登录，并完成房东认证后，才可以发布房源。"
-            : "您尚未完成房东认证，需要先填写个人信息完成认证，才可以发布房源。"}
-        </div>
-        <div className="flex justify-end gap-2 px-5 pb-5">
+        {/* 顶部彩色图示区 */}
+        <div className="relative bg-primary-tint-2 px-6 pt-8 pb-10 text-center">
           <button
             onClick={onClose}
-            className="h-9 px-5 border border-[#ddd] text-[#666] text-sm rounded cursor-pointer hover:bg-[#f5f5f5] transition-colors"
+            className="absolute top-3 right-3 w-7 h-7 flex items-center justify-center rounded-full bg-primary-tint text-primary hover:bg-primary-tint-2 cursor-pointer transition-colors"
           >
-            取消
+            <X className="w-3.5 h-3.5" />
           </button>
-          {state === "notLandlord" && (
-            <button
-              onClick={onVerify}
-              className="h-9 px-5 bg-primary text-white text-sm rounded cursor-pointer hover:opacity-90 transition-opacity"
-            >
-              进行房东认证
-            </button>
-          )}
+          {/* 图标 */}
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary-tint mb-3">
+            <svg viewBox="0 0 48 48" className="w-9 h-9 fill-current text-primary" xmlns="http://www.w3.org/2000/svg">
+              {isUnauth ? (
+                /* 用户/锁图标 */
+                <path d="M24 4a8 8 0 1 1 0 16A8 8 0 0 1 24 4zm0 20c8.84 0 16 3.58 16 8v4H8v-4c0-4.42 7.16-8 16-8zm10 18a2 2 0 0 0 2-2v-6a2 2 0 0 0-2-2H14a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h20z" />
+              ) : (
+                /* 房屋图标 */
+                <path d="M24 4L4 22h6v20h12V30h4v12h12V22h6L24 4zm0 5.34L38 22.5V38h-8V26H18v12h-8V22.5L24 9.34z" />
+              )}
+            </svg>
+          </div>
+          <h3 className="text-text text-lg font-semibold">
+            {isUnauth ? "请先登录" : "完成房东认证"}
+          </h3>
+          <p className="text-text-2 text-sm mt-1">
+            {isUnauth ? "登录后才可以发布房源" : "认证后即可发布房源"}
+          </p>
+        </div>
+
+        {/* 内容区 */}
+        <div className="px-6 py-5">
+          <p className="text-sm text-[var(--color-text-2)] leading-relaxed text-center">
+            {isUnauth
+              ? "您尚未登录账号。请先登录，并完成房东认证后，才可以发布房源信息。"
+              : "您的账号尚未完成房东认证。请填写个人信息完成认证后，即可发布房源。"}
+          </p>
+
+          <div className="flex flex-col gap-2.5 mt-5">
+            {isUnauth ? (
+              <>
+                <button
+                  onClick={onLogin}
+                  className="w-full h-10 bg-[var(--color-primary)] text-white text-sm font-medium rounded-lg cursor-pointer hover:bg-[var(--color-primary-dark)] transition-colors"
+                >
+                  去登录
+                </button>
+                <button
+                  onClick={onClose}
+                  className="w-full h-10 border border-[var(--color-border)] text-[var(--color-text-2)] text-sm rounded-lg cursor-pointer hover:bg-[var(--color-surface)] transition-colors"
+                >
+                  稍后再说
+                </button>
+              </>
+            ) : (
+              <>
+                <button
+                  onClick={onVerify}
+                  className="w-full h-10 bg-[var(--color-primary)] text-white text-sm font-medium rounded-lg cursor-pointer hover:bg-[var(--color-primary-dark)] transition-colors"
+                >
+                  进行房东认证
+                </button>
+                <button
+                  onClick={onClose}
+                  className="w-full h-10 border border-[var(--color-border)] text-[var(--color-text-2)] text-sm rounded-lg cursor-pointer hover:bg-[var(--color-surface)] transition-colors"
+                >
+                  取消
+                </button>
+              </>
+            )}
+          </div>
         </div>
       </div>
     </Modal>
@@ -63,12 +111,8 @@ export function TopMenu() {
   const router = useRouter();
   const [gateState, setGateState] = useState<GateState>(null);
 
-  // 刷新时同步登录态（profile 存在于 localStorage）
-  const [mounted, setMounted] = useState(false);
-  useEffect(() => { setMounted(true); }, []);
-
   function handleLandlordGate(href: string) {
-    if (!mounted) return;
+    if (typeof window === "undefined") return;
     if (!getPortalToken()) {
       setGateState("unauth");
       return;
@@ -111,6 +155,7 @@ export function TopMenu() {
         state={gateState}
         onClose={() => setGateState(null)}
         onVerify={() => { setGateState(null); router.push("/portal/account/landlord"); }}
+        onLogin={() => { setGateState(null); router.push("/portal/login"); }}
       />
     </>
   );
