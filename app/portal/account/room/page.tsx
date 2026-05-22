@@ -260,6 +260,7 @@ export default function MyRoomPage() {
                             {item.name}
                           </Link>
                           <div className="text-xs text-text-muted mt-0.5">{item.communityName || "—"}</div>
+                          <div className="text-sm text-(--color-accent-dark) font-medium mt-0.5">¥{item.price}/月</div>
                         </div>
                       </div>
                       <div className="flex items-center gap-2 mt-3 pt-2 border-t border-[#f5f5f5] flex-wrap">
