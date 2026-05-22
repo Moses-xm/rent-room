@@ -111,6 +111,7 @@ export const PORTAL_NAV_MENU = [
 
 export const PORTAL_MINE_MENU = [
   { label: "我的资料", href: "/portal/account/info"         },
+  { label: "我的钱包", href: "/portal/account/wallet"       },
   { label: "我的收藏", href: "/portal/account/collection"   },
   { label: "我的预约", href: "/portal/account/appointment"  },
   { label: "我的房源", href: "/portal/account/room"         },

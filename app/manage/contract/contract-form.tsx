@@ -491,6 +491,36 @@ export default function ContractForm({ title, subtitle, backHref, isEdit = false
     );
   }
 
+  const actionButtons = !isReadOnly ? (
+    <>
+      <button type="button" onClick={() => router.back()} className="flex-1 h-11 border border-border rounded-xl text-body text-text hover:bg-surface-2 transition-colors flex items-center justify-center cursor-pointer">取消</button>
+      {isEdit ? (
+        <button
+          onClick={handleEdit}
+          disabled={submitting || !onlineTime}
+          className="flex-1 h-11 bg-primary text-white rounded-xl text-body font-medium hover:bg-primary-dark transition-colors disabled:opacity-50 cursor-pointer"
+        >
+          {submitting ? '保存中...' : '保存修改'}
+        </button>
+      ) : (
+        <button
+          onClick={() => {
+            if (!selectedUser) { toast.error('请选择租客'); return; }
+            if (!selectedRoom) { toast.error('请选择房源'); return; }
+            if (!isValidTen)   { toast.error(`租期必须 ≥ ${minTenancy} 且为 ${payMonths} 的倍数`); return; }
+            if (!onlineTime)   { toast.error('请选择开始日期'); return; }
+            setPayDialogOpen(true);
+          }}
+          disabled={submitting}
+          className="flex-1 h-11 bg-primary text-white rounded-xl text-body font-medium hover:bg-primary-dark transition-colors disabled:opacity-50 cursor-pointer flex items-center justify-center gap-2"
+        >
+          <FileText size={15} />
+          创建合同
+        </button>
+      )}
+    </>
+  ) : null;
+
   return (
     <div className="space-y-5">
       {/* ── 面包屑 ── */}
@@ -711,36 +741,8 @@ export default function ContractForm({ title, subtitle, backHref, isEdit = false
             </div>
           )}
 
-          {/* 操作按钮 */}
-          {!isReadOnly && (
-            <div className="flex gap-3 pt-2">
-              <button type="button" onClick={() => router.back()} className="flex-1 h-11 border border-border rounded-xl text-body text-text hover:bg-surface-2 transition-colors flex items-center justify-center cursor-pointer">取消</button>
-              {isEdit ? (
-                <button
-                  onClick={handleEdit}
-                  disabled={submitting || !onlineTime}
-                  className="flex-1 h-11 bg-primary text-white rounded-xl text-body font-medium hover:bg-primary-dark transition-colors disabled:opacity-50 cursor-pointer"
-                >
-                  {submitting ? '保存中...' : '保存修改'}
-                </button>
-              ) : (
-                <button
-                  onClick={() => {
-                    if (!selectedUser) { toast.error('请选择租客'); return; }
-                    if (!selectedRoom) { toast.error('请选择房源'); return; }
-                    if (!isValidTen)   { toast.error(`租期必须 ≥ ${minTenancy} 且为 ${payMonths} 的倍数`); return; }
-                    if (!onlineTime)   { toast.error('请选择开始日期'); return; }
-                    setPayDialogOpen(true);
-                  }}
-                  disabled={submitting}
-                  className="flex-1 h-11 bg-primary text-white rounded-xl text-body font-medium hover:bg-primary-dark transition-colors disabled:opacity-50 cursor-pointer flex items-center justify-center gap-2"
-                >
-                  <FileText size={15} />
-                  创建合同
-                </button>
-              )}
-            </div>
-          )}
+          {/* 操作按钮（桌面端在表单内） */}
+          {actionButtons && <div className="hidden lg:flex gap-3 pt-2">{actionButtons}</div>}
 
           {isReadOnly && (
             <div className="bg-slate-50 border border-border rounded-xl p-4 text-center text-body-sm text-text-muted">
@@ -765,6 +767,9 @@ export default function ContractForm({ title, subtitle, backHref, isEdit = false
           />
         </div>
       </div>
+
+      {/* 操作按钮（移动端在预览下方） */}
+      {actionButtons && <div className="lg:hidden flex gap-3 mt-4">{actionButtons}</div>}
 
       {/* 付款确认弹窗 */}
       <PayDialog

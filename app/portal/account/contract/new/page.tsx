@@ -12,6 +12,7 @@ import { RoomImage } from '@/components/portal/RoomImage';
 import { Modal } from '@/components/Modal';
 import { portalRequest } from '@/utils/portal-request';
 import { getPortalProfile, getPortalToken } from '@/utils/portal-auth';
+import { resolveUploadedFileUrl } from '@/lib/upload-path';
 import { fmtDate } from '@/utils/format';
 
 /* ─── Types ───────────────────────────────────────────────────────────────── */
@@ -50,12 +51,13 @@ function generatePeriods(onlineTime: Date, offlineTime: Date, payMonths: number)
 
 /* ─── Contract Preview ─────────────────────────────────────────────────────── */
 function ContractPreview({
-  room, onlineTime, tenancy, tenantName,
+  room, onlineTime, tenancy, tenantName, tenantAvatarUrl,
 }: {
   room: RoomInfo | null;
   onlineTime: string;
   tenancy: number;
   tenantName: string;
+  tenantAvatarUrl: string | null;
 }) {
   if (!room || !onlineTime || !tenancy) {
     return (
@@ -89,12 +91,22 @@ function ContractPreview({
         <div className="grid grid-cols-2 gap-3 text-sm">
           <div className="col-span-2">
             <p className="text-text-muted mb-0.5 text-xs">房源</p>
-            <p className="font-medium text-text">{room.name}</p>
+            <p className="font-medium text-text truncate">{room.name}</p>
             <p className="text-xs text-text-muted font-mono">{room.roomCode}</p>
           </div>
           <div>
             <p className="text-text-muted mb-0.5 text-xs">租客</p>
-            <p className="font-medium text-text">{tenantName}</p>
+            <div className="flex items-center gap-1.5">
+              {tenantAvatarUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={tenantAvatarUrl} alt={tenantName} className="w-5 h-5 rounded-full object-cover shrink-0" />
+              ) : (
+                <div className="w-5 h-5 rounded-full bg-primary text-white text-[10px] font-semibold grid place-items-center shrink-0">
+                  {tenantName.charAt(0).toUpperCase()}
+                </div>
+              )}
+              <p className="font-medium text-text">{tenantName}</p>
+            </div>
           </div>
           <div>
             <p className="text-text-muted mb-0.5 text-xs">房东</p>
@@ -308,6 +320,7 @@ function NewContractContent() {
 
   const profile = useMemo(() => getPortalProfile(), []);
   const tenantName = profile?.nickname || profile?.username || '我';
+  const tenantAvatarUrl = resolveUploadedFileUrl(profile?.avatar ?? null);
 
   const fetchRoom = useCallback(async () => {
     if (!roomId) { router.replace('/portal/account/contract'); return; }
@@ -366,6 +379,29 @@ function NewContractContent() {
 
   if (loading || !room) return <FormSkeleton />;
 
+  const actionButtons = (
+    <>
+      <button
+        onClick={() => router.back()}
+        className="flex-1 h-11 border border-[var(--color-border)] rounded-xl text-sm text-text hover:bg-[var(--color-surface)] transition-colors flex items-center justify-center cursor-pointer"
+      >
+        取消
+      </button>
+      <button
+        onClick={() => {
+          if (!isValidTen) { toast.error(`租期必须 ≥ ${minTenancy} 且为 ${payMonths} 的倍数`); return; }
+          if (!onlineTime) { toast.error('请选择开始日期'); return; }
+          setPayDialogOpen(true);
+        }}
+        disabled={submitting}
+        className="flex-1 h-11 bg-[var(--color-primary)] text-white rounded-xl text-sm font-medium hover:bg-[var(--color-primary-dark)] transition-colors disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed flex items-center justify-center gap-2"
+      >
+        <FileText size={15} />
+        创建合同
+      </button>
+    </>
+  );
+
   return (
     <MineShell title="立即租赁">
       <div className="p-5 lg:p-8">
@@ -383,56 +419,66 @@ function NewContractContent() {
           {/* ── 左：表单 ── */}
           <div className="bg-white border border-[var(--color-border)] rounded-2xl p-6 space-y-5">
 
-            {/* 房源信息（只读展示） */}
+            {/* 房源信息（合并展示） */}
             <div>
               <label className="block text-sm font-medium text-text mb-2">房源</label>
-              <div className="border border-[var(--color-primary)] bg-[var(--color-primary-tint)] rounded-xl px-3 py-2.5 flex items-center gap-3">
-                <div className="w-10 h-10 rounded-lg shrink-0 overflow-hidden border border-[var(--color-border)] bg-[var(--color-surface)]">
-                  <RoomImage src={room.coverUrl} alt={room.name} className="w-full h-full object-cover" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-text truncate">{room.name}</p>
-                  <p className="text-xs text-text-muted font-mono">{room.roomCode} · ¥{room.price}/月 · 押{room.pledge}付{room.pay}</p>
-                </div>
-              </div>
-            </div>
-
-            {/* 房源详细信息 */}
-            <div className="bg-[var(--color-surface)] border border-[var(--color-border)] rounded-xl p-4 space-y-3">
-              <p className="text-sm font-semibold text-text">房源 & 房东信息</p>
-              <div className="grid grid-cols-3 gap-2 text-sm">
-                <div className="text-center p-2 bg-white rounded-lg border border-[var(--color-border)]">
-                  <p className="text-text-muted text-xs mb-0.5">月租</p>
-                  <p className="font-mono font-medium text-text">¥{room.price.toFixed(0)}</p>
-                </div>
-                <div className="text-center p-2 bg-white rounded-lg border border-[var(--color-border)]">
-                  <p className="text-text-muted text-xs mb-0.5">押付方式</p>
-                  <p className="font-medium text-text">押{room.pledge}付{room.pay}</p>
-                </div>
-                <div className="text-center p-2 bg-white rounded-lg border border-[var(--color-border)]">
-                  <p className="text-text-muted text-xs mb-0.5">最短租期</p>
-                  <p className="font-medium text-text">{room.minTenancy}个月</p>
-                </div>
-              </div>
-              {room.publisher && (
-                <div className="flex items-center gap-2 pt-1 border-t border-[var(--color-border)]">
-                  <div className="w-6 h-6 rounded-full overflow-hidden bg-[var(--color-primary-tint)] shrink-0">
-                    <RoomImage src={room.publisher.avatarUrl} alt={room.publisher.username} className="w-full h-full object-cover" />
+              <div className="border border-[var(--color-primary)] bg-[var(--color-primary-tint)] rounded-xl p-4 space-y-4">
+                {/* 封面 + 名称 */}
+                <div className="flex items-center gap-3">
+                  <div className="w-14 h-14 rounded-lg shrink-0 overflow-hidden border border-[var(--color-border)] bg-[var(--color-surface)]">
+                    <RoomImage src={room.coverUrl} alt={room.name} className="w-full h-full object-cover" />
                   </div>
-                  <p className="text-sm text-text-muted">
-                    房东：<span className="font-medium text-text">{room.publisher.nickname || room.publisher.username}</span>
-                  </p>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-text truncate">{room.name}</p>
+                    <p className="text-xs text-text-muted font-mono">{room.roomCode}</p>
+                    {room.community && (
+                      <p className="text-xs text-text-muted truncate">{room.community.district} · {room.community.name}</p>
+                    )}
+                  </div>
                 </div>
-              )}
+                {/* 分隔线 */}
+                <div className="h-px bg-[var(--color-primary)]/20" />
+                {/* 三列数据 */}
+                <div className="grid grid-cols-3 gap-2 text-sm">
+                  <div className="text-center p-2 bg-white rounded-lg border border-[var(--color-border)]">
+                    <p className="text-text-muted text-xs mb-0.5">月租</p>
+                    <p className="font-mono font-medium text-text">¥{room.price.toFixed(0)}</p>
+                  </div>
+                  <div className="text-center p-2 bg-white rounded-lg border border-[var(--color-border)]">
+                    <p className="text-text-muted text-xs mb-0.5">押付方式</p>
+                    <p className="font-medium text-text">押{room.pledge}付{room.pay}</p>
+                  </div>
+                  <div className="text-center p-2 bg-white rounded-lg border border-[var(--color-border)]">
+                    <p className="text-text-muted text-xs mb-0.5">最短租期</p>
+                    <p className="font-medium text-text">{room.minTenancy}个月</p>
+                  </div>
+                </div>
+                {/* 房东信息 */}
+                {room.publisher && (
+                  <div className="flex items-center gap-2 border-t border-primary/20 pt-1">
+                    <div className="w-6 h-6 rounded-full overflow-hidden bg-[var(--color-primary-tint-2)] shrink-0">
+                      <RoomImage src={room.publisher.avatarUrl} alt={room.publisher.username} className="w-full h-full object-cover" />
+                    </div>
+                    <p className="text-sm text-text-muted">
+                      房东：<span className="font-medium text-text">{room.publisher.nickname || room.publisher.username}</span>
+                    </p>
+                  </div>
+                )}
+              </div>
             </div>
 
             {/* 租客（当前用户，只读） */}
             <div>
               <label className="block text-sm font-medium text-text mb-2">租客（您）</label>
               <div className="border border-[var(--color-border)] rounded-xl px-3 py-2.5 flex items-center gap-2 bg-[var(--color-surface)]">
-                <div className="w-7 h-7 rounded-full bg-[var(--color-primary-tint)] text-[var(--color-primary)] text-xs font-semibold grid place-items-center shrink-0">
-                  {tenantName.charAt(0).toUpperCase()}
-                </div>
+                {tenantAvatarUrl ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={tenantAvatarUrl} alt={tenantName} className="w-7 h-7 rounded-full object-cover shrink-0" />
+                ) : (
+                  <div className="w-7 h-7 rounded-full bg-primary-tint text-primary text-xs font-semibold grid place-items-center shrink-0">
+                    {tenantName.charAt(0).toUpperCase()}
+                  </div>
+                )}
                 <span className="text-sm text-text">{tenantName}</span>
                 <span className="ml-auto text-xs text-text-muted">当前登录账号</span>
               </div>
@@ -514,27 +560,8 @@ function NewContractContent() {
               </div>
             )}
 
-            {/* 操作按钮 */}
-            <div className="flex gap-3 pt-2">
-              <button
-                onClick={() => router.back()}
-                className="flex-1 h-11 border border-[var(--color-border)] rounded-xl text-sm text-text hover:bg-[var(--color-surface)] transition-colors flex items-center justify-center cursor-pointer"
-              >
-                取消
-              </button>
-              <button
-                onClick={() => {
-                  if (!isValidTen) { toast.error(`租期必须 ≥ ${minTenancy} 且为 ${payMonths} 的倍数`); return; }
-                  if (!onlineTime) { toast.error('请选择开始日期'); return; }
-                  setPayDialogOpen(true);
-                }}
-                disabled={submitting}
-                className="flex-1 h-11 bg-[var(--color-primary)] text-white rounded-xl text-sm font-medium hover:bg-[var(--color-primary-dark)] transition-colors disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed flex items-center justify-center gap-2"
-              >
-                <FileText size={15} />
-                创建合同
-              </button>
-            </div>
+            {/* 操作按钮（桌面端在表单内） */}
+            <div className="hidden lg:flex gap-3 pt-2">{actionButtons}</div>
           </div>
 
           {/* ── 右：合同预览 ── */}
@@ -548,9 +575,13 @@ function NewContractContent() {
               onlineTime={onlineTime}
               tenancy={tenancyNum}
               tenantName={tenantName}
+              tenantAvatarUrl={tenantAvatarUrl}
             />
           </div>
         </div>
+
+        {/* 操作按钮（移动端在预览下方） */}
+        <div className="lg:hidden flex gap-3 mt-4">{actionButtons}</div>
       </div>
 
       <PayDialog

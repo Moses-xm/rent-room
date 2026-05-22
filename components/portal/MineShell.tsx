@@ -5,7 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
 import {
   User, Heart, CalendarCheck, Home, FileText, ShoppingCart, Bell, LogOut,
-  Building2, BadgeCheck,
+  Building2, BadgeCheck, Wallet,
   type LucideProps,
 } from "lucide-react";
 import { IDENTITY_LABEL } from "@/utils/constants";
@@ -24,6 +24,7 @@ type IconComponent = React.ComponentType<LucideProps>;
 
 const MINE_ICON_MAP: Record<string, IconComponent> = {
   "/portal/account/info":         User,
+  "/portal/account/wallet":       Wallet,
   "/portal/account/collection":   Heart,
   "/portal/account/appointment":  CalendarCheck,
   "/portal/account/room":         Home,

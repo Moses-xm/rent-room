@@ -12,7 +12,7 @@ import { RoomTags } from "@/components/portal/RoomTags";
 import { BrokerCard } from "@/components/portal/BrokerCard";
 import { AppointmentModal } from "@/components/portal/AppointmentModal";
 import { portalRequest } from "@/utils/portal-request";
-import { getPortalToken } from "@/utils/portal-auth";
+import { getPortalToken, getPortalProfile } from "@/utils/portal-auth";
 import { fmtDate } from "@/utils/format";
 import { buildRoomTags } from "@/utils/portal-room";
 import {
@@ -250,12 +250,20 @@ export default function RoomDetailPage() {
       toast.error("请先登录后再预约看房");
       return;
     }
+    if (room && getPortalProfile()?.id === room.publisher?.id) {
+      toast.error("不能预约自己发布的房源");
+      return;
+    }
     setAppointmentOpen(true);
   }
 
   function handleRent() {
     if (!getPortalToken()) {
       toast.error("请先登录后再租赁");
+      return;
+    }
+    if (room && getPortalProfile()?.id === room.publisher?.id) {
+      toast.error("不能租用自己发布的房源");
       return;
     }
     router.push(`/portal/account/contract/new?roomId=${id}`);
