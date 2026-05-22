@@ -5,6 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
 import {
   User, Heart, CalendarCheck, Home, FileText, ShoppingCart, Bell, LogOut,
+  Building2, BadgeCheck,
   type LucideProps,
 } from "lucide-react";
 import { IDENTITY_LABEL } from "@/utils/constants";
@@ -26,9 +27,11 @@ const MINE_ICON_MAP: Record<string, IconComponent> = {
   "/portal/account/collection":   Heart,
   "/portal/account/appointment":  CalendarCheck,
   "/portal/account/room":         Home,
+  "/portal/account/community":    Building2,
   "/portal/account/contract":     FileText,
   "/portal/account/orders":       ShoppingCart,
   "/portal/account/notification": Bell,
+  "/portal/account/landlord":     BadgeCheck,
 };
 
 function getGreeting() {

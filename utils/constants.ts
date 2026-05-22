@@ -100,12 +100,13 @@ export const ORDER_TYPE_OPTIONS = [
 
 // ── Portal Navigation ─────────────────────────────────────────────────────────
 export const PORTAL_NAV_MENU = [
-  { href: "/portal",                         label: "首页",   exact: true },
-  { href: "/portal/areaRoom",               label: "区域找房" },
-  { href: "/portal/subwayRoom",             label: "地铁找房" },
-  { href: "/portal/cmyRoom",                label: "小区找房" },
-  { href: "/portal/mapRoom",                label: "地图找房" },
-  { href: "/portal/sharedRoom/createRoom",  label: "我要出租" },
+  { href: "/portal",            label: "首页",   exact: true },
+  { href: "/portal/areaRoom",   label: "区域找房" },
+  { href: "/portal/subwayRoom", label: "地铁找房" },
+  { href: "/portal/cmyRoom",    label: "小区找房" },
+  { href: "/portal/mapRoom",    label: "地图找房" },
+  // landlordGate: true — TopMenu / MobileNav 拦截，做身份判断后再跳转
+  { href: "/portal/account/room", label: "我要出租", landlordGate: true },
 ];
 
 export const PORTAL_MINE_MENU = [
@@ -113,9 +114,11 @@ export const PORTAL_MINE_MENU = [
   { label: "我的收藏", href: "/portal/account/collection"   },
   { label: "我的预约", href: "/portal/account/appointment"  },
   { label: "我的房源", href: "/portal/account/room"         },
+  { label: "我的小区", href: "/portal/account/community"    },
   { label: "我的合同", href: "/portal/account/contract"     },
   { label: "我的订单", href: "/portal/account/orders"       },
   { label: "我的通知", href: "/portal/account/notification" },
+  { label: "房东认证", href: "/portal/account/landlord"     },
 ];
 
 export const PORTAL_FOOTER_LINKS = ["关于我们", "联系我们", "用户协议", "隐私政策"];

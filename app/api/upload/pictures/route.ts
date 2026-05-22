@@ -1,13 +1,22 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { requireManageAuth } from "@/lib/manage-auth";
+import { requirePortalAuth } from "@/lib/portal-auth";
 import { deleteUploadedPicture, savePictureUpload } from "@/lib/uploaded-file";
+
+async function requireAnyAuth(req: NextRequest) {
+  const manage = await requireManageAuth(req);
+  if (manage.ok) return { ok: true as const };
+  const portal = await requirePortalAuth(req);
+  if (portal.ok) return { ok: true as const };
+  return manage;
+}
 
 const ALLOWED_TYPES = new Set(["image/jpeg", "image/png", "image/webp", "image/gif"]);
 const MAX_FILE_SIZE = 5 * 1024 * 1024;
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
   try {
-    const auth = await requireManageAuth(req);
+    const auth = await requireAnyAuth(req);
     if (!auth.ok) return auth.response;
 
     const formData = await req.formData();
@@ -47,9 +56,9 @@ export async function POST(req: Request) {
   }
 }
 
-export async function DELETE(req: Request) {
+export async function DELETE(req: NextRequest) {
   try {
-    const auth = await requireManageAuth(req);
+    const auth = await requireAnyAuth(req);
     if (!auth.ok) return auth.response;
 
     const body = await req.json();

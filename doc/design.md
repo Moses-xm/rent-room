@@ -903,23 +903,53 @@ import AppLoading from '@/components/AppLoading';
 /portal/register                 # 用户注册
 /portal/room/[id]                # 房源详情
 /portal/mapRoom                  # 地图找房
-/portal/sharedRoom/createRoom    # 发布房源（需登录）
-/portal/sharedRoom/createCmy     # 创建小区（需登录）
-/portal/sharedRoom/success       # 提交成功
+/portal/account/landlord         # 房东认证 ✅
 /portal/account/info             # 我的资料 ✅
 /portal/account/collection       # 我的收藏 ✅
 /portal/account/appointment      # 我的预约 ✅
-/portal/account/room             # 我的房源 ✅
+/portal/account/room             # 我的房源（含发布/撤回/编辑/删除）✅
+/portal/account/room/new         # 发布新房源 ✅
+/portal/account/room/[id]/edit   # 编辑房源 ✅
+/portal/account/community        # 我的小区 ✅
+/portal/account/community/new    # 创建小区 ✅
+/portal/account/community/[id]/edit  # 编辑小区 ✅
 /portal/account/contract         # 我的合同 ✅
 /portal/account/orders           # 我的订单 ✅
 /portal/account/notification     # 我的通知 ✅
 ```
 
-### 认证
+### 认证与房东体系
 
 - 公开页面（首页、房源列表、房源详情）无需登录
 - 需要登录的操作：预约、租房、发布房源、查看个人数据
-- 未登录时点击需要登录的操作，弹出提示并跳转登录页
+- 未登录时点击需要登录的操作，弹出 toast 提示（不跳转登录页）
+- `user.identity`：`1=普通用户 2=房东`
+- **我要出租** 按钮三态拦截：
+  - 未登录 → Modal 提示必须先登录并认证
+  - 已登录但 `identity=1` → Modal 提示需认证为房东，点击跳转 `/portal/account/landlord`
+  - 已登录且 `identity=2` → 直接进入 `/portal/account/room`
+- **房东认证**（`/portal/account/landlord`）：填写手机号、邮箱、真实姓名（必填），以及昵称/性别/省市区/地址（选填），提交后将 `identity` 置 2，更新本地 profile，跳转至我的房源
+
+### 我的房源（`/portal/account/room`）
+
+- 列表展示当前用户创建的所有房源，含发布状态/出租状态/发布时间
+- 操作入口：发布/撤回（`PATCH /api/portal/account/rooms/[id]/publish`）、编辑、删除（已租出不可删）
+- 顶部有"发布房源"和"创建小区"两个快速入口
+
+### 房源创建/编辑（`/portal/account/room/new`，`/portal/account/room/[id]/edit`）
+
+- 使用 `PortalRoomForm` 组件（精简版管理表单，无发布人选择/发布状态控制）
+- 图片上传使用 portal JWT（`/api/upload/avatar`、`/api/upload/pictures` 均已支持 portal auth）
+- 小区数据来自 `GET /api/portal/communities?all=true`
+- 设施数据来自 `GET /api/portal/facilities`
+- 创建后默认 `isPublished=1`（未发布），需手动在列表发布
+
+### 我的小区（`/portal/account/community`）
+
+- `community` 表新增 `creatorId Int?` 字段，可选 FK 到 `user`
+- 展示当前用户创建的小区列表，含房源数、创建时间
+- 操作：编辑（跳转编辑页）、删除（已有房源则不可删）
+- 使用 `PortalCommunityForm` 组件（与管理端逻辑一致，用 portal auth 上传封面、双向联动百度地图）
 
 ### 首页（`app/portal/page.tsx`）✅
 

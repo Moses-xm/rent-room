@@ -2,11 +2,18 @@
 
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
+import { Plus, Edit2, Trash2, Globe, GlobeLock } from "lucide-react";
 import { MineShell } from "@/components/portal/MineShell";
 import { portalRequest } from "@/utils/portal-request";
 import { resolveUploadedFileUrl } from "@/lib/upload-path";
 import { fmtDate } from "@/utils/format";
 import { ROOM_PUBLISHED_STYLE, ROOM_RENTED_STYLE } from "@/utils/constants";
+import ConfirmDialog from "@/components/ConfirmDialog";
+import Pagination from "@/components/Pagination";
+
+const PAGE_SIZE = 10;
 
 type RoomItem = {
   id: number;
@@ -22,22 +29,22 @@ type RoomItem = {
 };
 
 export default function MyRoomPage() {
-  const [items, setItems] = useState<RoomItem[]>([]);
-  const [loading, setLoading] = useState(true);
+  const router = useRouter();
+  const [items, setItems]       = useState<RoomItem[]>([]);
+  const [loading, setLoading]   = useState(true);
   const [hasLoaded, setHasLoaded] = useState(false);
-  const [page, setPage] = useState(1);
-  const [total, setTotal] = useState(0);
+  const [page, setPage]         = useState(1);
+  const [total, setTotal]       = useState(0);
   const [totalPages, setTotalPages] = useState(0);
+  const [deletingId, setDeletingId] = useState<number | null>(null);
+  const [publishingId, setPublishingId] = useState<number | null>(null);
 
   const load = useCallback(async (p: number) => {
     setLoading(true);
     try {
       const res = await portalRequest<{
-        success: boolean;
-        data: RoomItem[];
-        total: number;
-        totalPages: number;
-      }>(`/portal/account/rooms?page=${p}&limit=10`);
+        success: boolean; data: RoomItem[]; total: number; totalPages: number;
+      }>(`/portal/account/rooms?page=${p}&limit=${PAGE_SIZE}`);
       setItems(res.data);
       setTotal(res.total);
       setTotalPages(res.totalPages);
@@ -51,15 +58,61 @@ export default function MyRoomPage() {
 
   useEffect(() => { load(1); }, [load]);
 
+  async function handleTogglePublish(item: RoomItem) {
+    setPublishingId(item.id);
+    try {
+      const res = await portalRequest<{ success: boolean; data: { isPublished: number } }>(
+        `/portal/account/rooms/${item.id}/publish`,
+        { method: "PATCH" }
+      );
+      const label = res.data.isPublished === 2 ? "已发布" : "已撤回";
+      toast.success(`房源${label}`);
+      setItems((prev) =>
+        prev.map((r) => r.id === item.id ? { ...r, isPublished: res.data.isPublished } : r)
+      );
+    } catch {
+    } finally {
+      setPublishingId(null);
+    }
+  }
+
+  async function handleDelete(id: number) {
+    try {
+      await portalRequest(`/portal/account/rooms/${id}`, { method: "DELETE" });
+      toast.success("房源已删除");
+      load(page);
+    } catch {}
+    setDeletingId(null);
+  }
+
   return (
     <MineShell title="我的房源">
+      {/* 操作栏 */}
+      <div className="flex items-center gap-3 px-5 py-3 border-b border-[#eee]">
+        <Link
+          href="/portal/account/room/new"
+          className="flex items-center gap-1.5 h-8 px-4 bg-primary text-white text-sm rounded cursor-pointer hover:opacity-90 transition-opacity"
+        >
+          <Plus className="w-3.5 h-3.5" />
+          发布房源
+        </Link>
+        <Link
+          href="/portal/account/community/new"
+          className="flex items-center gap-1.5 h-8 px-4 border border-primary text-primary text-sm rounded cursor-pointer hover:bg-primary-tint transition-colors"
+        >
+          <Plus className="w-3.5 h-3.5" />
+          创建小区
+        </Link>
+      </div>
+
       {/* 桌面端表头 */}
-      <div className="hidden lg:grid grid-cols-[2fr_1fr_1fr_1fr_1fr] text-sm text-text-muted px-5 py-3 border-b border-[#eee] bg-surface">
+      <div className="hidden lg:grid grid-cols-[2fr_1fr_1fr_1fr_1fr_auto] text-sm text-text-muted px-5 py-3 border-b border-[#eee] bg-surface">
         <span>房源</span>
         <span>租金</span>
         <span>发布状态</span>
         <span>出租状态</span>
         <span>发布时间</span>
+        <span>操作</span>
       </div>
 
       {/* 骨架屏 */}
@@ -67,7 +120,7 @@ export default function MyRoomPage() {
         <>
           <div className="hidden lg:block">
             {Array.from({ length: 5 }).map((_, i) => (
-              <div key={i} className="grid grid-cols-[2fr_1fr_1fr_1fr_1fr] px-5 py-4 border-b border-[#eee] items-center gap-3">
+              <div key={i} className="grid grid-cols-[2fr_1fr_1fr_1fr_1fr_auto] px-5 py-4 border-b border-[#eee] items-center gap-3">
                 <div className="flex items-center gap-3">
                   <div className="skeleton-shimmer w-16 h-12 rounded shrink-0" />
                   <div className="skeleton-shimmer flex-1 h-4 rounded" />
@@ -76,6 +129,7 @@ export default function MyRoomPage() {
                 <div className="skeleton-shimmer h-5 w-14 rounded-full" />
                 <div className="skeleton-shimmer h-5 w-14 rounded-full" />
                 <div className="skeleton-shimmer h-4 w-20 rounded" />
+                <div className="skeleton-shimmer h-7 w-20 rounded" />
               </div>
             ))}
           </div>
@@ -91,33 +145,36 @@ export default function MyRoomPage() {
       )}
 
       {hasLoaded && items.length === 0 && (
-        <div className="py-16 text-center text-text-muted text-sm">暂无发布的房源</div>
+        <div className="py-16 text-center">
+          <p className="text-text-muted text-sm mb-4">暂无发布的房源</p>
+          <Link
+            href="/portal/account/room/new"
+            className="inline-flex items-center gap-1.5 h-9 px-5 bg-primary text-white text-sm rounded cursor-pointer hover:opacity-90 transition-opacity"
+          >
+            <Plus className="w-4 h-4" />
+            立即发布房源
+          </Link>
+        </div>
       )}
 
       {hasLoaded && items.length > 0 && (
         <>
-          {/* 桌面端 */}
+          {/* 桌面端列表 */}
           <div className="hidden lg:block">
             {items.map((item) => {
               const coverUrl = resolveUploadedFileUrl(item.cover);
-              const pub = ROOM_PUBLISHED_STYLE[item.isPublished];
+              const pub  = ROOM_PUBLISHED_STYLE[item.isPublished];
               const rent = ROOM_RENTED_STYLE[item.isRented];
+              const isPublishing = publishingId === item.id;
               return (
                 <div
                   key={item.id}
-                  className="grid grid-cols-[2fr_1fr_1fr_1fr_1fr] px-5 py-4 border-b border-[#eee] items-center text-sm hover:bg-surface"
+                  className="grid grid-cols-[2fr_1fr_1fr_1fr_1fr_auto] px-5 py-4 border-b border-[#eee] items-center text-sm hover:bg-surface gap-3"
                 >
-                  <Link
-                    href={`/portal/room/${item.id}`}
-                    className="flex items-center gap-3 group"
-                  >
+                  <Link href={`/portal/room/${item.id}`} className="flex items-center gap-3 group min-w-0">
                     {coverUrl ? (
                       // eslint-disable-next-line @next/next/no-img-element
-                      <img
-                        src={coverUrl}
-                        alt={item.name}
-                        className="w-16 h-12 object-cover rounded shrink-0"
-                      />
+                      <img src={coverUrl} alt={item.name} className="w-16 h-12 object-cover rounded shrink-0" />
                     ) : (
                       <div className="w-16 h-12 bg-surface-2 rounded shrink-0" />
                     )}
@@ -135,6 +192,34 @@ export default function MyRoomPage() {
                   <span className="text-text-muted">
                     {item.publishTime ? fmtDate(item.publishTime) : "—"}
                   </span>
+                  <div className="flex items-center gap-1.5 shrink-0">
+                    <button
+                      onClick={() => handleTogglePublish(item)}
+                      disabled={isPublishing || item.isRented === 2}
+                      title={item.isPublished === 2 ? "撤回发布" : "发布"}
+                      className="w-7 h-7 flex items-center justify-center rounded border border-[#ddd] text-[#666] hover:border-primary hover:text-primary transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+                    >
+                      {item.isPublished === 2
+                        ? <GlobeLock className="w-3.5 h-3.5" />
+                        : <Globe className="w-3.5 h-3.5" />
+                      }
+                    </button>
+                    <button
+                      onClick={() => router.push(`/portal/account/room/${item.id}/edit`)}
+                      title="编辑"
+                      className="w-7 h-7 flex items-center justify-center rounded border border-[#ddd] text-[#666] hover:border-primary hover:text-primary transition-colors cursor-pointer"
+                    >
+                      <Edit2 className="w-3.5 h-3.5" />
+                    </button>
+                    <button
+                      onClick={() => setDeletingId(item.id)}
+                      disabled={item.isRented === 2}
+                      title="删除"
+                      className="w-7 h-7 flex items-center justify-center rounded border border-[#ddd] text-[#666] hover:border-red-400 hover:text-red-500 transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
                 </div>
               );
             })}
@@ -144,74 +229,80 @@ export default function MyRoomPage() {
           <div className="lg:hidden space-y-3 p-4">
             {items.map((item) => {
               const coverUrl = resolveUploadedFileUrl(item.cover);
-              const pub = ROOM_PUBLISHED_STYLE[item.isPublished];
+              const pub  = ROOM_PUBLISHED_STYLE[item.isPublished];
               const rent = ROOM_RENTED_STYLE[item.isRented];
               return (
                 <div key={item.id} className="border border-[#eee] rounded p-3">
                   <div className="flex gap-3">
                     {coverUrl ? (
                       // eslint-disable-next-line @next/next/no-img-element
-                      <img
-                        src={coverUrl}
-                        alt={item.name}
-                        className="w-20 h-15 object-cover rounded shrink-0"
-                      />
+                      <img src={coverUrl} alt={item.name} className="w-20 h-15 object-cover rounded shrink-0" />
                     ) : (
                       <div className="w-20 h-15 bg-surface-2 rounded shrink-0" />
                     )}
                     <div className="flex-1 min-w-0">
-                      <Link
-                        href={`/portal/room/${item.id}`}
-                        className="font-medium text-sm text-text truncate block hover:text-(--color-accent)"
-                      >
+                      <Link href={`/portal/room/${item.id}`} className="font-medium text-sm text-text truncate block hover:text-(--color-accent)">
                         {item.name}
                       </Link>
                       <div className="text-xs text-text-muted mt-1">{item.communityName}</div>
-                      <div className="text-sm text-(--color-accent-dark) font-medium mt-1">
-                        ¥{item.price}/月
-                      </div>
+                      <div className="text-sm text-(--color-accent-dark) font-medium mt-1">¥{item.price}/月</div>
                     </div>
                   </div>
-                  <div className="flex items-center gap-2 mt-3 pt-2 border-t border-[#f5f5f5]">
-                    <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs ${pub?.cls}`}>
-                      {pub?.label}
-                    </span>
-                    <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs ${rent?.cls}`}>
-                      {rent?.label}
-                    </span>
-                    {item.publishTime && (
-                      <span className="ml-auto text-xs text-text-muted">
-                        {fmtDate(item.publishTime)}
-                      </span>
-                    )}
+                  <div className="flex items-center gap-2 mt-3 pt-2 border-t border-[#f5f5f5] flex-wrap">
+                    <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs ${pub?.cls}`}>{pub?.label}</span>
+                    <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs ${rent?.cls}`}>{rent?.label}</span>
+                    <div className="ml-auto flex items-center gap-1.5">
+                      <button
+                        onClick={() => handleTogglePublish(item)}
+                        disabled={publishingId === item.id || item.isRented === 2}
+                        className="text-xs px-2 h-6 border border-[#ddd] rounded text-[#666] hover:border-primary hover:text-primary cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                      >
+                        {item.isPublished === 2 ? "撤回" : "发布"}
+                      </button>
+                      <button
+                        onClick={() => router.push(`/portal/account/room/${item.id}/edit`)}
+                        className="text-xs px-2 h-6 border border-[#ddd] rounded text-[#666] hover:border-primary hover:text-primary cursor-pointer transition-colors"
+                      >
+                        编辑
+                      </button>
+                      <button
+                        onClick={() => setDeletingId(item.id)}
+                        disabled={item.isRented === 2}
+                        className="text-xs px-2 h-6 border border-[#ddd] rounded text-[#666] hover:border-red-400 hover:text-red-400 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                      >
+                        删除
+                      </button>
+                    </div>
                   </div>
                 </div>
               );
             })}
           </div>
+
+          {/* 分页 */}
+          {total > PAGE_SIZE && (
+            <Pagination
+              page={page}
+              pageSize={PAGE_SIZE}
+              total={total}
+              totalPages={totalPages}
+              onPageChange={(p) => load(p)}
+              onPageSizeChange={() => {}}
+            />
+          )}
         </>
       )}
 
-      {/* 分页 */}
-      {hasLoaded && total > 0 && totalPages > 1 && (
-        <div className="flex items-center justify-center gap-2 py-4 border-t border-[#eee]">
-          <button
-            onClick={() => load(page - 1)}
-            disabled={page <= 1}
-            className="px-3 h-8 border border-border text-sm rounded cursor-pointer disabled:cursor-not-allowed disabled:opacity-40 hover:border-primary hover:text-primary"
-          >
-            上一页
-          </button>
-          <span className="text-sm text-text-muted">{page} / {totalPages}</span>
-          <button
-            onClick={() => load(page + 1)}
-            disabled={page >= totalPages}
-            className="px-3 h-8 border border-border text-sm rounded cursor-pointer disabled:cursor-not-allowed disabled:opacity-40 hover:border-primary hover:text-primary"
-          >
-            下一页
-          </button>
-        </div>
-      )}
+      {/* 删除确认 */}
+      <ConfirmDialog
+        open={deletingId !== null}
+        title="删除房源"
+        description="删除后不可恢复，确认删除该房源吗？"
+        confirmText="删除"
+        onConfirm={() => { if (deletingId !== null) handleDelete(deletingId); }}
+        onClose={() => setDeletingId(null)}
+      />
+
     </MineShell>
   );
 }

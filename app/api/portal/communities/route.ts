@@ -6,6 +6,7 @@ import { resolveUploadedFileUrl } from '@/lib/upload-path';
 export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
+    const all = searchParams.get('all') === 'true';
     const page = parseInt(searchParams.get('page') || '1');
     const limit = parseInt(searchParams.get('limit') || '10');
     const district = searchParams.get('district') || '';
@@ -16,6 +17,16 @@ export async function GET(req: NextRequest) {
       ...(city ? { city } : {}),
       ...(district ? { district } : {}),
     };
+
+    // all=true 时返回全量列表（下拉选择用）
+    if (all) {
+      const items = await prisma.community.findMany({
+        where,
+        orderBy: { name: 'asc' },
+        select: { id: true, name: true, district: true, city: true },
+      });
+      return NextResponse.json({ success: true, data: items });
+    }
 
     const [total, items] = await Promise.all([
       prisma.community.count({ where }),

@@ -39,6 +39,7 @@ model user {
   updatedAt DateTime @updatedAt
 
   rooms                  room[]
+  communities            community[]
   collections            collection[]
   appointmentsAsUser     appointment[]  @relation("appointmentUser")
   appointmentsAsLandlord appointment[]  @relation("appointmentLandlord")
@@ -62,10 +63,12 @@ model community {
   lng          Float
   lat          Float
   cover        String   @db.VarChar(500)
+  creatorId    Int?                          // 创建人（portal 用户），null 表示由管理员创建
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
-  rooms room[]
+  rooms   room[]
+  creator user?  @relation(fields: [creatorId], references: [id])
 }
 
 model carousel {
