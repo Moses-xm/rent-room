@@ -1,44 +1,16 @@
 'use client';
 
-import { type ChangeEvent, useEffect, useMemo, useRef, useState } from 'react';
+import { useRef } from 'react';
 import dynamic from 'next/dynamic';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import {
-  ArrowLeft, ChevronRight, Upload, ImagePlus, Loader2,
-} from 'lucide-react';
-import { toast } from 'sonner';
-import { isManagedUploadPath, resolveUploadedFileUrl } from '@/lib/upload-path';
+import { ArrowLeft, ChevronRight, Upload, ImagePlus, Loader2 } from 'lucide-react';
 import { request } from '@/utils/request';
 import { getManageCity, getManageProvince } from '@/utils/manage-city';
-import { MAP_ZOOM_PROVINCE, MAP_ZOOM_CITY, MAP_ZOOM_DISTRICT, MUNICIPALITY_PROVINCES } from '@/utils/constants';
-import type { MapPickResult } from '@/components/BaiduMapPicker';
+import { useCommunityForm, type CoverUploadApi, type CommunityFormData } from '@/utils/use-community-form';
 import FilterSelect from '@/components/FilterSelect';
-import areaData from '@/localData/area.json';
-import subwaysData from '@/localData/subways_city.json';
 
-/* ─── Types ───────────────────────────────────────────────────────────────── */
-export type CommunityFormData = {
-  name: string;
-  province: string;
-  city: string;
-  district: string;
-  street: string;
-  streetNumber: string;
-  subwayLine: string;   // comma-separated in UI, stored as JSON array string
-  lng: string;
-  lat: string;
-  cover: string;
-};
-
-type Props = {
-  title: string;
-  subtitle: string;
-  initialData?: Partial<CommunityFormData>;
-  onSubmit: (data: CommunityFormData) => Promise<void>;
-  backHref: string;
-  submitLabel: string;
-};
+export type { CommunityFormData };
 
 /* ─── Dynamic map import (SSR disabled) ───────────────────────────────────── */
 const BaiduMapPicker = dynamic(() => import('@/components/BaiduMapPicker'), {
@@ -63,238 +35,52 @@ const inputCls = (err?: string) =>
 
 const labelCls = 'block text-body-sm font-emphasis text-text-2 mb-1.5';
 
-/* ─── Constants ──────────────────────────────────────────────────────────── */
-// Provinces whose area.json city value is "市辖区" rather than the city name
+/* ─── Cover upload API (module-level stable reference) ────────────────────── */
+const coverApi: CoverUploadApi = {
+  upload: async (file: File) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    const res = await request<{ success: boolean; message?: string; data?: { path: string } }>(
+      '/upload/avatar', { method: 'POST', formData, silent: true }
+    );
+    if (!res.success || !res.data?.path) throw new Error(res.message || '封面上传失败');
+    return res.data.path;
+  },
+  remove: async (path: string) => {
+    await request('/upload/avatar', { method: 'DELETE', json: { path }, silent: true });
+  },
+};
 
-/* ─── Default form values ─────────────────────────────────────────────────── */
-const DEFAULT_FORM: CommunityFormData = {
-  name: '',
-  province: '',
-  city: '',
-  district: '',
-  street: '',
-  streetNumber: '',
-  subwayLine: '',
-  lng: '',
-  lat: '',
-  cover: '',
+/* ─── Props ───────────────────────────────────────────────────────────────── */
+type Props = {
+  title: string;
+  subtitle: string;
+  initialData?: Partial<CommunityFormData>;
+  onSubmit: (data: CommunityFormData) => Promise<void>;
+  backHref: string;
+  submitLabel: string;
 };
 
 /* ─── Component ───────────────────────────────────────────────────────────── */
-export default function CommunityForm({
-  title,
-  subtitle,
-  initialData,
-  onSubmit,
-  backHref,
-  submitLabel,
-}: Props) {
+export default function CommunityForm({ title, subtitle, initialData, onSubmit, backHref, submitLabel }: Props) {
   const router = useRouter();
-  const [form, setForm] = useState<CommunityFormData>({ ...DEFAULT_FORM, ...initialData });
-  const [errors, setErrors] = useState<Partial<Record<keyof CommunityFormData, string>>>({});
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isUploading, setIsUploading] = useState(false);
-  const [isCleaningCover, setIsCleaningCover] = useState(false);
-  const [uploadError, setUploadError] = useState('');
   const fileInputRef = useRef<HTMLInputElement | null>(null);
-  const initialCoverRef = useRef(initialData?.cover ?? '');
 
-  /* Auto-fill province & city from Topbar selection (create mode only) */
-  useEffect(() => {
-    if (initialData?.province || initialData?.city) return;
-    const province = getManageProvince();
-    const city = getManageCity();
-    if (!province || !city) return;
-    // In area.json, direct-administered municipalities have city value = "市辖区"
-    const cityValue = MUNICIPALITY_PROVINCES.has(province) ? '市辖区' : city;
-    setForm((f) => ({ ...f, province, city: cityValue }));
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
-
-  /* Sync initial data when it arrives (edit mode) */
-  useEffect(() => {
-    if (!initialData) return;
-    setForm({ ...DEFAULT_FORM, ...initialData });
-    initialCoverRef.current = initialData.cover ?? '';
-    // Pre-fill subway display
-    if (initialData.subwayLine) {
-      try {
-        const arr = JSON.parse(initialData.subwayLine);
-        if (Array.isArray(arr)) {
-          // kept as tags via subwayLines state below
-        }
-      } catch { /* ignore */ }
-    }
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
-
-  /* ── Subway line tags ── */
-  const subwayLines = useMemo<string[]>(() => {
-    if (!form.subwayLine) return [];
-    try {
-      const arr = JSON.parse(form.subwayLine);
-      return Array.isArray(arr) ? arr : [];
-    } catch { return []; }
-  }, [form.subwayLine]);
-
-  const toggleSubwayLine = (line: string) => {
-    const next = subwayLines.includes(line)
-      ? subwayLines.filter((l) => l !== line)
-      : [...subwayLines, line];
-    setForm((f) => ({ ...f, subwayLine: next.length ? JSON.stringify(next) : '' }));
-  };
-
-  /* ── Area cascade ── */
-  type AreaOption = { label: string; value: string };
-  const provinces = useMemo<AreaOption[]>(
-    () => (areaData as any[]).map((p) => ({ label: String(p.label), value: String(p.value) })),
-    []
-  );
-  const cities = useMemo<AreaOption[]>(() => {
-    if (!form.province) return [];
-    const province = (areaData as any[]).find((p) => p.value === form.province);
-    return province?.children?.map((c: any) => ({ label: String(c.label), value: String(c.value) })) ?? [];
-  }, [form.province]);
-  const districts = useMemo<AreaOption[]>(() => {
-    if (!form.province || !form.city) return [];
-    const province = (areaData as any[]).find((p) => p.value === form.province);
-    const city = province?.children?.find((c: any) => c.value === form.city);
-    return city?.children?.map((d: any) => ({ label: String(d.label), value: String(d.value) })) ?? [];
-  }, [form.province, form.city]);
-
-  /* ── Subway lines for current city ── */
-  const availableSubwayLines = useMemo<string[]>(() => {
-    if (!form.city) return [];
-    // Direct-administered cities (e.g. 北京市/上海市) have city="市辖区", use province name instead
-    const cityName = form.city === '市辖区' ? form.province : form.city;
-    const entry = (subwaysData as { name: string; lines: string[] }[]).find((s) => s.name === cityName);
-    return entry?.lines ?? [];
-  }, [form.city, form.province]);
-
-  /* ── Address query for forward geocoding ── */
-  const addressQuery = useMemo(() => {
-    return [form.province, form.city, form.district, form.street, form.streetNumber]
-      .filter(Boolean)
-      .join('');
-  }, [form.province, form.city, form.district, form.street, form.streetNumber]);
-
-  /* ── Map center city (create mode only) ── */
-  const centerCity = (!initialData?.lng && !initialData?.lat) ? getManageCity() : undefined;
-
-  /* ── Map zoom: driven by address-fill level ── */
-  const mapZoom = useMemo(() => {
-    if (form.district) return MAP_ZOOM_DISTRICT;
-    if (form.city) return MAP_ZOOM_CITY;
-    if (form.province) return MAP_ZOOM_PROVINCE;
-    return MAP_ZOOM_CITY;
-  }, [form.province, form.city, form.district]);
-
-  /* ── Map position ── */
-  const mapPosition = useMemo(() => {
-    const lng = parseFloat(form.lng);
-    const lat = parseFloat(form.lat);
-    if (isNaN(lng) || isNaN(lat)) return undefined;
-    return { lng, lat };
-  }, [form.lng, form.lat]);
-
-  /* ── Map interactions ── */
-  const handleMapPick = (result: MapPickResult) => {
-    setForm((f) => ({
-      ...f,
-      lng: String(result.lng),
-      lat: String(result.lat),
-      province: result.province || f.province,
-      city: result.city || f.city,
-      district: result.district || f.district,
-      street: result.street || f.street,
-      streetNumber: result.streetNumber || f.streetNumber,
-    }));
-    setErrors((e) => ({ ...e, province: undefined, city: undefined, district: undefined, lng: undefined, lat: undefined }));
-  };
-
-
-  /* ── Cover upload ── */
-  const coverPreviewUrl = resolveUploadedFileUrl(form.cover.trim());
-
-  const deleteUploadedCover = async (path: string) => {
-    await request('/upload/avatar', { method: 'DELETE', json: { path }, silent: true });
-  };
-
-  const cleanupTransient = async (path: string, preserved?: string) => {
-    const norm = path.trim();
-    const initial = initialCoverRef.current.trim();
-    if (!norm || !isManagedUploadPath(norm)) return;
-    if (norm === initial) return;
-    if (preserved && norm === preserved) return;
-    try { await deleteUploadedCover(norm); } catch (e) { console.error(e); }
-  };
-
-  const handleCoverUpload = async (e: ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    const prevCover = form.cover.trim();
-    setUploadError('');
-    setIsUploading(true);
-    try {
-      const formData = new FormData();
-      formData.append('file', file);
-      const res = await request<{ success: boolean; message?: string; data?: { path: string } }>(
-        '/upload/avatar', { method: 'POST', formData, silent: true }
-      );
-      if (!res.success || !res.data?.path) throw new Error(res.message || '封面上传失败');
-      await cleanupTransient(prevCover, res.data.path);
-      setForm((f) => ({ ...f, cover: res.data!.path }));
-    } catch (err) {
-      setUploadError(err instanceof Error ? err.message : '封面上传失败');
-    } finally {
-      setIsUploading(false);
-      if (e.target) e.target.value = '';
-    }
-  };
-
-  const handleClearCover = async () => {
-    setIsCleaningCover(true);
-    try { await cleanupTransient(form.cover.trim()); setForm((f) => ({ ...f, cover: '' })); }
-    finally { setIsCleaningCover(false); }
-  };
-
-  /* ── Reset (create mode only) ── */
-  const handleReset = () => {
-    const province = getManageProvince();
-    const city = getManageCity();
-    const cityValue = MUNICIPALITY_PROVINCES.has(province) ? '市辖区' : city;
-    setForm({ ...DEFAULT_FORM, province, city: cityValue });
-    setErrors({});
-    setUploadError('');
-  };
-
-  /* ── Validation ── */
-  const validate = () => {
-    const e: Partial<Record<keyof CommunityFormData, string>> = {};
-    if (!form.name.trim()) e.name = '小区名称不能为空';
-    if (!form.province) e.province = '请选择省份';
-    if (!form.city) e.city = '请选择城市';
-    if (!form.district) e.district = '请选择区/县';
-    if (!form.lng || isNaN(Number(form.lng))) e.lng = '请输入有效经度';
-    if (!form.lat || isNaN(Number(form.lat))) e.lat = '请输入有效纬度';
-    if (!form.cover.trim()) e.cover = '请上传封面图片';
-    setErrors(e);
-    return Object.keys(e).length === 0;
-  };
-
-  /* ── Submit ── */
-  const handleSubmit = async (ev: React.FormEvent) => {
-    ev.preventDefault();
-    if (!validate()) return;
-    setIsSubmitting(true);
-    try {
-      await onSubmit(form);
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  const busy = isSubmitting || isUploading || isCleaningCover;
+  const {
+    form, setForm, errors,
+    provinces, cities, districts,
+    subwayLines, availableSubwayLines, toggleSubwayLine,
+    addressQuery, centerCity, mapZoom, mapPosition, handleMapPick,
+    coverPreviewUrl, isUploading, isCleaningCover, uploadError,
+    handleCoverUpload, handleClearCover,
+    isSubmitting, busy, handleSubmit, handleReset,
+  } = useCommunityForm({
+    initialData,
+    autoFillProvince: getManageProvince,
+    autoFillCity: getManageCity,
+    coverApi,
+    onSubmit,
+  });
 
   return (
     <div className="space-y-5">
@@ -342,9 +128,7 @@ export default function CommunityForm({
 
                 {/* 小区名称 */}
                 <div className="space-y-1.5">
-                  <label className={labelCls}>
-                    小区名称 <span className="text-danger">*</span>
-                  </label>
+                  <label className={labelCls}>小区名称 <span className="text-danger">*</span></label>
                   <input
                     type="text"
                     value={form.name}
@@ -357,9 +141,7 @@ export default function CommunityForm({
 
                 {/* 封面图片 */}
                 <div className="space-y-1.5">
-                  <label className={labelCls}>
-                    封面图片 <span className="text-danger">*</span>
-                  </label>
+                  <label className={labelCls}>封面图片 <span className="text-danger">*</span></label>
                   <div className={`flex items-start gap-3 rounded-sm border border-dashed p-4 ${errors.cover ? 'border-danger bg-danger-bg/10' : 'border-border bg-surface'}`}>
                     <div className="w-16 h-12 rounded-md shrink-0 grid place-items-center overflow-hidden bg-primary-tint border border-border">
                       {coverPreviewUrl ? (
@@ -378,7 +160,7 @@ export default function CommunityForm({
                                      bg-card border border-border text-text-2
                                      hover:bg-surface-2 transition-colors
                                      disabled:opacity-50 disabled:cursor-not-allowed
-                                     flex items-center gap-1.5"
+                                     flex items-center gap-1.5 cursor-pointer"
                         >
                           {isUploading ? <Loader2 size={13} className="animate-spin" /> : <Upload size={13} />}
                           {isUploading ? '上传中…' : '上传图片'}
@@ -429,9 +211,7 @@ export default function CommunityForm({
                 {/* 省 / 市 */}
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-1.5">
-                    <label className={labelCls}>
-                      省份 <span className="text-danger">*</span>
-                    </label>
+                    <label className={labelCls}>省份 <span className="text-danger">*</span></label>
                     <FilterSelect
                       value={form.province}
                       onChange={(v) => setForm((f) => ({ ...f, province: v, city: '', district: '', street: '', streetNumber: '', lng: '', lat: '', subwayLine: '' }))}
@@ -443,9 +223,7 @@ export default function CommunityForm({
                     {errors.province && <p className="text-caption text-danger">{errors.province}</p>}
                   </div>
                   <div className="space-y-1.5">
-                    <label className={labelCls}>
-                      城市 <span className="text-danger">*</span>
-                    </label>
+                    <label className={labelCls}>城市 <span className="text-danger">*</span></label>
                     <FilterSelect
                       value={form.city}
                       onChange={(v) => setForm((f) => ({ ...f, city: v, district: '', street: '', streetNumber: '', lng: '', lat: '', subwayLine: '' }))}
@@ -461,9 +239,7 @@ export default function CommunityForm({
 
                 {/* 区 / 县 */}
                 <div className="space-y-1.5">
-                  <label className={labelCls}>
-                    区/县 <span className="text-danger">*</span>
-                  </label>
+                  <label className={labelCls}>区/县 <span className="text-danger">*</span></label>
                   <FilterSelect
                     value={form.district}
                     onChange={(v) => setForm((f) => ({ ...f, district: v, street: '', streetNumber: '', lng: '', lat: '' }))}
@@ -513,9 +289,7 @@ export default function CommunityForm({
                 {/* 经纬度 */}
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-1.5">
-                    <label className={labelCls}>
-                      经度 <span className="text-danger">*</span>
-                    </label>
+                    <label className={labelCls}>经度 <span className="text-danger">*</span></label>
                     <input
                       type="text"
                       inputMode="decimal"
@@ -527,9 +301,7 @@ export default function CommunityForm({
                     {errors.lng && <p className="text-caption text-danger">{errors.lng}</p>}
                   </div>
                   <div className="space-y-1.5">
-                    <label className={labelCls}>
-                      纬度 <span className="text-danger">*</span>
-                    </label>
+                    <label className={labelCls}>纬度 <span className="text-danger">*</span></label>
                     <input
                       type="text"
                       inputMode="decimal"
@@ -555,7 +327,7 @@ export default function CommunityForm({
                             key={line}
                             type="button"
                             onClick={() => toggleSubwayLine(line)}
-                            className={`px-2.5 py-1 rounded-full text-body-sm font-medium transition-colors
+                            className={`px-2.5 py-1 rounded-full text-body-sm font-medium transition-colors cursor-pointer
                               ${selected
                                 ? 'bg-primary-tint text-primary-dark'
                                 : 'bg-surface border border-border text-text-2 hover:border-text-disabled hover:text-text'
@@ -592,28 +364,28 @@ export default function CommunityForm({
                 </button>
               )}
               <div className="flex gap-2 ml-auto">
-              <button
-                type="button"
-                onClick={() => router.push(backHref)}
-                disabled={busy}
-                className="h-8.5 px-4 text-body rounded-sm font-medium
-                           bg-card border border-border text-text-2
-                           hover:bg-surface-2 transition-colors
-                           cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                取消
-              </button>
-              <button
-                type="submit"
-                disabled={busy}
-                className="h-8.5 px-4 text-body rounded-sm font-medium
-                           bg-primary text-white hover:bg-primary-dark transition-colors
-                           flex items-center gap-2
-                           cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {isSubmitting && <Loader2 size={13} className="animate-spin" />}
-                {submitLabel}
-              </button>
+                <button
+                  type="button"
+                  onClick={() => router.push(backHref)}
+                  disabled={busy}
+                  className="h-8.5 px-4 text-body rounded-sm font-medium
+                             bg-card border border-border text-text-2
+                             hover:bg-surface-2 transition-colors
+                             cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  取消
+                </button>
+                <button
+                  type="submit"
+                  disabled={busy}
+                  className="h-8.5 px-4 text-body rounded-sm font-medium
+                             bg-primary text-white hover:bg-primary-dark transition-colors
+                             flex items-center gap-2
+                             cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isSubmitting && <Loader2 size={13} className="animate-spin" />}
+                  {submitLabel}
+                </button>
               </div>
             </div>
 
