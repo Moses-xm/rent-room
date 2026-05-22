@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { requirePortalAuth } from '@/lib/portal-auth';
+import { resolveUploadedFileUrl } from '@/lib/upload-path';
 
 // GET /api/portal/account/orders?page=&limit=
 export async function GET(req: NextRequest) {
@@ -22,7 +23,7 @@ export async function GET(req: NextRequest) {
         skip,
         take: limit,
         include: {
-          room:     { select: { id: true, name: true } },
+          room:     { select: { id: true, name: true, cover: true } },
           contract: { select: { id: true } },
         },
       }),
@@ -34,6 +35,7 @@ export async function GET(req: NextRequest) {
         id: o.id,
         roomId: o.roomId,
         roomName: o.room.name,
+        roomCoverUrl: o.room.cover ? resolveUploadedFileUrl(o.room.cover) : null,
         contractId: o.contractId,
         type: o.type,
         fee: o.fee,
