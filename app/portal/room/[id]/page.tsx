@@ -2,7 +2,6 @@
 
 import { useEffect, useState, useCallback, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
-import dynamic from "next/dynamic";
 import Link from "next/link";
 import { ChevronLeft, ChevronRight, Star } from "lucide-react";
 import { toast } from "sonner";
@@ -75,15 +74,6 @@ interface RoomDetail {
   } | null;
   facilities: FacilityItem[];
 }
-
-/* ─── Dynamic imports ────────────────────────────────────────────────────── */
-const MDPreview = dynamic(
-  () => import("@uiw/react-markdown-preview").then((m) => m.default),
-  {
-    ssr: false,
-    loading: () => <div className="h-24 skeleton-shimmer rounded-sm" />,
-  }
-);
 
 /* ─── Helpers ─────────────────────────────────────────────────────────────── */
 function labelOf(options: { value: number; label: string }[], val: number) {
@@ -482,12 +472,10 @@ export default function RoomDetailPage() {
             {room.description && (
               <div className="mt-8">
                 <SectionTitle title="房源概况" />
-                <div className="text-sm text-text-2 leading-relaxed">
-                  <MDPreview
-                    source={room.description}
-                    style={{ background: "transparent", color: "inherit" }}
-                  />
-                </div>
+                <div
+                  className="rich-content text-sm text-text-2 leading-relaxed"
+                  dangerouslySetInnerHTML={{ __html: room.description }}
+                />
               </div>
             )}
 

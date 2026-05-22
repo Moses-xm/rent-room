@@ -1,6 +1,4 @@
 @import 'tailwindcss';
-@import '@uiw/react-md-editor/markdown-editor.css';
-@import '@uiw/react-markdown-preview/markdown.css';
 
 /* ═══════════════════════════════════════════════════════════
    全局原子令牌 + 语义变量默认值
@@ -289,4 +287,124 @@ body {
   0%   { background-position: -400px 0; }
   100% { background-position: 400px 0; }
 }
+
+/* ═══════════════════════════════════════════════════════════
+   Quill 富文本编辑器覆写 & 内容渲染
+   ═══════════════════════════════════════════════════════════ */
+
+/* 字号选择器：把 "12px" 显示为 "12" */
+.rich-editor-wrap .ql-snow .ql-picker.ql-size .ql-picker-label::before,
+.rich-editor-wrap .ql-snow .ql-picker.ql-size .ql-picker-item::before {
+  content: attr(data-value);   /* 直接显示 "12px" */
+}
+.rich-editor-wrap .ql-snow .ql-picker.ql-size .ql-picker-label[data-value="12px"]::before,
+.rich-editor-wrap .ql-snow .ql-picker.ql-size .ql-picker-item[data-value="12px"]::before { content: "12"; }
+.rich-editor-wrap .ql-snow .ql-picker.ql-size .ql-picker-label[data-value="13px"]::before,
+.rich-editor-wrap .ql-snow .ql-picker.ql-size .ql-picker-item[data-value="13px"]::before { content: "13"; }
+.rich-editor-wrap .ql-snow .ql-picker.ql-size .ql-picker-label[data-value="14px"]::before,
+.rich-editor-wrap .ql-snow .ql-picker.ql-size .ql-picker-item[data-value="14px"]::before { content: "14"; }
+.rich-editor-wrap .ql-snow .ql-picker.ql-size .ql-picker-label[data-value="15px"]::before,
+.rich-editor-wrap .ql-snow .ql-picker.ql-size .ql-picker-item[data-value="15px"]::before { content: "15"; }
+.rich-editor-wrap .ql-snow .ql-picker.ql-size .ql-picker-label[data-value="16px"]::before,
+.rich-editor-wrap .ql-snow .ql-picker.ql-size .ql-picker-item[data-value="16px"]::before { content: "16"; }
+.rich-editor-wrap .ql-snow .ql-picker.ql-size .ql-picker-label[data-value="18px"]::before,
+.rich-editor-wrap .ql-snow .ql-picker.ql-size .ql-picker-item[data-value="18px"]::before { content: "18"; }
+.rich-editor-wrap .ql-snow .ql-picker.ql-size .ql-picker-label[data-value="20px"]::before,
+.rich-editor-wrap .ql-snow .ql-picker.ql-size .ql-picker-item[data-value="20px"]::before { content: "20"; }
+.rich-editor-wrap .ql-snow .ql-picker.ql-size .ql-picker-label[data-value="24px"]::before,
+.rich-editor-wrap .ql-snow .ql-picker.ql-size .ql-picker-item[data-value="24px"]::before { content: "24"; }
+.rich-editor-wrap .ql-snow .ql-picker.ql-size .ql-picker-label[data-value="28px"]::before,
+.rich-editor-wrap .ql-snow .ql-picker.ql-size .ql-picker-item[data-value="28px"]::before { content: "28"; }
+.rich-editor-wrap .ql-snow .ql-picker.ql-size .ql-picker-label[data-value="32px"]::before,
+.rich-editor-wrap .ql-snow .ql-picker.ql-size .ql-picker-item[data-value="32px"]::before { content: "32"; }
+/* 下拉项预览实际字号 */
+.rich-editor-wrap .ql-snow .ql-picker.ql-size .ql-picker-item[data-value="12px"] { font-size: 12px; }
+.rich-editor-wrap .ql-snow .ql-picker.ql-size .ql-picker-item[data-value="13px"] { font-size: 13px; }
+.rich-editor-wrap .ql-snow .ql-picker.ql-size .ql-picker-item[data-value="14px"] { font-size: 14px; }
+.rich-editor-wrap .ql-snow .ql-picker.ql-size .ql-picker-item[data-value="15px"] { font-size: 15px; }
+.rich-editor-wrap .ql-snow .ql-picker.ql-size .ql-picker-item[data-value="16px"] { font-size: 16px; }
+.rich-editor-wrap .ql-snow .ql-picker.ql-size .ql-picker-item[data-value="18px"] { font-size: 18px; }
+.rich-editor-wrap .ql-snow .ql-picker.ql-size .ql-picker-item[data-value="20px"] { font-size: 20px; }
+.rich-editor-wrap .ql-snow .ql-picker.ql-size .ql-picker-item[data-value="24px"] { font-size: 24px; }
+.rich-editor-wrap .ql-snow .ql-picker.ql-size .ql-picker-item[data-value="28px"] { font-size: 28px; }
+.rich-editor-wrap .ql-snow .ql-picker.ql-size .ql-picker-item[data-value="32px"] { font-size: 32px; }
+
+/* 容器：统一边框、圆角，支持错误态 */
+.rich-editor-wrap .ql-container.ql-snow,
+.rich-editor-wrap .ql-toolbar.ql-snow {
+  border-color: #d1d5db;   /* gray-300 */
+}
+.rich-editor-wrap .ql-toolbar.ql-snow {
+  border-radius: 6px 6px 0 0;
+  background: #f9fafb;
+  padding: 6px 10px;
+}
+.rich-editor-wrap .ql-container.ql-snow {
+  border-radius: 0 0 6px 6px;
+  font-size: 14px;
+  font-family: inherit;
+}
+.rich-editor-wrap .ql-editor {
+  min-height: var(--editor-height, 240px);
+  padding: 12px 14px;
+  line-height: 1.75;
+  color: var(--color-text, #1a1a1a);
+}
+.rich-editor-wrap .ql-editor.ql-blank::before {
+  color: #b5b5b5;
+  font-style: normal;
+  left: 14px;
+}
+
+/* 错误态：红色边框 */
+.rich-editor-error .ql-container.ql-snow,
+.rich-editor-error .ql-toolbar.ql-snow {
+  border-color: #f87171;
+}
+
+/* 工具栏按钮悬浮色 */
+.rich-editor-wrap .ql-toolbar.ql-snow .ql-picker-label:hover,
+.rich-editor-wrap .ql-toolbar.ql-snow button:hover {
+  color: var(--color-primary, #4f8a4f);
+}
+.rich-editor-wrap .ql-toolbar.ql-snow .ql-picker-label:hover .ql-stroke,
+.rich-editor-wrap .ql-toolbar.ql-snow button:hover .ql-stroke {
+  stroke: var(--color-primary, #4f8a4f);
+}
+.rich-editor-wrap .ql-toolbar.ql-snow .ql-picker-label:hover .ql-fill,
+.rich-editor-wrap .ql-toolbar.ql-snow button:hover .ql-fill {
+  fill: var(--color-primary, #4f8a4f);
+}
+
+/* 详情页富文本内容渲染 */
+.rich-content {
+  font-size: 14px;
+  line-height: 1.75;
+  color: inherit;
+}
+.rich-content p  { margin: .4em 0; }
+.rich-content h1 { font-size: 22px; font-weight: 600; margin: 1em 0 .4em; }
+.rich-content h2 { font-size: 18px; font-weight: 600; margin: 1em 0 .4em; }
+.rich-content h3 { font-size: 15px; font-weight: 600; margin: .9em 0 .35em; }
+.rich-content ul { list-style: disc;    padding-left: 1.5em; margin: .4em 0; }
+.rich-content ol { list-style: decimal; padding-left: 1.5em; margin: .4em 0; }
+.rich-content li { margin: .15em 0; }
+.rich-content strong { font-weight: 600; }
+.rich-content em     { font-style: italic; }
+.rich-content u      { text-decoration: underline; }
+.rich-content s      { text-decoration: line-through; }
+.rich-content blockquote {
+  border-left: 3px solid var(--color-border, #ececec);
+  padding-left: .85em;
+  margin: .5em 0;
+  color: var(--color-text-muted, #8a8a8a);
+}
+.rich-content a {
+  color: var(--color-primary, #2980b9);
+  text-decoration: underline;
+}
+/* 字号使用 inline style，无需类映射；对齐用 Quill 的 class */
+.rich-content .ql-align-center  { text-align: center; }
+.rich-content .ql-align-right   { text-align: right; }
+.rich-content .ql-align-justify { text-align: justify; }
 

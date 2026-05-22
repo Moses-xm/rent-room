@@ -1,7 +1,6 @@
 "use client";
 
 import { type ChangeEvent, useEffect, useMemo, useRef, useState } from "react";
-import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
 import { ChevronLeft, Upload, ImagePlus, Loader2, X, Plus } from "lucide-react";
 import { toast } from "sonner";
@@ -13,6 +12,7 @@ import {
   DIRECTION_OPTIONS, LEVEL_OPTIONS, LIFT_OPTIONS,
 } from "@/utils/constants";
 import FilterSelect from "@/components/FilterSelect";
+import RichEditor from "@/components/RichEditor";
 
 /* ─── Types ───────────────────────────────────────────────────────────────── */
 export type PortalRoomFormData = {
@@ -48,12 +48,6 @@ type Props = {
   onSubmit: (data: PortalRoomFormData) => Promise<void>;
   submitLabel: string;
 };
-
-/* ─── Markdown editor ────────────────────────────────────────────────────── */
-const MDEditor = dynamic(() => import("@uiw/react-md-editor").then((m) => m.default), {
-  ssr: false,
-  loading: () => <div className="h-48 rounded border border-[#ddd] bg-[#fafafa] skeleton-shimmer" />,
-});
 
 /* ─── Shared input styles ────────────────────────────────────────────────── */
 const inputCls = (err?: string) =>
@@ -554,14 +548,11 @@ export default function PortalRoomForm({ title, initialData, onSubmit, submitLab
 
         {/* 房源描述 */}
         <Section title="房源描述（选填）">
-          <div data-color-mode="light">
-            <MDEditor
-              value={form.description}
-              onChange={(v) => set("description", v ?? "")}
-              height={220}
-              preview="live"
-            />
-          </div>
+          <RichEditor
+            value={form.description}
+            onChange={(v) => set("description", v)}
+            height={220}
+          />
         </Section>
 
         {/* 操作按钮 */}

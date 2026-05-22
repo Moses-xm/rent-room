@@ -23,10 +23,6 @@ import type { DistrictItem, CommunityItem } from '@/components/portal/MapRoomMap
 
 const MapRoomMap = dynamic(() => import('@/components/portal/MapRoomMap'), { ssr: false });
 
-const MDPreview = dynamic(
-  () => import('@uiw/react-markdown-preview').then((m) => m.default),
-  { ssr: false, loading: () => <div className="h-16 skeleton-shimmer rounded" /> },
-);
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 
@@ -282,12 +278,10 @@ function PreviewPanel({
               {detail.description && (
                 <div className="mx-4 border-t border-[#f0f0f0] pt-3 pb-4">
                   <h4 className="text-[15px] font-bold text-[#333] mb-2">房屋简介</h4>
-                  <div className="text-sm text-[#666] leading-relaxed">
-                    <MDPreview
-                      source={detail.description}
-                      style={{ background: 'transparent', color: 'inherit', fontSize: '13px' }}
-                    />
-                  </div>
+                  <div
+                    className="rich-content text-sm text-[#666] leading-relaxed"
+                    dangerouslySetInnerHTML={{ __html: detail.description }}
+                  />
                 </div>
               )}
             </div>

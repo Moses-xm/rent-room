@@ -1,6 +1,5 @@
 "use client";
 
-import dynamic from "next/dynamic";
 import { useCallback, useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { ChevronLeft, Pencil, Home, MapPin, Building2, Calendar } from "lucide-react";
@@ -70,11 +69,6 @@ function Card({ title, icon, action, children }: {
   );
 }
 
-/* ─── Markdown preview ────────────────────────────────────────────────────── */
-const MDPreview = dynamic(() => import("@uiw/react-markdown-preview").then(m => m.default), {
-  ssr: false,
-  loading: () => <div className="h-24 rounded skeleton-shimmer" />,
-});
 
 function PublishedBadge({ v }: { v: number }) {
   return v === 2
@@ -302,9 +296,10 @@ export default function PortalRoomDetailPage() {
                 <div className="px-5 py-3 border-b border-[#f0f0f0] bg-[#fafafa]">
                   <span className="text-sm font-medium text-[#444]">房源描述</span>
                 </div>
-                <div className="px-5 py-4" data-color-mode="light">
-                  <MDPreview source={room.description} />
-                </div>
+                <div
+                  className="px-5 py-4 rich-content"
+                  dangerouslySetInnerHTML={{ __html: room.description }}
+                />
               </div>
             )}
           </div>

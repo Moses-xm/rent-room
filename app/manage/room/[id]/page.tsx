@@ -1,7 +1,6 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
-import dynamic from 'next/dynamic';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { resolveUploadedFileUrl } from '@/lib/upload-path';
@@ -64,12 +63,6 @@ type RoomDetail = {
   publisher: PublisherSnap | null;
   facilities: FacilityItem[];
 };
-
-/* ─── Dynamic Markdown preview (SSR disabled) ────────────────────────────── */
-const MDPreview = dynamic(() => import('@uiw/react-markdown-preview').then((m) => m.default), {
-  ssr: false,
-  loading: () => <div className="h-24 skeleton-shimmer rounded-sm" />,
-});
 
 /* ─── Helpers ─────────────────────────────────────────────────────────────── */
 function parseImages(raw: string): string[] {
@@ -392,9 +385,10 @@ export default function RoomDetailPage() {
               <div className="flex items-center gap-2 px-5 py-3 border-b border-border-subtle bg-surface">
                 <span className="text-body-sm font-emphasis text-text-2">房源描述</span>
               </div>
-              <div className="px-5 py-4" data-color-mode="light">
-                <MDPreview source={room.description} />
-              </div>
+              <div
+                className="px-5 py-4 rich-content"
+                dangerouslySetInnerHTML={{ __html: room.description }}
+              />
             </div>
           )}
         </div>

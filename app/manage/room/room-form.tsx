@@ -1,7 +1,6 @@
 'use client';
 
 import { type ChangeEvent, useEffect, useMemo, useRef, useState } from 'react';
-import dynamic from 'next/dynamic';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import {
@@ -14,6 +13,7 @@ import { getManageCity, getManageProvince } from '@/utils/manage-city';
 import { getManageToken } from '@/utils/manage-auth';
 import { FONT_FAMILY, MUNICIPALITY_PROVINCES, RENT_TYPE_OPTIONS, ROOM_TYPE_OPTIONS, DIRECTION_OPTIONS, LEVEL_OPTIONS, LIFT_OPTIONS } from '@/utils/constants';
 import FilterSelect from '@/components/FilterSelect';
+import RichEditor from '@/components/RichEditor';
 import areaData from '@/localData/area.json';
 
 /* ─── Types ───────────────────────────────────────────────────────────────── */
@@ -78,12 +78,6 @@ type Props = {
   backHref: string;
   submitLabel: string;
 };
-
-/* ─── Markdown editor (SSR disabled) ─────────────────────────────────────── */
-const MDEditor = dynamic(() => import('@uiw/react-md-editor').then((m) => m.default), {
-  ssr: false,
-  loading: () => <div className="h-48 rounded-sm border border-border bg-surface skeleton-shimmer" />,
-});
 
 /* ─── Shared styles ───────────────────────────────────────────────────────── */
 const inputCls = (err?: string) =>
@@ -903,15 +897,11 @@ export default function RoomForm({ title, subtitle, initialData, onSubmit, backH
 
         {/* ── 房源描述 ── */}
         <Section title="房源描述">
-          <p className="text-caption text-text-muted -mt-1">支持 Markdown 格式，可使用标题、列表、粗体等排版。</p>
-          <div data-color-mode="light">
-            <MDEditor
-              value={form.description}
-              onChange={(v) => setField('description', v ?? '')}
-              height={240}
-              preview="live"
-            />
-          </div>
+          <RichEditor
+            value={form.description}
+            onChange={(v) => setField('description', v)}
+            height={240}
+          />
         </Section>
 
         {/* ── 操作按钮 ── */}

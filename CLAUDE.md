@@ -183,6 +183,7 @@ rent-room/
 │   ├── BaiduMapPicker.tsx            # 百度地图选点组件（双向联动）
 │   ├── CitySelector.tsx
 │   ├── ConfirmDialog.tsx
+│   ├── RichEditor.tsx                # TipTap 富文本编辑器（房源描述，输出 HTML）
 │   ├── DataTable.tsx                 # 通用泛型表格（列定义+数据+分页+空态+骨架屏）
 │   ├── FilterSelect.tsx              # 自定义下拉筛选（fixed 定位，防移动端溢出）
 │   ├── LoadingDimmer.tsx
