@@ -166,6 +166,33 @@ export const WALLET_DATE_RANGE_OPTIONS = [
   { value: 'all',     label: '全部记录' },
 ];
 
+// ── Rich Editor (Quill) ───────────────────────────────────────────────────────
+export const RICH_EDITOR_FONT_SIZE_LABELS: Record<string, string> = {
+  '12px': '12', '13px': '13', '14px': '14', '15px': '15', '16px': '16',
+  '18px': '18', '20px': '20', '24px': '24', '28px': '28', '32px': '32',
+};
+
+/** 编辑器默认字号（与 .ql-container font-size 保持一致） */
+export const RICH_EDITOR_DEFAULT_SIZE = '14px';
+
+export const RICH_EDITOR_TOOLBAR = [
+  [{ size: Object.keys(RICH_EDITOR_FONT_SIZE_LABELS) }],
+  ['bold', 'italic', 'underline', 'strike'],
+  [{ color: [] }, { background: [] }],
+  [{ align: [] }],
+  [{ list: 'ordered' }, { list: 'bullet' }],
+  ['blockquote', 'link'],
+  ['clean'],
+];
+
+export const RICH_EDITOR_MODULES = { toolbar: RICH_EDITOR_TOOLBAR };
+
+export const RICH_EDITOR_FORMATS = [
+  'size', 'bold', 'italic', 'underline', 'strike',
+  'color', 'background', 'align',
+  'list', 'blockquote', 'link',
+];
+
 // ── Portal 个人中心 ────────────────────────────────────────────────────────────
 
 export const GENDER_LABEL: Record<number, string> = { 1: '男', 2: '女', 3: '保密' };

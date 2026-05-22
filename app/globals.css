@@ -292,30 +292,23 @@ body {
    Quill 富文本编辑器覆写 & 内容渲染
    ═══════════════════════════════════════════════════════════ */
 
-/* 字号选择器：把 "12px" 显示为 "12" */
-.rich-editor-wrap .ql-snow .ql-picker.ql-size .ql-picker-label::before,
-.rich-editor-wrap .ql-snow .ql-picker.ql-size .ql-picker-item::before {
-  content: attr(data-value);   /* 直接显示 "12px" */
+/* 字号选择器 label：完全由 JS 通过 CSS 自定义属性控制，!important 绕开 Quill 自身 CSS */
+.rich-editor-wrap .ql-snow .ql-picker.ql-size .ql-picker-label::before {
+  content: var(--ql-size-label, "字号") !important;
 }
-.rich-editor-wrap .ql-snow .ql-picker.ql-size .ql-picker-label[data-value="12px"]::before,
+/* 下拉项仍用 data-value 驱动显示 */
+.rich-editor-wrap .ql-snow .ql-picker.ql-size .ql-picker-item::before {
+  content: attr(data-value);
+}
 .rich-editor-wrap .ql-snow .ql-picker.ql-size .ql-picker-item[data-value="12px"]::before { content: "12"; }
-.rich-editor-wrap .ql-snow .ql-picker.ql-size .ql-picker-label[data-value="13px"]::before,
 .rich-editor-wrap .ql-snow .ql-picker.ql-size .ql-picker-item[data-value="13px"]::before { content: "13"; }
-.rich-editor-wrap .ql-snow .ql-picker.ql-size .ql-picker-label[data-value="14px"]::before,
 .rich-editor-wrap .ql-snow .ql-picker.ql-size .ql-picker-item[data-value="14px"]::before { content: "14"; }
-.rich-editor-wrap .ql-snow .ql-picker.ql-size .ql-picker-label[data-value="15px"]::before,
 .rich-editor-wrap .ql-snow .ql-picker.ql-size .ql-picker-item[data-value="15px"]::before { content: "15"; }
-.rich-editor-wrap .ql-snow .ql-picker.ql-size .ql-picker-label[data-value="16px"]::before,
 .rich-editor-wrap .ql-snow .ql-picker.ql-size .ql-picker-item[data-value="16px"]::before { content: "16"; }
-.rich-editor-wrap .ql-snow .ql-picker.ql-size .ql-picker-label[data-value="18px"]::before,
 .rich-editor-wrap .ql-snow .ql-picker.ql-size .ql-picker-item[data-value="18px"]::before { content: "18"; }
-.rich-editor-wrap .ql-snow .ql-picker.ql-size .ql-picker-label[data-value="20px"]::before,
 .rich-editor-wrap .ql-snow .ql-picker.ql-size .ql-picker-item[data-value="20px"]::before { content: "20"; }
-.rich-editor-wrap .ql-snow .ql-picker.ql-size .ql-picker-label[data-value="24px"]::before,
 .rich-editor-wrap .ql-snow .ql-picker.ql-size .ql-picker-item[data-value="24px"]::before { content: "24"; }
-.rich-editor-wrap .ql-snow .ql-picker.ql-size .ql-picker-label[data-value="28px"]::before,
 .rich-editor-wrap .ql-snow .ql-picker.ql-size .ql-picker-item[data-value="28px"]::before { content: "28"; }
-.rich-editor-wrap .ql-snow .ql-picker.ql-size .ql-picker-label[data-value="32px"]::before,
 .rich-editor-wrap .ql-snow .ql-picker.ql-size .ql-picker-item[data-value="32px"]::before { content: "32"; }
 /* 下拉项预览实际字号 */
 .rich-editor-wrap .ql-snow .ql-picker.ql-size .ql-picker-item[data-value="12px"] { font-size: 12px; }
