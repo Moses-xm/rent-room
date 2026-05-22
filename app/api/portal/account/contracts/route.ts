@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { requirePortalAuth } from '@/lib/portal-auth';
 import { createContract, ServiceError } from '@/lib/contract-service';
+import { resolveUploadedFileUrl } from '@/lib/upload-path';
 
 
 // GET /api/portal/account/contracts?page=&limit=&role=tenant|landlord
@@ -26,8 +27,8 @@ export async function GET(req: NextRequest) {
           skip,
           take: limit,
           include: {
-            room: { select: { id: true, name: true, cover: true, price: true } },
-            user: { select: { id: true, username: true, nickname: true } },
+            room: { select: { id: true, name: true, cover: true, price: true, pay: true, minTenancy: true } },
+            user: { select: { id: true, username: true, nickname: true, avatar: true } },
           },
         }),
       ]);
@@ -38,13 +39,19 @@ export async function GET(req: NextRequest) {
           id: c.id,
           roomId: c.roomId,
           roomName: c.room.name,
-          roomCover: c.room.cover,
+          roomCover: resolveUploadedFileUrl(c.room.cover),
           roomPrice: c.room.price,
           tenantName: c.user.nickname || c.user.username,
+          tenantAvatar: c.user.avatar ? resolveUploadedFileUrl(c.user.avatar) : null,
           tenancy: c.tenancy,
           onlineTime: c.onlineTime.toISOString(),
           offlineTime: c.offlineTime.toISOString(),
           fee: c.fee,
+          pledge: c.pledge,
+          payingPeriod: c.payingPeriod,
+          renewTimes: c.renewTimes,
+          roomPay: c.room.pay,
+          roomMinTenancy: c.room.minTenancy,
           status: c.status,
           isCheckout: c.isCheckout,
           checkoutTime: c.checkoutTime?.toISOString() ?? null,
@@ -64,7 +71,8 @@ export async function GET(req: NextRequest) {
         skip,
         take: limit,
         include: {
-          room: { select: { id: true, name: true, cover: true, price: true } },
+          room: { select: { id: true, name: true, cover: true, price: true, pay: true, minTenancy: true } },
+          landlord: { select: { id: true, username: true, nickname: true, avatar: true } },
         },
       }),
     ]);
@@ -75,12 +83,19 @@ export async function GET(req: NextRequest) {
         id: c.id,
         roomId: c.roomId,
         roomName: c.room.name,
-        roomCover: c.room.cover,
+        roomCover: resolveUploadedFileUrl(c.room.cover),
         roomPrice: c.room.price,
+        landlordName: c.landlord?.nickname || c.landlord?.username || '—',
+        landlordAvatar: c.landlord?.avatar ? resolveUploadedFileUrl(c.landlord.avatar) : null,
         tenancy: c.tenancy,
         onlineTime: c.onlineTime.toISOString(),
         offlineTime: c.offlineTime.toISOString(),
         fee: c.fee,
+        pledge: c.pledge,
+        payingPeriod: c.payingPeriod,
+        renewTimes: c.renewTimes,
+        roomPay: c.room.pay,
+        roomMinTenancy: c.room.minTenancy,
         status: c.status,
         isCheckout: c.isCheckout,
         checkoutTime: c.checkoutTime?.toISOString() ?? null,

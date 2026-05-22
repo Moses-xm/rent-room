@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { serializeContract } from '@/lib/contract';
 import { requirePortalAuth } from '@/lib/portal-auth';
 import { prisma } from '@/lib/prisma';
+import { resolveUploadedFileUrl } from '@/lib/upload-path';
 
 const INCLUDE = {
   user:     { select: { id: true, username: true, nickname: true, avatar: true } },
@@ -30,7 +31,17 @@ export async function GET(req: NextRequest, { params }: Params) {
     }
 
     const role = contract.userId === myId ? 'tenant' : 'landlord';
-    return NextResponse.json({ success: true, data: { ...serializeContract(contract), myRole: role } });
+    const s = serializeContract(contract);
+    return NextResponse.json({
+      success: true,
+      data: {
+        ...s,
+        myRole: role,
+        room: s.room ? { ...s.room, cover: resolveUploadedFileUrl(s.room.cover) } : null,
+        user: s.user ? { ...s.user, avatar: s.user.avatar ? resolveUploadedFileUrl(s.user.avatar) : null } : null,
+        landlord: s.landlord ? { ...s.landlord, avatar: s.landlord.avatar ? resolveUploadedFileUrl(s.landlord.avatar) : null } : null,
+      },
+    });
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : '服务器内部错误';
     return NextResponse.json({ success: false, message }, { status: 500 });
