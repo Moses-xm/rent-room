@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { toast } from "sonner";
 import { MineShell } from "@/components/portal/MineShell";
@@ -13,6 +14,7 @@ import {
 } from "@/utils/constants";
 import Pagination from "@/components/Pagination";
 import ConfirmDialog from "@/components/ConfirmDialog";
+import { getPortalProfile } from "@/utils/portal-auth";
 
 /* ─── Types ──────────────────────────────────────────────────────────────── */
 type TenantItem = {
@@ -520,23 +522,42 @@ function LandlordList() {
 
 /* ─── Page ───────────────────────────────────────────────────────────────── */
 export default function AppointmentPage() {
-  const [tab, setTab] = useState<"tenant" | "landlord">("tenant");
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const isLandlord = getPortalProfile()?.identity === 2;
+
+  const rawTab = searchParams.get("tab");
+  const tab: "tenant" | "landlord" =
+    isLandlord && rawTab === "landlord" ? "landlord" : "tenant";
+
+  function switchTab(t: "tenant" | "landlord") {
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("tab", t);
+    router.replace(`/portal/account/appointment?${params.toString()}`);
+  }
+
+  const tabs = isLandlord
+    ? [
+        { key: "tenant" as const, label: "我预约的" },
+        { key: "landlord" as const, label: "收到的预约" },
+      ]
+    : [{ key: "tenant" as const, label: "我的预约" }];
 
   return (
     <MineShell title="我的预约">
       {/* Tab 切换 */}
       <div className="flex border-b border-[#eee] px-5">
-        {(["tenant", "landlord"] as const).map((t) => (
+        {tabs.map((t) => (
           <button
-            key={t}
-            onClick={() => setTab(t)}
+            key={t.key}
+            onClick={() => switchTab(t.key)}
             className={`px-4 py-3 text-sm font-medium cursor-pointer border-b-2 transition-colors -mb-px ${
-              tab === t
+              tab === t.key
                 ? "border-primary text-primary"
                 : "border-transparent text-text-muted hover:text-text"
             }`}
           >
-            {t === "tenant" ? "我预约的" : "收到的预约"}
+            {t.label}
           </button>
         ))}
       </div>
