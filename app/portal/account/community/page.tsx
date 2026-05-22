@@ -158,7 +158,7 @@ export default function MyCommunityPage() {
                     </Link>
                   </div>
                   <span className="text-text-muted truncate">
-                    {item.district}
+                    {item.city}{item.district}
                   </span>
                   <span className="text-text">{item.roomCount} 套</span>
                   <span className="text-text-muted">{fmtDate(item.createdAt)}</span>
@@ -210,7 +210,7 @@ export default function MyCommunityPage() {
                       <Link href={`/portal/account/community/${item.id}`} className="font-medium text-sm text-text truncate block hover:text-primary">
                         {item.name}
                       </Link>
-                      <div className="text-xs text-text-muted mt-1">{item.district} · {item.roomCount} 套房源</div>
+                      <div className="text-xs text-text-muted mt-1">{item.city}{item.district} · {item.roomCount} 套房源</div>
                       <div className="text-xs text-text-muted mt-0.5">{fmtDate(item.createdAt)}</div>
                     </div>
                   </div>

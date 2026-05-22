@@ -79,8 +79,9 @@ export default function MyRoomPage() {
   const [limit, setLimit]         = useState(10);
   const [total, setTotal]         = useState(0);
   const [totalPages, setTotalPages] = useState(0);
-  const [deletingId, setDeletingId]   = useState<number | null>(null);
-  const [publishingId, setPublishingId] = useState<number | null>(null);
+  const [deletingId, setDeletingId]       = useState<number | null>(null);
+  const [publishingId, setPublishingId]   = useState<number | null>(null);
+  const [unpublishConfirmId, setUnpublishConfirmId] = useState<number | null>(null);
 
   const load = useCallback(async (p: number, l: number) => {
     setLoading(true);
@@ -102,18 +103,26 @@ export default function MyRoomPage() {
 
   useEffect(() => { load(1, 10); }, [load]);
 
-  async function handleTogglePublish(item: RoomItem) {
-    setPublishingId(item.id);
+  async function doTogglePublish(id: number) {
+    setPublishingId(id);
     try {
       const res = await portalRequest<{ success: boolean; data: { isPublished: number } }>(
-        `/portal/account/rooms/${item.id}/publish`,
+        `/portal/account/rooms/${id}/publish`,
         { method: "PATCH" }
       );
       toast.success(`房源${res.data.isPublished === 2 ? "已发布" : "已撤回"}`);
-      setItems(prev => prev.map(r => r.id === item.id ? { ...r, isPublished: res.data.isPublished } : r));
+      setItems(prev => prev.map(r => r.id === id ? { ...r, isPublished: res.data.isPublished } : r));
     } catch {
     } finally {
       setPublishingId(null);
+    }
+  }
+
+  function handleTogglePublish(item: RoomItem) {
+    if (item.isPublished === 2) {
+      setUnpublishConfirmId(item.id);
+    } else {
+      doTogglePublish(item.id);
     }
   }
 
@@ -210,8 +219,8 @@ export default function MyRoomPage() {
                       <div className="flex items-center gap-1.5 shrink-0">
                         <button
                           onClick={() => handleTogglePublish(item)}
-                          disabled={isPublishing || item.isRented === 2}
-                          title={item.isPublished === 2 ? "撤回发布" : "发布"}
+                          disabled={isPublishing || (item.isPublished === 2 && item.isRented === 2)}
+                          title={item.isPublished === 2 ? (item.isRented === 2 ? "已租出，不可撤回" : "撤回发布") : "发布"}
                           className="w-7 h-7 flex items-center justify-center rounded border border-[#ddd] text-[#666] hover:border-primary hover:text-primary transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
                         >
                           {item.isPublished === 2
@@ -228,8 +237,8 @@ export default function MyRoomPage() {
                         </button>
                         <button
                           onClick={() => setDeletingId(item.id)}
-                          disabled={item.isRented === 2}
-                          title="删除"
+                          disabled={item.isRented === 2 || item.isPublished === 2}
+                          title={item.isRented === 2 ? "已租出，不可删除" : item.isPublished === 2 ? "请先撤回发布" : "删除"}
                           className="w-7 h-7 flex items-center justify-center rounded border border-[#ddd] text-[#666] hover:border-red-400 hover:text-red-500 transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
@@ -269,7 +278,7 @@ export default function MyRoomPage() {
                         <div className="ml-auto flex items-center gap-1.5">
                           <button
                             onClick={() => handleTogglePublish(item)}
-                            disabled={publishingId === item.id || item.isRented === 2}
+                            disabled={publishingId === item.id || (item.isPublished === 2 && item.isRented === 2)}
                             className="text-xs px-2 h-6 border border-[#ddd] rounded text-[#666] hover:border-primary hover:text-primary cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
                           >
                             {item.isPublished === 2 ? "撤回" : "发布"}
@@ -282,7 +291,7 @@ export default function MyRoomPage() {
                           </button>
                           <button
                             onClick={() => setDeletingId(item.id)}
-                            disabled={item.isRented === 2}
+                            disabled={item.isRented === 2 || item.isPublished === 2}
                             className="text-xs px-2 h-6 border border-[#ddd] rounded text-[#666] hover:border-red-400 hover:text-red-400 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
                           >
                             删除
@@ -296,6 +305,16 @@ export default function MyRoomPage() {
             </>
           )}
 
+          <ConfirmDialog
+            open={unpublishConfirmId !== null}
+            title="撤回发布"
+            description="撤回后房源将从平台下架，租客将无法搜索到该房源，确认撤回吗？"
+            confirmText="确认撤回"
+            danger
+            loading={publishingId !== null}
+            onConfirm={() => { if (unpublishConfirmId !== null) { doTogglePublish(unpublishConfirmId); setUnpublishConfirmId(null); } }}
+            onClose={() => setUnpublishConfirmId(null)}
+          />
           <ConfirmDialog
             open={deletingId !== null}
             title="删除房源"
