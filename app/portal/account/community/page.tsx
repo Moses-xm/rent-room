@@ -4,13 +4,15 @@ import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { Plus, Edit2, Trash2, ExternalLink } from "lucide-react";
+import { Plus, Edit2, Trash2, ExternalLink, Building2, Home, MapPin, Star } from "lucide-react";
 import { MineShell } from "@/components/portal/MineShell";
+import { LandlordGate } from "@/components/portal/LandlordGate";
 import { portalRequest } from "@/utils/portal-request";
 import { resolveUploadedFileUrl } from "@/lib/upload-path";
 import { fmtDate } from "@/utils/format";
 import ConfirmDialog from "@/components/ConfirmDialog";
 import Pagination from "@/components/Pagination";
+import { getPortalProfile } from "@/utils/portal-auth";
 
 const PAGE_SIZE = 10;
 
@@ -26,8 +28,18 @@ type CommunityItem = {
   createdAt: string;
 };
 
+const COMMUNITY_GATE_FEATURES = [
+  { icon: Building2, label: "创建小区" },
+  { icon: Home,      label: "关联多套房源" },
+  { icon: MapPin,    label: "地图定位管理" },
+  { icon: Edit2,     label: "随时编辑信息" },
+  { icon: Trash2,    label: "灵活删除小区" },
+  { icon: Star,      label: "房东专属权益" },
+];
+
 export default function MyCommunityPage() {
   const router = useRouter();
+  const isLandlord = getPortalProfile()?.identity === 2;
   const [items, setItems]           = useState<CommunityItem[]>([]);
   const [loading, setLoading]       = useState(true);
   const [hasLoaded, setHasLoaded]   = useState(false);
@@ -66,6 +78,8 @@ export default function MyCommunityPage() {
 
   return (
     <MineShell title="我的小区">
+      {!isLandlord && <LandlordGate features={COMMUNITY_GATE_FEATURES} />}
+      {isLandlord && <>
       {/* 操作栏 */}
       <div className="flex items-center gap-3 px-5 py-3 border-b border-[#eee]">
         <Link
@@ -234,6 +248,7 @@ export default function MyCommunityPage() {
         onConfirm={() => { if (deletingId !== null) handleDelete(deletingId); }}
         onClose={() => setDeletingId(null)}
       />
+      </>}
     </MineShell>
   );
 }
