@@ -278,10 +278,17 @@ export default function RoomDetailPage() {
 
   function handleOpenAppointment() {
     if (!getPortalToken()) {
-      router.push(`/portal/login?redirect=${encodeURIComponent(`/portal/room/${id}`)}`);
+      toast.error("请先登录后再预约看房");
       return;
     }
     setAppointmentOpen(true);
+  }
+
+  function handleContact() {
+    if (!getPortalToken()) {
+      toast.error("请先登录后再租赁");
+      return;
+    }
   }
 
   async function handleAppointmentSubmit(appointmentTime: string, remark: string) {
@@ -295,7 +302,7 @@ export default function RoomDetailPage() {
 
   async function handleToggleCollect() {
     if (!getPortalToken()) {
-      router.push(`/portal/login?redirect=${encodeURIComponent(`/portal/room/${id}`)}`);
+      toast.error("请先登录后再收藏");
       return;
     }
     setCollectLoading(true);
@@ -527,6 +534,7 @@ export default function RoomDetailPage() {
                 info={brokerInfo}
                 isRented={room.isRented === 2}
                 onAppointment={handleOpenAppointment}
+                onContact={handleContact}
               />
 
               {/* 移动端地图 */}
