@@ -151,11 +151,10 @@ export default function MyCommunityPage() {
                       <div className="w-14 h-10 bg-surface-2 rounded shrink-0" />
                     )}
                     <Link
-                      href={`/portal/cmyRoom/${item.id}`}
-                      className="truncate text-text hover:text-(--color-accent) hover:underline flex items-center gap-1"
+                      href={`/portal/account/community/${item.id}`}
+                      className="truncate text-text hover:text-primary hover:underline"
                     >
                       {item.name}
-                      <ExternalLink className="w-3 h-3 shrink-0 opacity-40" />
                     </Link>
                   </div>
                   <span className="text-text-muted truncate">
@@ -164,6 +163,14 @@ export default function MyCommunityPage() {
                   <span className="text-text">{item.roomCount} 套</span>
                   <span className="text-text-muted">{fmtDate(item.createdAt)}</span>
                   <div className="flex items-center gap-1.5 shrink-0">
+                    <Link
+                      href={`/portal/cmyRoom/${item.id}`}
+                      target="_blank"
+                      title="查看公开页"
+                      className="w-7 h-7 flex items-center justify-center rounded border border-[#ddd] text-[#666] hover:border-primary hover:text-primary transition-colors cursor-pointer"
+                    >
+                      <ExternalLink className="w-3.5 h-3.5" />
+                    </Link>
                     <button
                       onClick={() => router.push(`/portal/account/community/${item.id}/edit`)}
                       title="编辑"
@@ -200,7 +207,7 @@ export default function MyCommunityPage() {
                       <div className="w-16 h-12 bg-surface-2 rounded shrink-0" />
                     )}
                     <div className="flex-1 min-w-0">
-                      <Link href={`/portal/cmyRoom/${item.id}`} className="font-medium text-sm text-text truncate block hover:text-(--color-accent)">
+                      <Link href={`/portal/account/community/${item.id}`} className="font-medium text-sm text-text truncate block hover:text-primary">
                         {item.name}
                       </Link>
                       <div className="text-xs text-text-muted mt-1">{item.district} · {item.roomCount} 套房源</div>
@@ -208,6 +215,14 @@ export default function MyCommunityPage() {
                     </div>
                   </div>
                   <div className="flex items-center justify-end gap-2 mt-3 pt-2 border-t border-[#f5f5f5]">
+                    <Link
+                      href={`/portal/cmyRoom/${item.id}`}
+                      target="_blank"
+                      className="text-xs px-2 h-6 border border-[#ddd] rounded text-[#666] hover:border-primary hover:text-primary cursor-pointer transition-colors flex items-center gap-1"
+                    >
+                      <ExternalLink className="w-3 h-3" />
+                      公开页
+                    </Link>
                     <button
                       onClick={() => router.push(`/portal/account/community/${item.id}/edit`)}
                       className="text-xs px-2 h-6 border border-[#ddd] rounded text-[#666] hover:border-primary hover:text-primary cursor-pointer transition-colors"

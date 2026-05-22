@@ -17,6 +17,7 @@ export async function GET(req: NextRequest, { params }: Params) {
   try {
     const item = await prisma.community.findFirst({
       where: { id: cmyId, creatorId: auth.user.id },
+      include: { _count: { select: { rooms: true } } },
     });
     if (!item) return NextResponse.json({ success: false, message: '小区不存在' }, { status: 404 });
 
@@ -34,6 +35,9 @@ export async function GET(req: NextRequest, { params }: Params) {
         lng: String(item.lng),
         lat: String(item.lat),
         cover: item.cover,
+        roomCount: item._count.rooms,
+        createdAt: item.createdAt.toISOString(),
+        updatedAt: item.updatedAt.toISOString(),
       },
     });
   } catch {
