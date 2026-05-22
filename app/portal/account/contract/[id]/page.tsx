@@ -437,7 +437,7 @@ export default function ContractDetailPage({ params }: { params: Promise<{ id: s
                   <Trash2 size={14} />
                   删除合同
                 </button>
-                <p className="text-xs text-text-muted mt-2">删除后双方均无法再查看，不可撤销。</p>
+                <p className="text-xs text-text-muted mt-2">删除后将从您的列表中移除，对方仍可查看，不可撤销。</p>
               </div>
             )}
 

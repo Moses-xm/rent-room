@@ -30,6 +30,7 @@ export async function GET(req: NextRequest, { params }: Params) {
       return NextResponse.json({ success: false, message: '无权访问此合同' }, { status: 403 });
     }
 
+
     const role = contract.userId === myId ? 'tenant' : 'landlord';
     const s = serializeContract(contract);
     return NextResponse.json({
