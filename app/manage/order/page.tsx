@@ -12,6 +12,7 @@ import Pagination from '@/components/Pagination';
 import FilterSelect from '@/components/FilterSelect';
 
 import { ORDER_TYPE_OPTIONS, DEFAULT_PAGE_SIZE } from '@/utils/constants';
+import OrderAmountDisplay from '@/components/OrderAmountDisplay';
 import { resolveUploadedFileUrl } from '@/lib/upload-path';
 
 /* ─── Types ───────────────────────────────────────────────────────────────── */
@@ -270,19 +271,11 @@ export default function OrderPage() {
       label: '付款金额',
       align: 'right',
       tdClassName: 'font-mono',
-      render: (item) => {
-        const displayAmount = item.type === 3 ? item.pledge : item.fee;
-        return (
-          <div className="text-right">
-            {displayAmount != null
-              ? <p className="text-body-sm text-text font-medium">¥{displayAmount.toFixed(2)}</p>
-              : <p className="text-text-muted">—</p>}
-            {item.type === 1 && item.pledge != null && (
-              <p className="text-tiny text-text-muted mt-0.5">押金 ¥{item.pledge.toFixed(2)}</p>
-            )}
-          </div>
-        );
-      },
+      render: (item) => (
+        <div className="text-right">
+          <OrderAmountDisplay type={item.type} fee={item.fee} pledge={item.pledge} block amountClassName="text-body-sm text-orange-600 font-medium" subClassName="text-tiny text-text-muted" />
+        </div>
+      ),
     },
     {
       key: 'type',
@@ -429,15 +422,7 @@ export default function OrderPage() {
                   </Link>
                 </div>
                 <div className="text-right shrink-0">
-                  {(() => {
-                    const displayAmount = item.type === 3 ? item.pledge : item.fee;
-                    return displayAmount != null
-                      ? <p className="text-body-sm font-mono font-medium text-text">¥{displayAmount.toFixed(2)}</p>
-                      : null;
-                  })()}
-                  {item.type === 1 && item.pledge != null && (
-                    <p className="text-tiny text-text-muted font-mono">押金 ¥{item.pledge.toFixed(2)}</p>
-                  )}
+                  <OrderAmountDisplay type={item.type} fee={item.fee} pledge={item.pledge} block amountClassName="text-body-sm font-mono font-medium text-orange-600" subClassName="text-tiny text-text-muted font-mono" />
                 </div>
               </div>
 

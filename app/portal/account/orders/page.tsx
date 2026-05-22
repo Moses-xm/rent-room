@@ -6,10 +6,11 @@ import { Eye, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { MineShell } from "@/components/portal/MineShell";
 import { portalRequest } from "@/utils/portal-request";
-import { fmtDate } from "@/utils/format";
+import { fmtDateTime } from "@/utils/format";
 import { ORDER_TYPE_OPTIONS, ORDER_TYPE_STYLE, MINE_SKELETON_ROWS } from "@/utils/constants";
 import Pagination from "@/components/Pagination";
 import ConfirmDialog from "@/components/ConfirmDialog";
+import OrderAmountDisplay from "@/components/OrderAmountDisplay";
 
 type OrderItem = {
   id: number;
@@ -150,7 +151,7 @@ export default function OrdersPage() {
                   )}
                   <div className="min-w-0">
                     <div className="truncate text-text group-hover:text-(--color-accent) group-hover:underline">{item.roomName}</div>
-                    <div className="text-xs text-text-muted mt-0.5">{fmtDate(item.createdAt)}</div>
+                    <div className="text-xs text-text-muted mt-0.5"><span className="text-text-muted/60">下单时间：</span>{fmtDateTime(item.createdAt)}</div>
                   </div>
                 </Link>
 
@@ -161,20 +162,7 @@ export default function OrdersPage() {
 
                 {/* 支付金额 */}
                 <div>
-                  {item.type === 3 ? (
-                    <p className="text-(--color-accent-dark) font-medium">
-                      ¥{(item.pledge ?? 0).toFixed(2)}
-                    </p>
-                  ) : (
-                    <>
-                      <p className="text-(--color-accent-dark) font-medium">
-                        ¥{(item.fee ?? 0).toFixed(2)}
-                      </p>
-                      {item.pledge != null && item.pledge > 0 && (
-                        <p className="text-xs text-text-muted mt-0.5">押金 ¥{item.pledge.toFixed(2)}</p>
-                      )}
-                    </>
-                  )}
+                  <OrderAmountDisplay type={item.type} fee={item.fee} pledge={item.pledge} block amountClassName="text-(--color-accent-dark) font-medium" subClassName="text-xs text-text-muted" />
                 </div>
 
                 {/* 操作 */}
@@ -222,21 +210,12 @@ export default function OrdersPage() {
                       </span>
                     </div>
                     <div className="mt-1">
-                      {item.type === 3 ? (
-                        <span className="text-sm text-(--color-accent-dark) font-medium">¥{(item.pledge ?? 0).toFixed(2)}</span>
-                      ) : (
-                        <>
-                          <span className="text-sm text-(--color-accent-dark) font-medium">¥{(item.fee ?? 0).toFixed(2)}</span>
-                          {item.pledge != null && item.pledge > 0 && (
-                            <span className="text-xs text-text-muted ml-2">押金 ¥{item.pledge.toFixed(2)}</span>
-                          )}
-                        </>
-                      )}
+                      <OrderAmountDisplay type={item.type} fee={item.fee} pledge={item.pledge} amountClassName="text-sm text-(--color-accent-dark) font-medium" subClassName="text-xs text-text-muted" />
                     </div>
                   </div>
                 </div>
                 <div className="flex items-center justify-between mt-3 pt-2 border-t border-[#f5f5f5]">
-                  <span className="text-xs text-text-muted">{fmtDate(item.createdAt)}</span>
+                  <span className="text-xs text-text-muted"><span className="text-text-muted/60">下单时间：</span>{fmtDateTime(item.createdAt)}</span>
                   <div className="flex items-center gap-0.5">
                     <Link
                       href={`/portal/account/orders/${item.id}`}

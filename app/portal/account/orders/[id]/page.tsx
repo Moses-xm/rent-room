@@ -29,6 +29,7 @@ type OrderDetail = {
   payerNickname: string | null;
   payeeName: string | null;
   payeeNickname: string | null;
+  myRole: 'payer' | 'payee';
 };
 
 function orderTypeLabel(t: number) {
@@ -44,20 +45,23 @@ function InfoRow({ label, value, mono = false }: { label: string; value: React.R
   );
 }
 
-function PartyCard({ name, nickname, role }: { name: string | null; nickname: string | null; role: string }) {
+function PartyCard({ name, nickname, role, highlight = false }: { name: string | null; nickname: string | null; role: string; highlight?: boolean }) {
   if (!name) return null;
   return (
-    <div className="flex items-center gap-3 p-3 rounded-xl border border-border bg-surface">
-      <div className="w-10 h-10 rounded-full grid place-items-center bg-(--color-primary-tint,#e6f4ea) text-primary text-sm font-semibold border border-border shrink-0">
+    <div className={`flex items-center gap-3 p-3 rounded-xl border ${highlight ? 'border-primary bg-primary-tint' : 'border-border bg-surface'}`}>
+      <div className="w-10 h-10 rounded-full grid place-items-center bg-primary-tint text-primary text-sm font-semibold border border-border shrink-0">
         {(nickname || name).charAt(0).toUpperCase()}
       </div>
       <div className="flex-1 min-w-0">
         <p className="text-sm font-medium text-text truncate">{name}</p>
         {nickname && <p className="text-xs text-text-muted truncate">{nickname}</p>}
       </div>
-      <span className="text-xs bg-white border border-border text-text-muted px-2 py-0.5 rounded-full shrink-0">
-        {role}
-      </span>
+      <div className="flex items-center gap-1 shrink-0">
+        <span className="text-xs bg-white border border-border text-text-muted px-2 py-0.5 rounded-full">
+          {role}
+        </span>
+        {highlight && <span className="text-xs text-primary">（您）</span>}
+      </div>
     </div>
   );
 }
@@ -216,7 +220,7 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
               }
             />
             {order.fee != null && (
-              <InfoRow label="月租金额" value={`¥${order.fee.toFixed(2)}`} mono />
+              <InfoRow label="期付金额" value={`¥${order.fee.toFixed(2)}`} mono />
             )}
             {order.pledge != null && (
               <InfoRow label="押金金额" value={`¥${order.pledge.toFixed(2)}`} mono />
@@ -247,8 +251,8 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
                 <h2 className="text-sm font-semibold text-text">当事人</h2>
               </div>
               <div className="space-y-2">
-                <PartyCard name={order.payerName} nickname={order.payerNickname} role="付款人" />
-                <PartyCard name={order.payeeName} nickname={order.payeeNickname} role="收款人" />
+                <PartyCard name={order.payerName} nickname={order.payerNickname} role="付款人" highlight={order.myRole === 'payer'} />
+                <PartyCard name={order.payeeName} nickname={order.payeeNickname} role="收款人" highlight={order.myRole === 'payee'} />
               </div>
             </div>
 

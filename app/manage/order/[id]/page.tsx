@@ -276,7 +276,7 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
               }
             />
             {order.fee != null && (
-              <InfoRow label="月租金额" value={`¥${order.fee.toFixed(2)}`} mono />
+              <InfoRow label="期付金额" value={`¥${order.fee.toFixed(2)}`} mono />
             )}
             {order.pledge != null && (
               <InfoRow label="押金金额" value={`¥${order.pledge.toFixed(2)}`} mono />

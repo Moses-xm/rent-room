@@ -14,7 +14,12 @@ export async function GET(req: NextRequest) {
   const skip  = (page - 1) * limit;
 
   try {
-    const where = { payerId: auth.user.id, payerDeleted: false };
+    const where = {
+      OR: [
+        { payerId: auth.user.id, payerDeleted: false },
+        { payeeId: auth.user.id, payeeDeleted: false },
+      ],
+    };
     const [total, data] = await Promise.all([
       prisma.order.count({ where }),
       prisma.order.findMany({
@@ -42,6 +47,7 @@ export async function GET(req: NextRequest) {
         pledge: o.pledge,
         paidPeriod: o.paidPeriod,
         createdAt: o.createdAt.toISOString(),
+        myRole: o.payerId === auth.user.id ? 'payer' : 'payee',
       })),
       total, page, limit,
       totalPages: Math.ceil(total / limit),
@@ -51,7 +57,7 @@ export async function GET(req: NextRequest) {
   }
 }
 
-// DELETE /api/portal/account/orders?id=xxx （软删除）
+// DELETE /api/portal/account/orders?id=xxx （软删除，仅对自己隐藏）
 export async function DELETE(req: NextRequest) {
   const auth = await requirePortalAuth(req);
   if (!auth.ok) return auth.response;
@@ -61,10 +67,18 @@ export async function DELETE(req: NextRequest) {
 
   try {
     const record = await prisma.order.findUnique({ where: { id } });
-    if (!record || record.payerId !== auth.user.id) {
+    const myId = auth.user.id;
+
+    if (!record || (record.payerId !== myId && record.payeeId !== myId)) {
       return NextResponse.json({ success: false, message: '订单不存在' }, { status: 404 });
     }
-    await prisma.order.update({ where: { id }, data: { payerDeleted: true } });
+
+    if (record.payerId === myId) {
+      await prisma.order.update({ where: { id }, data: { payerDeleted: true } });
+    } else {
+      await prisma.order.update({ where: { id }, data: { payeeDeleted: true } });
+    }
+
     return NextResponse.json({ success: true });
   } catch {
     return NextResponse.json({ success: false, message: '删除失败' }, { status: 500 });

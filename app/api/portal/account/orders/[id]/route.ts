@@ -23,7 +23,14 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
       },
     });
 
-    if (!order || order.payerId !== auth.user.id) {
+    const myId = auth.user.id;
+    if (!order || (order.payerId !== myId && order.payeeId !== myId)) {
+      return NextResponse.json({ success: false, message: '订单不存在' }, { status: 404 });
+    }
+
+    const isDeleted = (order.payerId === myId && order.payerDeleted) ||
+                      (order.payeeId === myId && order.payeeDeleted);
+    if (isDeleted) {
       return NextResponse.json({ success: false, message: '订单不存在' }, { status: 404 });
     }
 
@@ -47,6 +54,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
         payerNickname: order.payer?.nickname ?? null,
         payeeName: order.payee?.username ?? null,
         payeeNickname: order.payee?.nickname ?? null,
+        myRole: order.payerId === myId ? 'payer' : 'payee',
       },
     });
   } catch {
