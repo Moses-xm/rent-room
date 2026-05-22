@@ -244,10 +244,10 @@ export default function PortalCommunityForm({ title, initialData, onSubmit, subm
                           key={line}
                           type="button"
                           onClick={() => toggleSubwayLine(line)}
-                          className={`px-2.5 py-1 rounded-full text-xs font-medium transition-colors cursor-pointer ${
+                          className={`px-2.5 py-1 rounded-full text-xs font-medium transition-colors cursor-pointer border ${
                             sel
-                              ? "bg-[var(--color-primary-tint)] text-[var(--color-primary-dark)]"
-                              : "bg-[#f5f5f5] border border-[#eee] text-[#666] hover:border-[#aaa]"
+                              ? "bg-[var(--color-primary-tint)] text-[var(--color-primary-dark)] border-[var(--color-primary-tint)]"
+                              : "bg-[#f5f5f5] border-[#eee] text-[#666] hover:text-[#333]"
                           }`}
                         >
                           {line}

@@ -327,10 +327,10 @@ export default function CommunityForm({ title, subtitle, initialData, onSubmit, 
                             key={line}
                             type="button"
                             onClick={() => toggleSubwayLine(line)}
-                            className={`px-2.5 py-1 rounded-full text-body-sm font-medium transition-colors cursor-pointer
+                            className={`px-2.5 py-1 rounded-full text-body-sm font-medium transition-colors cursor-pointer border
                               ${selected
-                                ? 'bg-primary-tint text-primary-dark'
-                                : 'bg-surface border border-border text-text-2 hover:border-text-disabled hover:text-text'
+                                ? 'bg-primary-tint text-primary-dark border-primary-tint'
+                                : 'bg-surface border-border text-text-2 hover:text-text'
                               }`}
                           >
                             {line}
