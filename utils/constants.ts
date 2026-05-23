@@ -128,10 +128,10 @@ export const PORTAL_FOOTER_LINKS = ["关于我们", "联系我们", "用户协�
 export const PORTAL_SEARCH_PATH = "/portal/areaRoom";
 
 /** 登录/注册页全屏背景图 */
-export const PORTAL_AUTH_BG = "/prototype/assets/bg.jpg";
+export const PORTAL_AUTH_BG = "/images/bg.jpg";
 
 /** 个人中心横幅背景图 */
-export const PORTAL_MINE_BANNER = "/prototype/assets/banner.png";
+export const PORTAL_MINE_BANNER = "/images/banner.png";
 
 // ── Portal Filter Options ─────────────────────────────────────────────────────
 export const PORTAL_PRICE_RANGES: Array<{ label: string; min?: number; max?: number }> = [
