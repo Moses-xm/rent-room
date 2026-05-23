@@ -24,8 +24,10 @@ export function GlobalHeader({ onMenuToggle }: { onMenuToggle: () => void }) {
   const searchRef = useRef<HTMLInputElement>(null);
   const [profile, setProfile] = useState<PortalProfile | null>(null);
   const [popoverOpen, setPopoverOpen] = useState(false);
+  const [mobilePopoverOpen, setMobilePopoverOpen] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const popoverRef = useRef<HTMLDivElement>(null);
+  const mobilePopoverRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const sync = () => setProfile(getPortalProfile());
@@ -48,6 +50,17 @@ export function GlobalHeader({ onMenuToggle }: { onMenuToggle: () => void }) {
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [popoverOpen]);
+
+  useEffect(() => {
+    if (!mobilePopoverOpen) return;
+    const handleClickOutside = (e: MouseEvent) => {
+      if (mobilePopoverRef.current && !mobilePopoverRef.current.contains(e.target as Node)) {
+        setMobilePopoverOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [mobilePopoverOpen]);
 
   const handleSearch = () => {
     const q = searchRef.current?.value.trim();
@@ -77,8 +90,55 @@ export function GlobalHeader({ onMenuToggle }: { onMenuToggle: () => void }) {
           <Link href="/portal" className="flex-1 text-center text-(--color-primary-brand) text-xl font-medium">
             雅阁租房
           </Link>
-          <div className="shrink-0 flex items-center pr-1">
+          <div className="shrink-0 flex items-center gap-2 pr-1">
             <CitySelector variant="portal" />
+            {profile ? (
+              <>
+              <NotificationBell />
+              <div ref={mobilePopoverRef} className="relative">
+                <button
+                  onClick={() => setMobilePopoverOpen((v) => !v)}
+                  className="flex items-center gap-1.5 cursor-pointer hover:opacity-80 transition-opacity"
+                >
+                  <div className="w-7 h-7 rounded-full overflow-hidden shrink-0 flex items-center justify-center">
+                    {avatarUrl ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={avatarUrl} alt={displayName} className="w-full h-full object-cover" />
+                    ) : (
+                      <div className="w-full h-full rounded-full bg-primary-tint-2 flex items-center justify-center text-primary text-xs font-semibold">
+                        {(displayName ?? "?").charAt(0).toUpperCase()}
+                      </div>
+                    )}
+                  </div>
+                  <span className="text-sm text-[#333] max-w-16 truncate">{displayName}</span>
+                </button>
+                {mobilePopoverOpen && (
+                  <div className="absolute right-0 top-full mt-2 w-36 bg-white border border-[#e6e6e6] shadow-lg z-50 py-1">
+                    <div className="px-4 py-2 text-xs text-[#999] border-b border-[#f0f0f0] truncate">
+                      {displayName}
+                    </div>
+                    <Link
+                      href="/portal/account/info"
+                      onClick={() => setMobilePopoverOpen(false)}
+                      className="flex items-center px-4 py-2.5 text-sm text-[#333] hover:bg-[#f7f7f7] transition-colors cursor-pointer"
+                    >
+                      个人中心
+                    </Link>
+                    <button
+                      onClick={() => { setMobilePopoverOpen(false); setConfirmOpen(true); }}
+                      className="w-full flex items-center px-4 py-2.5 text-sm text-[#e74c3c] hover:bg-[#fff5f5] transition-colors cursor-pointer"
+                    >
+                      退出登录
+                    </button>
+                  </div>
+                )}
+              </div>
+              </>
+            ) : (
+              <Link href="/portal/login" className="text-sm text-primary font-medium">
+                登录
+              </Link>
+            )}
           </div>
         </div>
 
