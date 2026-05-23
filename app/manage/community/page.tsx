@@ -171,8 +171,8 @@ export default function CommunityPage() {
               </div>
             )}
           </div>
-          <div>
-            <p className="text-body font-emphasis text-text leading-none group-hover:text-primary transition-colors">{c.name}</p>
+          <div className="min-w-0">
+            <p className="text-body font-emphasis text-text leading-none group-hover:text-primary transition-colors truncate max-w-[180px]">{c.name}</p>
             <p className="text-tiny text-text-muted font-mono mt-0.5">ID: {c.id}</p>
           </div>
         </div>
@@ -321,7 +321,7 @@ export default function CommunityPage() {
                   )}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-body font-emphasis text-text">{c.name}</p>
+                  <p className="text-body font-emphasis text-text truncate">{c.name}</p>
                   <p className="text-tiny text-text-muted mt-0.5">
                     {[c.province, c.city, c.district, c.street].filter(Boolean).join(' ')}
                   </p>
