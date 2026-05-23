@@ -678,10 +678,10 @@ export const MINE_SKELETON_ROWS = 5;
 // 仅在 lg: 断点以上生效，移动端退回单列卡片布局。
 
 // 我的预约列表：房源(2fr) | 房东/租客(1fr) | 预约时间(1fr) | 状态(1fr) | 操作(120px)
-export const PORTAL_APPOINTMENT_COLS = "grid-cols-[2fr_1fr_1fr_1fr_120px]";
+export const PORTAL_APPOINTMENT_COLS = "grid-cols-[2fr_1fr_1fr_1fr_120px] ";
 
 // 我的房源列表：房源(2fr) | 发布状态(1fr) | 出租状态(1fr) | 租赁类型(1fr) | 创建时间(1fr) | 操作(100px)
-export const PORTAL_MY_ROOM_COLS = "grid-cols-[2fr_1fr_1fr_1fr_1fr_100px]";
+export const PORTAL_MY_ROOM_COLS = "grid-cols-[2fr_1fr_1fr_1fr_1fr_100px] ";
 
 // 我的订单列表：订单房源(2fr) | 类型(1fr) | 金额(1fr) | 操作(120px)
 export const PORTAL_ORDERS_COLS = "grid-cols-[2fr_1fr_1fr_120px]";
