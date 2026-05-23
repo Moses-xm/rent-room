@@ -41,6 +41,16 @@ type NotificationsResponse = {
   totalPages: number;
 };
 
+/* ─── Options type ────────────────────────────────────────────────────────── */
+type OptionsResponse = {
+  success: boolean;
+  users: { id: number; username: string; nickname: string | null }[];
+};
+
+async function fetchOptions() {
+  return request<OptionsResponse>('/manage/notification/options');
+}
+
 /* ─── Type pill ───────────────────────────────────────────────────────────── */
 const TYPE_STYLE: Record<number, string> = {
   1: 'bg-sky-50 text-sky-600',
@@ -125,9 +135,17 @@ export default function NotificationPage() {
   const [refreshKey, setRefreshKey] = useState(0);
   const [typeFilter, setTypeFilter] = useState('');
   const [isReadFilter, setIsReadFilter] = useState('');
+  const [userIdFilter, setUserIdFilter] = useState<number | undefined>(undefined);
+  const [userOptions, setUserOptions] = useState<OptionsResponse['users']>([]);
 
   const [deleteTarget, setDeleteTarget] = useState<NotificationItem | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+
+  useEffect(() => {
+    fetchOptions().then((res) => {
+      if (res.success) setUserOptions(res.users);
+    }).catch(console.error);
+  }, [refreshKey]);
 
   useEffect(() => {
     const t = setTimeout(() => setDebouncedQuery(query), 300);
@@ -144,6 +162,7 @@ export default function NotificationPage() {
       search: debouncedQuery || undefined,
       type: typeFilter || undefined,
       isRead: isReadFilter,
+      userId: userIdFilter,
     })
       .then((res) => {
         if (cancelled) return;
@@ -160,7 +179,7 @@ export default function NotificationPage() {
       });
 
     return () => { cancelled = true; };
-  }, [page, pageSize, debouncedQuery, typeFilter, isReadFilter, refreshKey]);
+  }, [page, pageSize, debouncedQuery, typeFilter, isReadFilter, userIdFilter, refreshKey]);
 
   const handlePageChange     = (p: number) => setPage(Math.max(1, Math.min(p, totalPages)));
   const handlePageSizeChange = (s: number) => { setPageSize(s); setPage(1); };
@@ -195,12 +214,13 @@ export default function NotificationPage() {
     }
   };
 
-  const hasFilter = !!(debouncedQuery.trim() || typeFilter || isReadFilter);
+  const hasFilter = !!(debouncedQuery.trim() || typeFilter || isReadFilter || userIdFilter);
 
   const clearFilters = () => {
     setQuery('');
     setTypeFilter('');
     setIsReadFilter('');
+    setUserIdFilter(undefined);
     setPage(1);
   };
 
@@ -339,6 +359,16 @@ export default function NotificationPage() {
                        placeholder:text-text-muted"
           />
         </div>
+        <FilterSelect
+          value={userIdFilter ? String(userIdFilter) : ''}
+          onChange={(v) => { setUserIdFilter(v ? Number(v) : undefined); setPage(1); }}
+          placeholder="全部接收用户"
+          className="w-full sm:w-40"
+          options={userOptions.map((u) => ({
+            value: String(u.id),
+            label: u.nickname ? `${u.nickname}（${u.username}）` : u.username,
+          }))}
+        />
         <FilterSelect
           value={typeFilter}
           onChange={(v) => { setTypeFilter(v); setPage(1); }}
