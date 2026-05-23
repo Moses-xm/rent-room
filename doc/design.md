@@ -73,7 +73,19 @@ export async function requireManageAuth(request: Request): Promise<
 
 ### 用户平台
 
-用户平台需实现独立的认证（用户注册/登录），同样使用 JWT，但签名密钥、token 存储 key、鉴权中间件需要与管理平台分开，可参照管理平台的实现方式新建 `lib/portal-auth.ts`。
+- 使用自实现的 **HS256 JWT**，签名密钥来自环境变量 `PORTAL_JWT_SECRET`。
+- 登录后 token 存储在 `localStorage`（key 由 `utils/portal-auth.ts` 定义）。
+- 每个需要鉴权的 Portal API Route 调用 `requirePortalAuth(request)`（`lib/portal-auth.ts`）：
+
+```ts
+export async function requirePortalAuth(request: Request): Promise<
+  | { ok: true; user: AuthenticatedUser }
+  | { ok: false; response: NextResponse }
+>
+```
+
+- 前端 `utils/portal-request.ts` 的 `portalRequest()` 函数在每次请求中自动附加 `Authorization: Bearer <token>` Header。
+- 若收到 401，`portalRequest()` 会自动清除 token 并重定向到 `/portal/login`。
 
 ---
 
@@ -667,7 +679,7 @@ import AppLoading from '@/components/AppLoading';
 - `toast.success(message)` — 操作成功
 - `toast.error(message)` — 操作失败
 
-在页面根节点放置 `<Toaster position="top-right" richColors />`。
+`<Toaster>` 已在两个平台的 layout 层全局挂载（管理端：`ManageLayoutShell`；Portal：`app/portal/layout.tsx` 的 `PortalToaster`），页面层只需直接调用 `toast()`，**不得**在页面内重复渲染 `<Toaster />`。
 
 ### 分页组件
 
@@ -743,9 +755,7 @@ import AppLoading from '@/components/AppLoading';
 - **最新 5 条订单**：全部订单类型，含付款人、房源名、金额、类型标签（首期款/续期款/押金退）；点击「查看全部」跳转 `/manage/order`
 - **空数据处理**：图表和列表均有空态提示；请求失败时展示错误态和重试按钮
 
-### 8.2 待实现模块
-
-以下模块按优先级排列，均以管理员管理为开发标准（Schema + API + 页面 + Modal）。
+### 8.2 其他已实现模块
 
 #### 用户管理 (`/manage/user`)
 
@@ -772,7 +782,7 @@ import AppLoading from '@/components/AppLoading';
   - `POST /api/manage/user/[id]/recharge` — 充值，请求体 `{ amount: number, remark?: string }`，返回 `{ walletRecord, newBalance }`
 - 序列化：`lib/wallet-record.ts`（`serializeWalletRecord`，所有 Date 字段转 `.toISOString()`）
 
-#### 小区管理 (`/manage/community`)
+#### 小区管理 (`/manage/community`) ✅
 
 - 页面功能：小区列表（分页、按城市/区搜索）、新建（含百度地图定位）、编辑、删除
 - API：`GET/POST /api/manage/community`，`PUT/DELETE /api/manage/community/[id]`
@@ -799,7 +809,7 @@ import AppLoading from '@/components/AppLoading';
 - API：`GET/POST /api/manage/facility`，`PUT/DELETE /api/manage/facility/[id]`
 - 字段：`name`（设施名称）、`icon`（iconfont 类名，表单内含实时预览）
 
-#### 轮播图管理 (`/manage/carousel`)
+#### 轮播图管理 (`/manage/carousel`) ✅
 
 - 页面功能：轮播图卡片列表、新建（上传图片 + 跳转路径 + 发布状态 + 展示顺序）、编辑、删除
 - 快捷操作：卡片上一键发布/取消发布；图片左上角显示 ID 和自定义顺序，右上角显示发布状态
@@ -814,16 +824,16 @@ import AppLoading from '@/components/AppLoading';
 - 新增/编辑弹窗：用户和房源均支持搜索过滤的可滚动列表选择；同一用户+房源组合唯一约束（409 冲突提示）
 - 序列化：`lib/collection.ts`，列表响应含关联的 `user`（id/username/nickname）和 `room`（id/name/roomCode）字段
 
-#### 预约看房管理 (`/manage/appointment`)
+#### 预约看房管理 (`/manage/appointment`) ✅
 
-- 页面功能：预约记录列表（只读，管理员不可增删改），支持按状态筛选和关键词搜索
+- 页面功能：预约记录列表，支持按状态筛选和关键词搜索；管理员可新增、编辑、删除预约，以及快捷取消/完成操作
 - 列表列：房源名称（+编号）、租客（用户名）、房东（用户名）、预约时间、状态、创建时间
 - 状态枚举：`1=待看房` `2=已完成` `3=已取消` `4=已过期`
 - 筛选支持：按状态下拉（全部/待看房/已完成/已取消/已过期）、关键词搜索（租客用户名/房源名/房源编号）
 - API：`GET /api/manage/appointment`（支持 `page`、`limit`、`search`、`status` 参数）
 - 序列化：`lib/appointment.ts`，列表响应含关联的 `user`（租客 id/username/nickname）、`landlord`（房东 id/username/nickname）、`room`（id/name/roomCode）
 
-#### 通知管理 (`/manage/notification`)
+#### 通知管理 (`/manage/notification`) ✅
 
 - 页面功能：查看系统生成的通知记录，支持编辑已读状态和删除；**不可新建**（通知由预约等业务动作自动写入）
 - 列表列：接收用户（头像+用户名+昵称，可跳转用户详情）、类型、标题+内容（截断展示）、关联记录（relatedType + relatedId）、已读状态、创建时间、操作
@@ -869,21 +879,14 @@ import AppLoading from '@/components/AppLoading';
   - `GET /api/manage/contract/options/rooms` — 可用房源选项（已发布+未租出）
 - 序列化：`lib/contract.ts`，含 `serializeContract`、`generatePeriods`、`addMonths` 工具函数
 
-#### 订单管理 (`/manage/order`)
+#### 订单管理 (`/manage/order`) ✅
 
-- 页面功能：订单记录列表（只读），支持多维筛选
+- 页面功能：订单记录列表，支持多维筛选，可查看详情，支持删除
 - 列表列：订单 ID、关联合同 ID、房源（名称+编号）、付款人（用户名）、收款人（用户名）、订单类型、月租金额、押金金额、时间段、创建时间
 - 订单类型枚举：`1=首期款` `2=续期房租` `3=押金退款`
 - 筛选支持：关键词搜索（付款人用户名/房源名/编号）、类型下拉（全部/首期款/续期房租/押金退款）；任一筛选激活时显示"重置"按钮
 - API：`GET /api/manage/order`（支持 `page`、`limit`、`search`、`type` 参数）
 - 序列化：`lib/order.ts`，列表响应含关联的 `payer`（付款人 id/username/nickname）、`payee`（收款人 id/username/nickname）、`room`（id/name/roomCode）
-
-#### Dashboard 数据统计
-
-接入真实数据，展示：
-- 总房源数、在租房源数、本月订单额、用户总数
-- 月度营收折线图（接入 Recharts 或 ECharts）
-- 收藏量 Top10 房源
 
 ---
 
@@ -894,30 +897,34 @@ import AppLoading from '@/components/AppLoading';
 ### 整体架构
 
 ```
-/portal                          # 首页（轮播图 + 热门推荐 + 搜索）
-/portal/areaRoom                 # 区域找房（筛选+列表+分页）✅
-/portal/subwayRoom               # 地铁找房（筛选+列表+分页）✅
-/portal/cmyRoom                  # 小区找房列表 ✅
-/portal/cmyRoom/[id]             # 小区房源列表 ✅
-/portal/login                    # 用户登录
-/portal/register                 # 用户注册
-/portal/room/[id]                # 房源详情
-/portal/mapRoom                  # 地图找房
-/portal/account/landlord         # 房东认证 ✅
-/portal/account/info             # 我的资料 ✅
-/portal/account/collection       # 我的收藏 ✅
-/portal/account/appointment      # 我的预约 ✅
-/portal/account/room             # 我的房源（含发布/撤回/编辑/删除）✅
-/portal/account/room/new         # 发布新房源 ✅
-/portal/account/room/[id]/edit   # 编辑房源 ✅
-/portal/account/community        # 我的小区 ✅
-/portal/account/community/new    # 创建小区 ✅
+/portal                              # 首页（轮播图 + 热门推荐 + 搜索）✅
+/portal/areaRoom                     # 区域找房（筛选+列表+分页）✅
+/portal/subwayRoom                   # 地铁找房（筛选+列表+分页）✅
+/portal/cmyRoom                      # 小区找房列表 ✅
+/portal/cmyRoom/[id]                 # 小区房源列表 ✅
+/portal/login                        # 用户登录 ✅
+/portal/register                     # 用户注册 ✅
+/portal/room/[id]                    # 房源详情 ✅
+/portal/mapRoom                      # 地图找房 ✅
+/portal/account/landlord             # 房东认证 ✅
+/portal/account/info                 # 我的资料 ✅
+/portal/account/collection           # 我的收藏 ✅
+/portal/account/appointment          # 我的预约 ✅
+/portal/account/room                 # 我的房源（含发布/撤回/编辑/删除）✅
+/portal/account/room/new             # 发布新房源 ✅
+/portal/account/room/[id]            # 房源详情（房东视角）✅
+/portal/account/room/[id]/edit       # 编辑房源 ✅
+/portal/account/community            # 我的小区 ✅
+/portal/account/community/new        # 创建小区 ✅
+/portal/account/community/[id]       # 小区详情（房东视角）✅
 /portal/account/community/[id]/edit  # 编辑小区 ✅
-/portal/account/contract         # 我的合同列表 ✅
-/portal/account/contract/new     # 创建合同（立即租赁入口）✅
-/portal/account/contract/[id]    # 合同详情（交租/续租/退房/删除）✅
-/portal/account/orders           # 我的订单 ✅
-/portal/account/notification     # 我的通知 ✅
+/portal/account/contract             # 我的合同列表 ✅
+/portal/account/contract/new         # 创建合同（立即租赁入口）✅
+/portal/account/contract/[id]        # 合同详情（交租/续租/退房/删除）✅
+/portal/account/orders               # 我的订单 ✅
+/portal/account/orders/[id]          # 订单详情 ✅
+/portal/account/notification         # 我的通知 ✅
+/portal/account/wallet               # 我的钱包（充值/流水/修改支付密码）✅
 ```
 
 ### 认证与房东体系
@@ -964,12 +971,24 @@ import AppLoading from '@/components/AppLoading';
 
 Portal API（`app/api/portal/`）：
 
-| 接口 | 说明 | 已实现 |
-|------|------|------|
-| `GET /api/portal/carousels` | 已发布轮播图，按 sortOrder 升序 | ✅ |
-| `GET /api/portal/rooms` | 房源列表，支持 sort=latest\|hot、district、minPrice、maxPrice、rentType、page | ✅ |
-| `GET /api/portal/communities` | 小区列表，支持 city、district、page，返回含 roomCount | ✅ |
-| `GET /api/portal/communities/[id]` | 小区详情 + 该小区已发布房源（支持分页） | ✅ |
+| 接口 | 说明 |
+|------|------|
+| `GET /api/portal/carousels` | 已发布轮播图，按 sortOrder 升序 |
+| `GET /api/portal/rooms` | 房源列表，支持 sort=latest\|hot、district、minPrice、maxPrice、rentType、cmyId、page |
+| `GET /api/portal/rooms/[id]` | 房源详情（含设施、发布者、浏览计数自增） |
+| `POST /api/portal/rooms/[id]/appointment` | 创建预约 |
+| `GET/DELETE /api/portal/rooms/[id]/collection` | 收藏/取消收藏 |
+| `GET /api/portal/communities` | 小区列表，支持 city、district、page，返回含 roomCount |
+| `GET /api/portal/communities/[id]` | 小区详情 + 该小区已发布房源（支持分页） |
+| `GET /api/portal/facilities` | 全量设施列表（房源表单用） |
+| `GET /api/portal/mapRoom` | 地图找房：districts + communities（含经纬度和 roomCount） |
+| `GET /api/portal/notification` | 当前用户通知列表（分页） |
+| `GET /api/portal/notification/unread-count` | 未读通知数量（顶栏 badge） |
+| `PATCH /api/portal/notification/[id]` | 标记单条通知已读 |
+| `DELETE /api/portal/notification/[id]` | 删除单条通知 |
+| `POST /api/portal/notification/batch` | 批量标记已读 / 清空全部（body: `{ action }`) |
+| `POST /api/portal/login` | 用户登录，返回 JWT |
+| `POST /api/portal/register` | 用户注册，返回 JWT |
 
 ### 房源搜索与筛选
 
@@ -1118,29 +1137,31 @@ Portal API（`app/api/portal/`）：
 | `GET` | `/api/portal/notification?page=&limit=` | 获取通知列表（分页） |
 | `GET` | `/api/portal/notification/unread-count` | 获取未读数量（用于顶栏 badge） |
 | `PATCH` | `/api/portal/notification/[id]` | 标记单条已读（`{ isRead: true }`） |
-| `PATCH` | `/api/portal/notification` | 全部标记已读（批量） |
 | `DELETE` | `/api/portal/notification/[id]` | 删除单条通知 |
-| `DELETE` | `/api/portal/notification` | 清空所有通知（当前用户） |
+| `POST` | `/api/portal/notification/batch` | 批量操作：全部标记已读（`{ action: 'readAll' }`）/ 清空（`{ action: 'deleteAll' }`） |
 
 #### Portal API — 订单
 
 | 方法 | 路径 | 说明 | 鉴权 |
 |------|------|------|------|
-| `GET` | `/api/portal/order?role=payer\|payee&type=&page=&limit=` | 查询订单列表 | 登录用户 |
-| `GET` | `/api/portal/order/[id]` | 订单详情 | 订单当事人 |
+| `GET` | `/api/portal/account/orders?role=payer\|payee&type=&page=&limit=` | 查询订单列表 | 登录用户 |
+| `GET` | `/api/portal/account/orders/[id]` | 订单详情 | 订单当事人 |
+| `DELETE` | `/api/portal/account/orders/[id]` | 软删除（设 payerDeleted/payeeDeleted） | 订单当事人 |
 
 - `role=payer`：查当前用户作为付款方的订单（租客视角：租房支出）
 - `role=payee`：查当前用户作为收款方的订单（房东视角：收款记录）
 - 响应含关联的 `room`（name/roomCode）、`payer`（username/nickname）、`payee`（username/nickname）、`contract`（id/onlineTime/offlineTime）
+- Order 表含 `payerDeleted` / `payeeDeleted` 软删除字段，各方删除互不影响
 
 #### Portal API — 钱包
 
 | 方法 | 路径 | 说明 | 鉴权 |
 |------|------|------|------|
-| `GET` | `/api/portal/wallet` | 查询当前用户钱包余额 | 登录用户 |
-| `POST` | `/api/portal/wallet/recharge` | 充值 | 登录用户 |
-| `GET` | `/api/portal/wallet/records?page=&limit=&type=` | 钱包消费记录（分页） | 登录用户 |
-| `PUT` | `/api/portal/wallet/paycode` | 修改支付密码 | 登录用户 |
+| `POST` | `/api/portal/account/recharge` | 充值 | 登录用户 |
+| `GET` | `/api/portal/account/wallet-records?page=&limit=&type=` | 钱包消费记录（分页） | 登录用户 |
+| `PUT` | `/api/portal/account/password` | 修改支付密码 | 登录用户 |
+
+> 钱包余额通过 `GET /api/portal/account/info` 与用户信息一起返回，无独立查询接口。
 
 **充值规则**：
 - 请求体：`{ amount: number, payCode: string }`
@@ -1178,14 +1199,16 @@ Portal API（`app/api/portal/`）：
 
 | 子模块 | 路由 | 说明 |
 |--------|------|------|
-| 个人资料 | `/profile/info` | 修改昵称、头像、联系方式，实名认证（成为房东前置条件）|
-| 我的收藏 | `/profile/collection` | 已收藏房源列表，支持取消收藏 |
-| 我的房源 | `/profile/rooms` | 已发布房源列表，支持编辑、发布/撤回、删除（仅房东可见）|
-| 我的预约 | `/profile/appointment` | 两个 Tab：**我预约的**（作为租客）/ **收到的预约**（作为房东）；状态分组显示（待看房/已完成/已取消/已过期）；操作：取消、标记完成、隐藏 |
-| 我的消息 | `/profile/notification` | 通知中心：列表展示所有通知，支持单条已读、全部已读、单条删除、清空全部；顶栏显示未读 badge |
-| 我的合同 | `/profile/contract` | 合同列表，两个 Tab：**我租的**（租客视角）/ **收到的合同**（房东视角）；合同详情内支持续租、支付下一期、提前退房；status=2 后可删除 |
-| 我的订单 | `/profile/order` | 两个 Tab：**付款记录**（payer 视角）/ **收款记录**（payee 视角）；每条展示类型、金额、时间段、房源信息 |
-| 我的钱包 | `/profile/wallet` | 当前余额大字展示、充值按钮（输入金额+支付密码）、修改支付密码入口、消费记录列表（支持按类型筛选）；金额正数绿色+号、负数红色-号 |
+| 个人资料 | `/portal/account/info` | 修改昵称、头像、联系方式，实名认证（成为房东前置条件）|
+| 我的收藏 | `/portal/account/collection` | 已收藏房源列表，支持取消收藏 |
+| 我的房源 | `/portal/account/room` | 已发布房源列表，支持编辑、发布/撤回、删除（仅房东可见）|
+| 我的预约 | `/portal/account/appointment` | 两个 Tab：**我预约的**（作为租客）/ **收到的预约**（作为房东）；状态分组显示（待看房/已完成/已取消/已过期）；操作：取消、标记完成、隐藏 |
+| 我的通知 | `/portal/account/notification` | 通知中心：列表展示所有通知，支持单条已读、全部已读、单条删除、清空全部；顶栏显示未读 badge |
+| 我的合同 | `/portal/account/contract` | 合同列表，两个 Tab：**我租的**（租客视角）/ **收到的合同**（房东视角）；合同详情内支持续租、支付下一期、提前退房；status=2 后可删除 |
+| 我的订单 | `/portal/account/orders` | 两个 Tab：**付款记录**（payer 视角）/ **收款记录**（payee 视角）；每条展示类型、金额、时间段、房源信息；可软删除 |
+| 我的钱包 | `/portal/account/wallet` | 当前余额大字展示、充值按钮（输入金额+支付密码）、修改支付密码入口、消费记录列表（支持按类型筛选）；金额正数绿色+号、负数红色-号 |
+| 房东认证 | `/portal/account/landlord` | 填写真实姓名/手机/邮箱等，提交后将 `identity` 置 2，跳转我的房源 |
+| 我的小区 | `/portal/account/community` | 当前用户创建的小区列表，支持编辑、删除（无房源时可删）|
 
 ---
 
@@ -1210,7 +1233,7 @@ Portal API（`app/api/portal/`）：
 
 ### 用户平台
 
-Portal 平台视觉风格还原自高保真原型（`public/prototype/`），但必须在原型桌面设计的基础上叠加完整的移动端响应式能力。
+Portal 平台必须在桌面设计的基础上叠加完整的移动端响应式能力。
 
 **布局策略（移动优先）**
 
@@ -1321,21 +1344,24 @@ API Key 存放在环境变量 `NEXT_PUBLIC_BAIDU_MAP_AK`（客户端可访问）
 
 | 模块 | 状态 | 路由 |
 |------|------|------|
-| 首页 | ⬜ 待实现 | `/portal` |
+| 首页 | ✅ 已实现 | `/portal` |
 | 用户注册/登录 | ✅ 已实现 | `/portal/register`, `/portal/login` |
-| 房源列表/搜索 | ⬜ 待实现 | `/portal/search` |
+| 区域找房 | ✅ 已实现 | `/portal/areaRoom` |
+| 地铁找房 | ✅ 已实现 | `/portal/subwayRoom` |
+| 小区找房列表 | ✅ 已实现 | `/portal/cmyRoom` |
+| 小区房源列表 | ✅ 已实现 | `/portal/cmyRoom/[id]` |
+| 地图找房 | ✅ 已实现 | `/portal/mapRoom` |
 | 房源详情 | ✅ 已实现 | `/portal/room/[id]` |
-| 小区详情 | ⬜ 待实现 | `/portal/community/[id]` |
-| 地图找房 | ⬜ 待实现 | `/portal/map` |
-| 个人中心 - 资料 | ✅ 已实现 | `/portal/account/info` | 查看/编辑昵称、手机、邮箱、性别 |
-| 个人中心 - 收藏 | ✅ 已实现 | `/portal/account/collection` | 收藏房源列表，可取消收藏 |
-| 个人中心 - 预约 | ✅ 已实现 | `/portal/account/appointment` | 我发起的预约，可软删除 |
-| 个人中心 - 房源 | ✅ 已实现 | `/portal/account/room` | 我发布的房源，显示发布/出租状态 |
-| 个人中心 - 合同 | ✅ 已实现 | `/portal/account/contract` | 我的合同列表，含退房状态 |
-| 个人中心 - 订单 | ✅ 已实现 | `/portal/account/orders` | 我的支付订单，可软删除 |
-| 个人中心 - 通知 | ✅ 已实现 | `/portal/account/notification` | 通知列表：展开详情/标已读/批量已读/批量删除/清空 |
-| 发布房源 | ⬜ 待实现 | `/portal/publish` |
-| 租房交易 | ⬜ 待实现 | 在房源详情页弹窗发起 |
+| 房东认证 | ✅ 已实现 | `/portal/account/landlord` |
+| 个人中心 - 资料 | ✅ 已实现 | `/portal/account/info` |
+| 个人中心 - 收藏 | ✅ 已实现 | `/portal/account/collection` |
+| 个人中心 - 预约 | ✅ 已实现 | `/portal/account/appointment` |
+| 个人中心 - 我的房源 | ✅ 已实现 | `/portal/account/room` |
+| 个人中心 - 我的小区 | ✅ 已实现 | `/portal/account/community` |
+| 个人中心 - 合同 | ✅ 已实现 | `/portal/account/contract` |
+| 个人中心 - 订单 | ✅ 已实现 | `/portal/account/orders` |
+| 个人中心 - 通知 | ✅ 已实现 | `/portal/account/notification` |
+| 个人中心 - 钱包 | ✅ 已实现 | `/portal/account/wallet` |
 
 ### 数据库
 
@@ -1356,4 +1382,4 @@ API Key 存放在环境变量 `NEXT_PUBLIC_BAIDU_MAP_AK`（客户端可访问）
 
 ---
 
-*文档版本：2026-05-16 | 项目：雅阁租房系统*
+*文档版本：2026-05-22 | 项目：雅阁租房系统*
