@@ -1,11 +1,6 @@
 import { toast } from 'sonner';
-import {
-  MANAGE_LOGIN_PATH,
-  clearManageToken,
-  getManageToken,
-} from "@/utils/manage-auth";
-
-const API_BASE = '/api';
+import { clearManageToken, getManageToken } from "@/utils/manage-auth";
+import { API_BASE, MANAGE_LOGIN_PATH } from '@/utils/constants';
 
 export interface ApiError extends Error {
   status: number;

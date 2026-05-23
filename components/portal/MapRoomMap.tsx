@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { MapApiLoaderHOC } from 'react-bmapgl';
-import { BAIDU_MAP_AK } from '@/utils/constants';
+import { BAIDU_MAP_AK, MAP_DISTRICT_ZOOM_THRESHOLD } from '@/utils/constants';
 
 export interface DistrictItem {
   name: string;
@@ -35,8 +35,6 @@ interface Props {
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const B = () => (window as any).BMapGL;
-
-const DISTRICT_ZOOM_THRESHOLD = 13;
 
 // ── Overlay factories (module-level to avoid React Compiler `this` restriction) ──
 
@@ -275,7 +273,7 @@ function MapRoomMapInner({
     for (const o of overlaysRef.current) map.removeOverlay(o);
     overlaysRef.current = [];
 
-    if (zoom < DISTRICT_ZOOM_THRESHOLD) {
+    if (zoom < MAP_DISTRICT_ZOOM_THRESHOLD) {
       // ── District circles ────────────────────────────────────────────────────
       for (const d of geocodedDistricts) {
         if (!d.lat && !d.lng) continue;

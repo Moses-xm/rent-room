@@ -1,8 +1,18 @@
-export const MANAGE_CITY_KEY = "cur-city";
-export const MANAGE_PROVINCE_KEY = "cur-province";
-export const MANAGE_CITY_CHANGED_EVENT = "manage-city-changed";
-export const DEFAULT_MANAGE_CITY = "杭州市";
-export const DEFAULT_MANAGE_PROVINCE = "浙江省";
+import {
+  MANAGE_CITY_KEY,
+  MANAGE_PROVINCE_KEY,
+  MANAGE_CITY_CHANGED_EVENT,
+  DEFAULT_MANAGE_CITY,
+  DEFAULT_MANAGE_PROVINCE,
+} from '@/utils/constants';
+
+export {
+  MANAGE_CITY_KEY,
+  MANAGE_PROVINCE_KEY,
+  MANAGE_CITY_CHANGED_EVENT,
+  DEFAULT_MANAGE_CITY,
+  DEFAULT_MANAGE_PROVINCE,
+};
 
 function normalize(val: string | null | undefined) {
   return val?.trim() ?? "";

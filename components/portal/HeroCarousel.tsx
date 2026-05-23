@@ -5,14 +5,13 @@ import useEmblaCarousel from "embla-carousel-react";
 import Link from "next/link";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { RoomImage } from "@/components/portal/RoomImage";
+import { HERO_CAROUSEL_AUTOPLAY_DELAY } from "@/utils/constants";
 
 interface CarouselItem {
   id: number;
   imageUrl: string;
   path: string;
 }
-
-const AUTOPLAY_DELAY = 6000;
 
 type DirectionalEmblaApi = NonNullable<
   ReturnType<typeof useEmblaCarousel>[1]
@@ -41,7 +40,7 @@ export function HeroCarousel({ items }: { items: CarouselItem[] }) {
       if (document.visibilityState === "hidden") return;
       emblaApi.scrollNext();
       startAutoplayRef.current();
-    }, AUTOPLAY_DELAY);
+    }, HERO_CAROUSEL_AUTOPLAY_DELAY);
   }, [emblaApi, items.length, stopAutoplay]);
 
   useEffect(() => {

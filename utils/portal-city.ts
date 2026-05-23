@@ -38,11 +38,21 @@ export function getSubwayLinesForCity(city: string): string[] {
   return entry?.lines ?? [];
 }
 
-export const PORTAL_CITY_KEY     = "portal-cur-city";
-export const PORTAL_PROVINCE_KEY = "portal-cur-province";
-export const PORTAL_CITY_CHANGED_EVENT = "portal-city-changed";
-export const DEFAULT_PORTAL_CITY     = "杭州市";
-export const DEFAULT_PORTAL_PROVINCE = "浙江省";
+import {
+  PORTAL_CITY_KEY,
+  PORTAL_PROVINCE_KEY,
+  PORTAL_CITY_CHANGED_EVENT,
+  DEFAULT_PORTAL_CITY,
+  DEFAULT_PORTAL_PROVINCE,
+} from '@/utils/constants';
+
+export {
+  PORTAL_CITY_KEY,
+  PORTAL_PROVINCE_KEY,
+  PORTAL_CITY_CHANGED_EVENT,
+  DEFAULT_PORTAL_CITY,
+  DEFAULT_PORTAL_PROVINCE,
+};
 
 function normalize(val: string | null | undefined) {
   return val?.trim() ?? "";

@@ -1,7 +1,6 @@
 import { toast } from 'sonner';
-import { PORTAL_LOGIN_PATH, clearPortalAuth, getPortalToken } from '@/utils/portal-auth';
-
-const API_BASE = '/api';
+import { clearPortalAuth, getPortalToken } from '@/utils/portal-auth';
+import { API_BASE, PORTAL_LOGIN_PATH } from '@/utils/constants';
 
 export interface PortalRequestOptions {
   method?: string;

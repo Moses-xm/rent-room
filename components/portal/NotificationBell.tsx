@@ -5,7 +5,11 @@ import Link from "next/link";
 import { Bell, X } from "lucide-react";
 import { portalRequest } from "@/utils/portal-request";
 import { fmtDateTime } from "@/utils/format";
-import { NOTIFICATION_TYPE_LABEL } from "@/utils/constants";
+import {
+  NOTIFICATION_TYPE_LABEL,
+  NOTIFICATION_BELL_LIMIT,
+  NOTIFICATION_BELL_TYPE_COLOR,
+} from "@/utils/constants";
 
 type NotificationItem = {
   id: number;
@@ -28,21 +32,6 @@ type ConfirmState =
   | { type: "all" }
   | null;
 
-const LIMIT = 20;
-
-const TYPE_COLOR: Record<number, string> = {
-  1: "bg-sky-500",
-  2: "bg-rose-500",
-  3: "bg-emerald-500",
-  4: "bg-violet-500",
-  5: "bg-emerald-500",
-  6: "bg-teal-500",
-  7: "bg-amber-500",
-  8: "bg-emerald-500",
-  9: "bg-red-500",
-  10: "bg-orange-500",
-  11: "bg-slate-500",
-};
 
 export function NotificationBell() {
   const [open, setOpen] = useState(false);
@@ -70,7 +59,7 @@ export function NotificationBell() {
     setLoading(true);
     try {
       const res = await portalRequest<ListResponse>(
-        `/portal/notification?page=${p}&limit=${LIMIT}`,
+        `/portal/notification?page=${p}&limit=${NOTIFICATION_BELL_LIMIT}`,
         { silent: true }
       );
       setTotal(res.total ?? 0);
@@ -224,7 +213,7 @@ export function NotificationBell() {
                     }`}
                   >
                     <div className="shrink-0 mt-1">
-                      <span className={`block w-2 h-2 rounded-full ${TYPE_COLOR[item.type] ?? "bg-slate-400"}`} />
+                      <span className={`block w-2 h-2 rounded-full ${NOTIFICATION_BELL_TYPE_COLOR[item.type] ?? "bg-slate-400"}`} />
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-1.5 mb-0.5">

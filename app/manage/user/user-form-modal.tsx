@@ -7,6 +7,7 @@ import FilterSelect from '@/components/FilterSelect';
 import { isManagedUploadPath, resolveUploadedFileUrl } from '@/lib/upload-path';
 import { request } from '@/utils/request';
 import { getManageCity, getManageProvince } from '@/utils/manage-city';
+import { GENDER_OPTIONS, IDENTITY_OPTIONS } from '@/utils/constants';
 import areaData from '@/localData/area.json';
 
 /* ─── Types ───────────────────────────────────────────────────────────────── */
@@ -72,16 +73,6 @@ const inputCls = (err?: string) =>
 
 const labelCls = 'block text-body-sm font-emphasis text-text-2 mb-1.5';
 const hintCls = 'text-caption text-text-muted leading-relaxed';
-
-const GENDER_OPTIONS = [
-  { value: '1', label: '男' },
-  { value: '2', label: '女' },
-  { value: '3', label: '不愿透露' },
-];
-const IDENTITY_OPTIONS = [
-  { value: '1', label: '普通用户' },
-  { value: '2', label: '房东' },
-];
 
 type AreaNode = { label: string; value: string; children?: AreaNode[] };
 const typedArea = areaData as AreaNode[];

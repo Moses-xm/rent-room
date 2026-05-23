@@ -5,6 +5,11 @@ import Link from 'next/link';
 import { ChevronRight } from 'lucide-react';
 import { StatusPill } from '@/components/StatusPill';
 import { request } from '@/utils/request';
+import {
+  DASHBOARD_DONUT_COLORS,
+  DASHBOARD_PERIODS,
+  DASHBOARD_ORDER_TYPE_MAP,
+} from '@/utils/constants';
 
 /* ─── Types ──────────────────────────────────────────────────── */
 interface DashboardData {
@@ -64,12 +69,6 @@ function relTime(iso: string): string {
   if (hours < 24) return `${hours} 小时前`;
   return `${Math.floor(hours / 24)} 天前`;
 }
-
-const ORDER_TYPE_MAP: Record<number, { label: string; variant: 'accent' | 'success' | 'info' }> = {
-  1: { label: '首期款', variant: 'accent' },
-  2: { label: '续期款', variant: 'success' },
-  3: { label: '押金退', variant: 'info' },
-};
 
 /* ─── Revenue chart ──────────────────────────────────────────── */
 function RevenueChart({ data, labels }: { data: number[]; labels: string[] }) {
@@ -137,7 +136,6 @@ function RevenueChart({ data, labels }: { data: number[]; labels: string[] }) {
 }
 
 /* ─── Donut chart ─────────────────────────────────────────────── */
-const DONUT_COLORS = ['#8B7355', '#C4A878'];
 
 function TypeDonut({
   segments,
@@ -169,7 +167,7 @@ function TypeDonut({
               const dash = (d.pct / 100) * C;
               const el = (
                 <circle key={i} cx="90" cy="90" r="70" fill="none"
-                  stroke={DONUT_COLORS[i] ?? '#E2D3B0'} strokeWidth="22"
+                  stroke={DASHBOARD_DONUT_COLORS[i] ?? '#E2D3B0'} strokeWidth="22"
                   strokeDasharray={`${dash.toFixed(2)} ${C}`}
                   strokeDashoffset={(-acc).toFixed(2)}
                   transform="rotate(-90 90 90)"
@@ -191,7 +189,7 @@ function TypeDonut({
       <div className="w-full flex flex-col gap-2.5">
         {segments.map((d, i) => (
           <div key={d.label} className="flex items-center gap-2.5 text-body">
-            <span className="w-2 h-2 rounded-xs shrink-0" style={{ background: DONUT_COLORS[i] }} />
+            <span className="w-2 h-2 rounded-xs shrink-0" style={{ background: DASHBOARD_DONUT_COLORS[i] }} />
             <span className="flex-1 text-text-2">{d.label}</span>
             <span className="tabular-nums text-text-muted text-body-sm">{d.count} 套</span>
             <span className="font-medium text-text tabular-nums w-10 text-right">{d.pct}%</span>
@@ -331,13 +329,6 @@ function DashboardSkeleton() {
   );
 }
 
-/* ─── Period tabs ─────────────────────────────────────────────── */
-const PERIODS = [
-  { label: '近三月', months: 3 },
-  { label: '近半年', months: 6 },
-  { label: '本年', months: 12 },
-] as const;
-
 /* ─── Page ────────────────────────────────────────────────────── */
 export default function DashboardPage() {
   const [data, setData] = useState<DashboardData | null>(null);
@@ -463,7 +454,7 @@ export default function DashboardPage() {
               </div>
             </div>
             <div className="flex gap-1">
-              {PERIODS.map(({ label, months }) => (
+              {DASHBOARD_PERIODS.map(({ label, months }) => (
                 <button
                   key={label}
                   onClick={() => setPeriod(months)}
@@ -580,7 +571,7 @@ export default function DashboardPage() {
               <div className="py-10 text-center text-body text-text-muted">暂无订单数据</div>
             ) : (
               latestOrders.map((o, i) => {
-                const typeInfo = ORDER_TYPE_MAP[o.type] ?? { label: '其他', variant: 'muted' as const };
+                const typeInfo = DASHBOARD_ORDER_TYPE_MAP[o.type] ?? { label: '其他', variant: 'muted' as const };
                 const displayName = o.payerNickname || o.payerUsername;
                 return (
                   <div key={o.id} className={`flex items-center gap-3 py-3 ${i < latestOrders.length - 1 ? 'border-b border-dashed border-border-subtle' : ''}`}>

@@ -1,9 +1,20 @@
-export const PORTAL_TOKEN_KEY = 'portal-token';
-export const PORTAL_PROFILE_KEY = 'portal-profile';
-export const PORTAL_LOGIN_PATH = '/portal/login';
-export const PORTAL_HOME_PATH = '/portal';
-export const PORTAL_ORDERS_PATH = '/portal/account/orders';
-export const PORTAL_AUTH_CHANGED_EVENT = 'portal-auth-changed';
+import {
+  PORTAL_TOKEN_KEY,
+  PORTAL_PROFILE_KEY,
+  PORTAL_LOGIN_PATH,
+  PORTAL_HOME_PATH,
+  PORTAL_ORDERS_PATH,
+  PORTAL_AUTH_CHANGED_EVENT,
+} from '@/utils/constants';
+
+export {
+  PORTAL_TOKEN_KEY,
+  PORTAL_PROFILE_KEY,
+  PORTAL_LOGIN_PATH,
+  PORTAL_HOME_PATH,
+  PORTAL_ORDERS_PATH,
+  PORTAL_AUTH_CHANGED_EVENT,
+};
 
 export type PortalProfile = {
   id?: number;
