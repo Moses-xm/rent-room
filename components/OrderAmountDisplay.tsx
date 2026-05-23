@@ -19,10 +19,18 @@ export default function OrderAmountDisplay({
   const hasPledge = pledge != null && pledge > 0;
 
   if (type === 3) {
+    if (block) {
+      return (
+        <>
+          <p className={amountClassName}>¥{(pledge ?? 0).toFixed(2)}</p>
+          <p className={`mt-0.5 ${subClassName}`}>退押金</p>
+        </>
+      );
+    }
     return (
       <>
-        <span className={`font-medium ${subClassName}`}>退押金 </span>
-        <span className={`font-medium ${amountClassName}`}>¥{(pledge ?? 0).toFixed(2)}</span>
+        <span className={amountClassName}>¥{(pledge ?? 0).toFixed(2)}</span>
+        <span className={`ml-1 ${subClassName}`}>退押金</span>
       </>
     );
   }

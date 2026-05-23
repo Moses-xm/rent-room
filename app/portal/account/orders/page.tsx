@@ -210,7 +210,7 @@ export default function OrdersPage() {
                       </span>
                     </div>
                     <div className="mt-1">
-                      <OrderAmountDisplay type={item.type} fee={item.fee} pledge={item.pledge} amountClassName="text-sm text-(--color-accent-dark) font-medium" subClassName="text-xs text-text-muted" />
+                      <OrderAmountDisplay type={item.type} fee={item.fee} pledge={item.pledge} block amountClassName="text-sm text-(--color-accent-dark) font-medium" subClassName="text-xs text-text-muted" />
                     </div>
                   </div>
                 </div>
