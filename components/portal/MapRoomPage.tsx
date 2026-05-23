@@ -1,10 +1,10 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import dynamic from 'next/dynamic';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { X, ChevronLeft, ChevronRight } from 'lucide-react';
+import { X, ChevronLeft, ChevronRight, ChevronDown, ChevronUp } from 'lucide-react';
 import { GlobalHeader } from '@/components/portal/GlobalHeader';
 import { TopMenu } from '@/components/portal/TopMenu';
 import { MobileNav } from '@/components/portal/MobileNav';
@@ -457,6 +457,71 @@ export function MapRoomPage() {
 
   // Left panel collapse
   const [collapsed, setCollapsed] = useState(false);
+  const [mobileCollapsed, setMobileCollapsed] = useState(false);
+
+  // Mobile panel drag-to-resize
+  const panelRef = useRef<HTMLDivElement>(null);
+  const dragDataRef = useRef({ startY: 0, startHeight: 0 });
+  const lastOpenHeightRef = useRef(0);
+
+  // Init mobile panel height after mount
+  useEffect(() => {
+    if (typeof window === 'undefined' || window.innerWidth >= 1024) return;
+    const h = Math.round(window.innerHeight * 0.5);
+    lastOpenHeightRef.current = h;
+    if (panelRef.current) panelRef.current.style.height = `${h}px`;
+  }, []);
+
+  const handlePanelDragStart = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
+    if (window.innerWidth >= 1024) return;
+    const panel = panelRef.current;
+    if (!panel) return;
+
+    dragDataRef.current = { startY: e.clientY, startHeight: panel.offsetHeight };
+    panel.style.transition = 'none';
+
+    const SNAP_CLOSE = 80;
+    const MAX_H = window.innerHeight * 0.85;
+
+    const onMove = (ev: PointerEvent) => {
+      const delta = dragDataRef.current.startY - ev.clientY;
+      panel.style.height = `${Math.max(0, Math.min(MAX_H, dragDataRef.current.startHeight + delta))}px`;
+    };
+
+    const onUp = (ev: PointerEvent) => {
+      document.removeEventListener('pointermove', onMove);
+      document.removeEventListener('pointerup', onUp);
+      panel.style.transition = '';
+
+      const delta = dragDataRef.current.startY - ev.clientY;
+      const finalH = dragDataRef.current.startHeight + delta;
+      const isTap = Math.abs(delta) < 5;
+
+      if (isTap || finalH < SNAP_CLOSE) {
+        panel.style.height = '0px';
+        setMobileCollapsed(true);
+      } else {
+        const h = Math.max(SNAP_CLOSE + 20, Math.min(MAX_H, finalH));
+        panel.style.height = `${h}px`;
+        lastOpenHeightRef.current = h;
+        setMobileCollapsed(false);
+      }
+    };
+
+    document.addEventListener('pointermove', onMove);
+    document.addEventListener('pointerup', onUp);
+  }, []);
+
+  const expandMobilePanel = useCallback(() => {
+    const panel = panelRef.current;
+    if (!panel) return;
+    const h = lastOpenHeightRef.current || Math.round(window.innerHeight * 0.5);
+    panel.style.height = `${h}px`;
+    lastOpenHeightRef.current = h;
+    setMobileCollapsed(false);
+  }, []);
+
+  const router = useRouter();
 
   return (
     <div className="flex flex-col h-dvh overflow-hidden bg-white">
@@ -494,16 +559,37 @@ export function MapRoomPage() {
           />
         </div>
 
+        {/* 移动端折叠时浮在地图上的展开按钮 */}
+        {mobileCollapsed && (
+          <button
+            className="lg:hidden absolute bottom-4 left-1/2 -translate-x-1/2 z-20 flex items-center gap-1.5 bg-white shadow-lg rounded-full px-4 py-2 text-sm text-[#333] cursor-pointer hover:bg-[#f5f5f5] transition-colors"
+            onClick={expandMobilePanel}
+          >
+            <ChevronUp size={14} />
+            <span>展开列表</span>
+          </button>
+        )}
+
         {/* ── 左侧列表面板：z-10，浮在地图上 ── */}
-        {/* 移动端：底部半屏；桌面端：左侧绝对定位，可折叠 */}
+        {/* 移动端：底部半屏（可拖拽高度/折叠）；桌面端：左侧绝对定位，可折叠 */}
         <div
+          ref={panelRef}
           className={`
             absolute bottom-0 left-0 right-0 h-[50vh] bg-white border-t border-[#e6e6e6]
-            flex flex-col overflow-hidden transition-[width,height] duration-300 ease-in-out
-            lg:top-0 lg:right-auto lg:h-auto lg:border-t-0 lg:border-r lg:shadow-[2px_0_8px_rgba(0,0,0,0.1)] lg:z-10
+            flex flex-col overflow-hidden transition-[width] duration-300 ease-in-out
+            z-10 lg:top-0 lg:right-auto lg:h-auto lg:border-t-0 lg:border-r lg:shadow-[2px_0_8px_rgba(0,0,0,0.1)]
             ${collapsed ? 'lg:w-0' : 'lg:w-96'}
           `}
         >
+          {/* 移动端拖拽 handle — 点击折叠，拖拽调整高度 */}
+          <div
+            className="lg:hidden flex items-center justify-center py-1 shrink-0 cursor-ns-resize touch-none select-none"
+            onPointerDown={handlePanelDragStart}
+          >
+            <div className="w-8 h-1 rounded-full bg-[#ddd]" />
+            <ChevronDown size={13} className="ml-2 text-[#bbb]" />
+          </div>
+
           {/* Filter bar */}
           <div className="px-3 pt-2.5 pb-2 border-b border-[#e6e6e6] bg-white shrink-0">
             <div className="flex items-center justify-between mb-2">
@@ -584,7 +670,13 @@ export function MapRoomPage() {
                     key={room.id}
                     room={room}
                     isActive={previewIdx === idx}
-                    onClick={() => setPreviewIdx(idx)}
+                    onClick={() => {
+                      if (window.innerWidth < 640) {
+                        router.push(`/portal/room/${room.id}`);
+                      } else {
+                        setPreviewIdx(idx);
+                      }
+                    }}
                   />
                 ))}
                 <div className="flex items-center justify-center gap-1.5 py-4 text-[#999] text-sm">
@@ -617,7 +709,7 @@ export function MapRoomPage() {
         {previewIdx !== null && previewRoom && (
           /* flex 行：白色面板（固定宽度）+ 关闭按钮（flex 兄弟，永远紧挨） */
           <div
-            className={`absolute top-0 bottom-0 right-0 z-20 flex items-start pointer-events-none transition-[left] duration-300 ease-in-out ${
+            className={`hidden sm:flex absolute top-0 bottom-0 right-0 z-20 items-start pointer-events-none transition-[left] duration-300 ease-in-out ${
               collapsed ? 'left-0' : 'left-0 lg:left-96'
             }`}
           >
