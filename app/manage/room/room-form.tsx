@@ -11,7 +11,11 @@ import { isManagedUploadPath, resolveUploadedFileUrl } from '@/lib/upload-path';
 import { request } from '@/utils/request';
 import { getManageCity, getManageProvince } from '@/utils/manage-city';
 import { getManageToken } from '@/utils/manage-auth';
-import { FONT_FAMILY, MUNICIPALITY_PROVINCES, RENT_TYPE_OPTIONS, ROOM_TYPE_OPTIONS, DIRECTION_OPTIONS, LEVEL_OPTIONS, LIFT_OPTIONS } from '@/utils/constants';
+import {
+  FONT_FAMILY, MUNICIPALITY_PROVINCES,
+  RENT_TYPE_SELECT_OPTIONS, ROOM_TYPE_SELECT_OPTIONS, DIRECTION_SELECT_OPTIONS,
+  LEVEL_SELECT_OPTIONS, LIFT_SELECT_OPTIONS,
+} from '@/utils/constants';
 import FilterSelect from '@/components/FilterSelect';
 import RichEditor from '@/components/RichEditor';
 import areaData from '@/localData/area.json';
@@ -99,11 +103,6 @@ const numInputCls = (err?: string) =>
 const labelCls = 'block text-body-sm font-emphasis text-text-2 mb-1.5';
 const errCls = 'text-caption text-danger mt-1';
 
-const RENT_TYPE_FORM_OPTS = RENT_TYPE_OPTIONS.map((o) => ({ value: String(o.value), label: o.label }));
-const ROOM_TYPE_FORM_OPTS = ROOM_TYPE_OPTIONS.map((o) => ({ value: o, label: o }));
-const DIRECTION_FORM_OPTS = DIRECTION_OPTIONS.map((o) => ({ value: o, label: o }));
-const LEVEL_FORM_OPTS = LEVEL_OPTIONS.map((o) => ({ value: String(o.value), label: o.label }));
-const LIFT_FORM_OPTS = LIFT_OPTIONS.map((o) => ({ value: String(o.value), label: o.label }));
 
 /* ─── Default form ────────────────────────────────────────────────────────── */
 const DEFAULT_FORM: RoomFormData = {
@@ -652,7 +651,7 @@ export default function RoomForm({ title, subtitle, initialData, onSubmit, backH
                 value={form.rentType}
                 onChange={(v) => setField('rentType', v)}
                 clearable={false}
-                options={RENT_TYPE_FORM_OPTS}
+                options={RENT_TYPE_SELECT_OPTIONS}
                 placeholder="请选择租房类型"
                 error={errors.rentType}
                 className="w-full"
@@ -664,7 +663,7 @@ export default function RoomForm({ title, subtitle, initialData, onSubmit, backH
               <FilterSelect
                 value={form.roomType}
                 onChange={(v) => setField('roomType', v)}
-                options={ROOM_TYPE_FORM_OPTS}
+                options={ROOM_TYPE_SELECT_OPTIONS}
                 placeholder="请选择"
                 error={errors.roomType}
                 className="w-full"
@@ -701,7 +700,7 @@ export default function RoomForm({ title, subtitle, initialData, onSubmit, backH
               <FilterSelect
                 value={form.direction}
                 onChange={(v) => setField('direction', v)}
-                options={DIRECTION_FORM_OPTS}
+                options={DIRECTION_SELECT_OPTIONS}
                 placeholder="请选择"
                 error={errors.direction}
                 className="w-full"
@@ -746,7 +745,7 @@ export default function RoomForm({ title, subtitle, initialData, onSubmit, backH
                 value={form.level}
                 onChange={(v) => setField('level', v)}
                 clearable={false}
-                options={LEVEL_FORM_OPTS}
+                options={LEVEL_SELECT_OPTIONS}
                 placeholder="楼层段"
                 className="w-28"
               />
@@ -761,7 +760,7 @@ export default function RoomForm({ title, subtitle, initialData, onSubmit, backH
                 value={form.lift}
                 onChange={(v) => setField('lift', v)}
                 clearable={false}
-                options={LIFT_FORM_OPTS}
+                options={LIFT_SELECT_OPTIONS}
                 placeholder="请选择"
                 className="w-full"
               />

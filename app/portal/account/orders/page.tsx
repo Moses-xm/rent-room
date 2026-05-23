@@ -7,7 +7,7 @@ import { toast } from "sonner";
 import { MineShell } from "@/components/portal/MineShell";
 import { portalRequest } from "@/utils/portal-request";
 import { fmtDateTime } from "@/utils/format";
-import { ORDER_TYPE_OPTIONS, ORDER_TYPE_STYLE, MINE_SKELETON_ROWS } from "@/utils/constants";
+import { ORDER_TYPE_OPTIONS, ORDER_TYPE_STYLE, MINE_SKELETON_ROWS, PORTAL_ORDERS_COLS } from "@/utils/constants";
 import Pagination from "@/components/Pagination";
 import ConfirmDialog from "@/components/ConfirmDialog";
 import OrderAmountDisplay from "@/components/OrderAmountDisplay";
@@ -29,14 +29,14 @@ function orderTypeLabel(t: number) {
   return ORDER_TYPE_OPTIONS.find((o) => o.value === t)?.label ?? "—";
 }
 
-const COLS = "grid-cols-[2fr_1fr_1fr_120px]";
+
 
 function ListSkeleton() {
   return (
     <>
       <div className="hidden lg:block">
         {Array.from({ length: MINE_SKELETON_ROWS }).map((_, i) => (
-          <div key={i} className={`grid ${COLS} px-5 py-4 border-b border-[#eee] items-center gap-3`}>
+          <div key={i} className={`grid ${PORTAL_ORDERS_COLS} px-5 py-4 border-b border-[#eee] items-center gap-3`}>
             <div className="flex items-center gap-3 min-w-0">
               <div className="skeleton-shimmer w-16 h-12 rounded shrink-0" />
               <div className="skeleton-shimmer flex-1 h-4 rounded" />
@@ -118,7 +118,7 @@ export default function OrdersPage() {
   return (
     <MineShell title="我的订单">
       {/* 桌面端表头 */}
-      <div className={`hidden lg:grid ${COLS} gap-3 text-sm text-text-muted px-5 py-3 border-b border-[#eee] bg-surface`}>
+      <div className={`hidden lg:grid ${PORTAL_ORDERS_COLS} gap-3 text-sm text-text-muted px-5 py-3 border-b border-[#eee] bg-surface`}>
         <span>房源</span>
         <span>订单类型</span>
         <span>支付金额</span>
@@ -139,7 +139,7 @@ export default function OrdersPage() {
             {items.map((item) => (
               <div
                 key={item.id}
-                className={`grid ${COLS} gap-3 px-5 py-4 border-b border-[#eee] items-center text-sm hover:bg-surface`}
+                className={`grid ${PORTAL_ORDERS_COLS} gap-3 px-5 py-4 border-b border-[#eee] items-center text-sm hover:bg-surface`}
               >
                 {/* 房源列 */}
                 <Link href={`/portal/room/${item.roomId}`} className="flex items-center gap-3 group min-w-0">

@@ -8,8 +8,9 @@ import { isManagedUploadPath, resolveUploadedFileUrl } from "@/lib/upload-path";
 import { portalRequest } from "@/utils/portal-request";
 import { getPortalToken } from "@/utils/portal-auth";
 import {
-  FONT_FAMILY, RENT_TYPE_OPTIONS, ROOM_TYPE_OPTIONS,
-  DIRECTION_OPTIONS, LEVEL_OPTIONS, LIFT_OPTIONS,
+  FONT_FAMILY,
+  RENT_TYPE_SELECT_OPTIONS, ROOM_TYPE_SELECT_OPTIONS,
+  DIRECTION_SELECT_OPTIONS, LEVEL_SELECT_OPTIONS, LIFT_SELECT_OPTIONS,
 } from "@/utils/constants";
 import FilterSelect from "@/components/FilterSelect";
 import RichEditor from "@/components/RichEditor";
@@ -65,11 +66,7 @@ const numCls = (err?: string) =>
 const labelCls = "block text-sm font-medium text-[#555] mb-1.5";
 const errCls   = "text-xs text-red-500 mt-1";
 
-const RENT_OPTS = RENT_TYPE_OPTIONS.map((o) => ({ value: String(o.value), label: o.label }));
-const ROOM_OPTS = ROOM_TYPE_OPTIONS.map((o) => ({ value: o, label: o }));
-const DIR_OPTS  = DIRECTION_OPTIONS.map((o) => ({ value: o, label: o }));
-const LEVEL_OPTS = LEVEL_OPTIONS.map((o) => ({ value: String(o.value), label: o.label }));
-const LIFT_OPTS  = LIFT_OPTIONS.map((o) => ({ value: String(o.value), label: o.label }));
+
 
 const DEFAULT_FORM: PortalRoomFormData = {
   name: "", cmyId: "", rentType: "1", minTenancy: "1",
@@ -414,12 +411,12 @@ export default function PortalRoomForm({ title, initialData, onSubmit, submitLab
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className={labelCls}>租赁类型 <span className="text-red-500">*</span></label>
-              <FilterSelect value={form.rentType} onChange={(v) => set("rentType", v)} clearable={false} options={RENT_OPTS} className="w-full" error={errors.rentType} />
+              <FilterSelect value={form.rentType} onChange={(v) => set("rentType", v)} clearable={false} options={RENT_TYPE_SELECT_OPTIONS} className="w-full" error={errors.rentType} />
               {errors.rentType && <p className={errCls}>{errors.rentType}</p>}
             </div>
             <div>
               <label className={labelCls}>房屋类型 <span className="text-red-500">*</span></label>
-              <FilterSelect value={form.roomType} onChange={(v) => set("roomType", v)} options={ROOM_OPTS} placeholder="请选择" className="w-full" error={errors.roomType} />
+              <FilterSelect value={form.roomType} onChange={(v) => set("roomType", v)} options={ROOM_TYPE_SELECT_OPTIONS} placeholder="请选择" className="w-full" error={errors.roomType} />
               {errors.roomType && <p className={errCls}>{errors.roomType}</p>}
             </div>
           </div>
@@ -447,7 +444,7 @@ export default function PortalRoomForm({ title, initialData, onSubmit, submitLab
             </div>
             <div>
               <label className={labelCls}>朝向 <span className="text-red-500">*</span></label>
-              <FilterSelect value={form.direction} onChange={(v) => set("direction", v)} options={DIR_OPTS} placeholder="请选择" className="w-full" error={errors.direction} />
+              <FilterSelect value={form.direction} onChange={(v) => set("direction", v)} options={DIRECTION_SELECT_OPTIONS} placeholder="请选择" className="w-full" error={errors.direction} />
               {errors.direction && <p className={errCls}>{errors.direction}</p>}
             </div>
           </div>
@@ -482,14 +479,14 @@ export default function PortalRoomForm({ title, initialData, onSubmit, submitLab
                 <input type="number" min="1" max="200" value={form.floors} onChange={(e) => set("floors", e.target.value)} className={numCls()} />
                 <span className="text-sm text-[#888] shrink-0">层</span>
               </div>
-              <FilterSelect value={form.level} onChange={(v) => set("level", v)} clearable={false} options={LEVEL_OPTS} placeholder="楼层段" className="w-28" />
+              <FilterSelect value={form.level} onChange={(v) => set("level", v)} clearable={false} options={LEVEL_SELECT_OPTIONS} placeholder="楼层段" className="w-28" />
             </div>
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className={labelCls}>电梯</label>
-              <FilterSelect value={form.lift} onChange={(v) => set("lift", v)} clearable={false} options={LIFT_OPTS} placeholder="请选择" className="w-full" />
+              <FilterSelect value={form.lift} onChange={(v) => set("lift", v)} clearable={false} options={LIFT_SELECT_OPTIONS} placeholder="请选择" className="w-full" />
             </div>
             <div>
               <label className={labelCls}>最短租期（月）</label>

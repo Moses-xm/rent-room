@@ -14,6 +14,7 @@ import { fmtDateTime } from "@/utils/format";
 import {
   WALLET_RECORD_TYPE_OPTIONS, WALLET_DATE_RANGE_OPTIONS,
   DEFAULT_PAGE_SIZE, DEFAULT_PAGE_SIZE_OPTIONS,
+  PORTAL_WALLET_RECHARGE_PRESETS,
 } from "@/utils/constants";
 import Pagination from "@/components/Pagination";
 
@@ -64,7 +65,7 @@ function RechargeModal({
   const [submitting, setSubmitting] = useState(false);
   const [amountError, setAmountError] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
-  const PRESETS = [100, 500, 1000, 2000, 5000];
+
 
   useEffect(() => {
     if (open) {
@@ -111,7 +112,7 @@ function RechargeModal({
           <div>
             <p className="text-xs text-text-muted mb-2">快捷金额</p>
             <div className="flex flex-wrap gap-2">
-              {PRESETS.map((p) => (
+              {PORTAL_WALLET_RECHARGE_PRESETS.map((p) => (
                 <button
                   key={p}
                   type="button"

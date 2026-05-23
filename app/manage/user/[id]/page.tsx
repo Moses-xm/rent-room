@@ -20,6 +20,7 @@ import {
   WALLET_RECORD_TYPE_OPTIONS,
   WALLET_DATE_RANGE_OPTIONS,
   DEFAULT_PAGE_SIZE,
+  PORTAL_WALLET_RECHARGE_PRESETS,
 } from '@/utils/constants';
 
 /* ─── Types ───────────────────────────────────────────────────────────────── */
@@ -159,8 +160,6 @@ function RechargeModal({
     }
   };
 
-  // 预设快捷金额
-  const PRESETS = [100, 500, 1000, 2000, 5000];
 
   return (
     <Modal open={open} onClose={onClose}>
@@ -185,7 +184,7 @@ function RechargeModal({
           <div>
             <p className="text-caption text-text-muted mb-2">快捷金额</p>
             <div className="flex flex-wrap gap-2">
-              {PRESETS.map((p) => (
+              {PORTAL_WALLET_RECHARGE_PRESETS.map((p) => (
                 <button
                   key={p}
                   type="button"

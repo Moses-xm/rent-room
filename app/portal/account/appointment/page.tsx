@@ -11,6 +11,7 @@ import {
   APPOINTMENT_STATUS_OPTIONS,
   APPOINTMENT_STATUS_STYLE,
   MINE_SKELETON_ROWS,
+  PORTAL_APPOINTMENT_COLS,
 } from "@/utils/constants";
 import Pagination from "@/components/Pagination";
 import ConfirmDialog from "@/components/ConfirmDialog";
@@ -143,11 +144,11 @@ function TenantList() {
     }
   }
 
-  const COLS = "grid-cols-[2fr_1fr_1fr_1fr_120px]";
+
 
   return (
     <>
-      <div className={`hidden lg:grid ${COLS} gap-3 text-sm text-text-muted px-5 py-3 border-b border-[#eee] bg-surface`}>
+      <div className={`hidden lg:grid ${PORTAL_APPOINTMENT_COLS}gap-3 text-sm text-text-muted px-5 py-3 border-b border-[#eee] bg-surface`}>
         <span>预约房源</span>
         <span>房东</span>
         <span>预约看房时间</span>
@@ -155,7 +156,7 @@ function TenantList() {
         <span>操作</span>
       </div>
 
-      {loading && !hasLoaded && <ListSkeleton cols={COLS} />}
+      {loading && !hasLoaded && <ListSkeleton cols={PORTAL_APPOINTMENT_COLS} />}
 
       {hasLoaded && items.length === 0 && (
         <div className="py-16 text-center text-text-muted text-sm">暂无预约记录</div>
@@ -166,7 +167,7 @@ function TenantList() {
           {/* 桌面端 */}
           <div className="hidden lg:block">
             {items.map((item) => (
-              <div key={item.id} className={`grid ${COLS} gap-3 px-5 py-4 border-b border-[#eee] items-center text-sm hover:bg-surface`}>
+              <div key={item.id} className={`grid ${PORTAL_APPOINTMENT_COLS}gap-3 px-5 py-4 border-b border-[#eee] items-center text-sm hover:bg-surface`}>
                 <Link href={`/portal/room/${item.roomId}`} className="flex items-center gap-3 group min-w-0">
                   {item.roomCoverUrl ? (
                     // eslint-disable-next-line @next/next/no-img-element
@@ -365,11 +366,11 @@ function LandlordList() {
     }
   }
 
-  const COLS = "grid-cols-[2fr_1fr_1fr_1fr_120px]";
+
 
   return (
     <>
-      <div className={`hidden lg:grid ${COLS} gap-3 text-sm text-text-muted px-5 py-3 border-b border-[#eee] bg-surface`}>
+      <div className={`hidden lg:grid ${PORTAL_APPOINTMENT_COLS}gap-3 text-sm text-text-muted px-5 py-3 border-b border-[#eee] bg-surface`}>
         <span>预约房源</span>
         <span>预约用户</span>
         <span>预约看房时间</span>
@@ -377,7 +378,7 @@ function LandlordList() {
         <span>操作</span>
       </div>
 
-      {loading && !hasLoaded && <ListSkeleton cols={COLS} />}
+      {loading && !hasLoaded && <ListSkeleton cols={PORTAL_APPOINTMENT_COLS} />}
 
       {hasLoaded && items.length === 0 && (
         <div className="py-16 text-center text-text-muted text-sm">暂无收到的预约</div>
@@ -388,7 +389,7 @@ function LandlordList() {
           {/* 桌面端 */}
           <div className="hidden lg:block">
             {items.map((item) => (
-              <div key={item.id} className={`grid ${COLS} gap-3 px-5 py-4 border-b border-[#eee] items-center text-sm hover:bg-surface`}>
+              <div key={item.id} className={`grid ${PORTAL_APPOINTMENT_COLS}gap-3 px-5 py-4 border-b border-[#eee] items-center text-sm hover:bg-surface`}>
                 <Link href={`/portal/room/${item.roomId}`} className="flex items-center gap-3 group min-w-0">
                   {item.roomCoverUrl ? (
                     // eslint-disable-next-line @next/next/no-img-element

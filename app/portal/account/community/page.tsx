@@ -13,8 +13,8 @@ import { fmtDate } from "@/utils/format";
 import ConfirmDialog from "@/components/ConfirmDialog";
 import Pagination from "@/components/Pagination";
 import { getPortalProfile } from "@/utils/portal-auth";
+import { DEFAULT_PAGE_SIZE } from "@/utils/constants";
 
-const PAGE_SIZE = 10;
 
 type CommunityItem = {
   id: number;
@@ -53,7 +53,7 @@ export default function MyCommunityPage() {
     try {
       const res = await portalRequest<{
         success: boolean; data: CommunityItem[]; total: number; totalPages: number;
-      }>(`/portal/account/communities?page=${p}&limit=${PAGE_SIZE}`);
+      }>(`/portal/account/communities?page=${p}&limit=${DEFAULT_PAGE_SIZE}`);
       setItems(res.data);
       setTotal(res.total);
       setTotalPages(res.totalPages);
@@ -242,10 +242,10 @@ export default function MyCommunityPage() {
             })}
           </div>
 
-          {total > PAGE_SIZE && (
+          {total > DEFAULT_PAGE_SIZE && (
             <Pagination
               page={page}
-              pageSize={PAGE_SIZE}
+              pageSize={DEFAULT_PAGE_SIZE}
               total={total}
               totalPages={totalPages}
               onPageChange={(p) => load(p)}

@@ -3,32 +3,8 @@
 import Link from "next/link";
 import AppLogo from "@/components/AppLogo";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, Building2, Users, UserRound, MapPin, ChevronsLeft, ChevronsRight, X, GalleryHorizontal, Wrench, Heart, CalendarCheck, Bell, FileText, ShoppingCart } from "lucide-react";
-
-const NAV_GROUPS = [
-  {
-    group: "概览",
-    items: [
-      { key: "dashboard", label: "Dashboard", icon: LayoutDashboard, path: "/manage" },
-    ],
-  },
-  {
-    group: "业务管理",
-    items: [
-      { key: "admin",     label: "管理员管理", icon: Users,     path: "/manage/admin" },
-      { key: "user",      label: "用户管理",   icon: UserRound, path: "/manage/user" },
-      { key: "community", label: "小区管理",   icon: MapPin,    path: "/manage/community" },
-      { key: "room",      label: "房源管理",   icon: Building2,          path: "/manage/room" },
-      { key: "facility",  label: "房屋设施",   icon: Wrench,             path: "/manage/facility" },
-      { key: "carousel",    label: "轮播图管理", icon: GalleryHorizontal,  path: "/manage/carousel" },
-      { key: "collection",   label: "收藏管理",   icon: Heart,             path: "/manage/collection" },
-      { key: "appointment",   label: "预约管理",   icon: CalendarCheck,     path: "/manage/appointment" },
-      { key: "notification", label: "通知管理",   icon: Bell,              path: "/manage/notification" },
-      { key: "contract",    label: "合同管理",   icon: FileText,          path: "/manage/contract" },
-      { key: "order",       label: "订单管理",   icon: ShoppingCart,      path: "/manage/order" },
-    ],
-  },
-];
+import { ChevronsLeft, ChevronsRight, X } from "lucide-react";
+import { MANAGE_NAV_GROUPS } from "@/utils/constants";
 
 export function Sidebar({
   isCollapsed,
@@ -83,7 +59,7 @@ export function Sidebar({
 
       {/* ── Nav ── */}
       <nav className="flex-1 py-3.5 px-3 overflow-y-auto">
-        {NAV_GROUPS.map((g) => (
+        {MANAGE_NAV_GROUPS.map((g) => (
           <div key={g.group}>
             {isCollapsed && !isMobile ? (
               <div className="h-3" />

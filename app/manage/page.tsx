@@ -9,6 +9,8 @@ import {
   DASHBOARD_DONUT_COLORS,
   DASHBOARD_PERIODS,
   DASHBOARD_ORDER_TYPE_MAP,
+  DASHBOARD_REVENUE_CHART,
+  DASHBOARD_DONUT_CIRCUMFERENCE,
 } from '@/utils/constants';
 
 /* ─── Types ──────────────────────────────────────────────────── */
@@ -72,7 +74,7 @@ function relTime(iso: string): string {
 
 /* ─── Revenue chart ──────────────────────────────────────────── */
 function RevenueChart({ data, labels }: { data: number[]; labels: string[] }) {
-  const W = 600, H = 220, PT = 30, PB = 30, PL = 52, PR = 16;
+  const { W, H, PT, PB, PL, PR } = DASHBOARD_REVENUE_CHART;
   const maxVal = Math.max(...data);
   const maxY = niceMax(maxVal);
   const ticks = [0, 0.25, 0.5, 0.75, 1].map(f => Math.round(maxY * f));
@@ -152,7 +154,7 @@ function TypeDonut({
   vacancyRate: number;
   rentedRoomsDelta: { value: number; up: boolean };
 }) {
-  const C = 2 * Math.PI * 70;
+  const c = DASHBOARD_DONUT_CIRCUMFERENCE;
   let acc = 0;
   const total = segments.reduce((s, d) => s + d.count, 0);
 
@@ -164,11 +166,11 @@ function TypeDonut({
             <circle cx="90" cy="90" r="70" fill="none" stroke="#F2F2F2" strokeWidth="22" />
           ) : (
             segments.map((d, i) => {
-              const dash = (d.pct / 100) * C;
+              const dash = (d.pct / 100) * c;
               const el = (
                 <circle key={i} cx="90" cy="90" r="70" fill="none"
                   stroke={DASHBOARD_DONUT_COLORS[i] ?? '#E2D3B0'} strokeWidth="22"
-                  strokeDasharray={`${dash.toFixed(2)} ${C}`}
+                  strokeDasharray={`${dash.toFixed(2)} ${c}`}
                   strokeDashoffset={(-acc).toFixed(2)}
                   transform="rotate(-90 90 90)"
                 />

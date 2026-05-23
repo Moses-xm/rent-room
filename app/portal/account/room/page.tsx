@@ -10,7 +10,7 @@ import { LandlordGate } from "@/components/portal/LandlordGate";
 import { portalRequest } from "@/utils/portal-request";
 import { resolveUploadedFileUrl } from "@/lib/upload-path";
 import { fmtDate } from "@/utils/format";
-import { ROOM_PUBLISHED_STYLE, ROOM_RENTED_STYLE, MINE_SKELETON_ROWS } from "@/utils/constants";
+import { ROOM_PUBLISHED_STYLE, ROOM_RENTED_STYLE, MINE_SKELETON_ROWS, PORTAL_MY_ROOM_COLS } from "@/utils/constants";
 import ConfirmDialog from "@/components/ConfirmDialog";
 import Pagination from "@/components/Pagination";
 import { getPortalProfile } from "@/utils/portal-auth";
@@ -37,14 +37,14 @@ const ROOM_GATE_FEATURES = [
   { icon: Star,      label: "房东专属权益" },
 ];
 
-const COLS = "grid-cols-[2fr_1fr_1fr_1fr_1fr_100px]";
+
 
 function ListSkeleton() {
   return (
     <>
       <div className="hidden lg:block">
         {Array.from({ length: MINE_SKELETON_ROWS }).map((_, i) => (
-          <div key={i} className={`grid ${COLS} px-5 py-4 border-b border-[#eee] items-center gap-3`}>
+          <div key={i} className={`grid ${PORTAL_MY_ROOM_COLS}px-5 py-4 border-b border-[#eee] items-center gap-3`}>
             <div className="flex items-center gap-3 min-w-0">
               <div className="skeleton-shimmer w-16 h-12 rounded shrink-0" />
               <div className="skeleton-shimmer flex-1 h-4 rounded" />
@@ -159,7 +159,7 @@ export default function MyRoomPage() {
           </div>
 
           {/* 桌面端表头 */}
-          <div className={`hidden lg:grid ${COLS} text-sm text-text-muted px-5 py-3 border-b border-[#eee] bg-surface gap-3`}>
+          <div className={`hidden lg:grid ${PORTAL_MY_ROOM_COLS}text-sm text-text-muted px-5 py-3 border-b border-[#eee] bg-surface gap-3`}>
             <span>房源</span>
             <span>小区</span>
             <span>发布状态</span>
@@ -193,7 +193,7 @@ export default function MyRoomPage() {
                   const rent = ROOM_RENTED_STYLE[item.isRented];
                   const isPublishing = publishingId === item.id;
                   return (
-                    <div key={item.id} className={`grid ${COLS} px-5 py-4 border-b border-[#eee] items-center text-sm hover:bg-surface gap-3`}>
+                    <div key={item.id} className={`grid ${PORTAL_MY_ROOM_COLS}px-5 py-4 border-b border-[#eee] items-center text-sm hover:bg-surface gap-3`}>
                       <Link href={`/portal/account/room/${item.id}`} className="flex items-center gap-3 group min-w-0">
                         {coverUrl ? (
                           // eslint-disable-next-line @next/next/no-img-element

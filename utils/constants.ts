@@ -1,3 +1,7 @@
+import _areaJson from '@/localData/area.json';
+import { LayoutDashboard, Building2, Users, UserRound, MapPin, GalleryHorizontal, Wrench, Heart, CalendarCheck, Bell, FileText, ShoppingCart } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
+
 // =============================================================================
 // 全局常量统一入口
 //
@@ -23,6 +27,8 @@
 //  18. 组件：用户平台个人中心
 //  19. 组件：通知铃铛
 //  20. 管理平台仪表盘
+//  21. 管理平台地区级联 — 省份列表、省份下拉选项
+//  22. 管理平台侧边栏   — 导航分组配置
 // =============================================================================
 
 
@@ -68,6 +74,17 @@ export const MAP_DISTRICT_ZOOM_THRESHOLD = 13;
 // 直辖市集合：这四个城市在 area.json 里的城市节点 value 是"市辖区"而不是城市名，
 // 需要特殊处理，直接把省节点当作城市节点来用。
 export const MUNICIPALITY_PROVINCES = new Set(['北京市', '天津市', '上海市', '重庆市']);
+
+// area.json 中的"过渡节点"名称集合。
+// 这些字符串不是真实的城市/区名，而是行政区划层级的分组标识；
+// 在省/市/区级联选择器中需要跳过或特殊处理这些节点，防止它们出现在下拉选项中。
+export const AREA_SPECIAL_KEYS = new Set([
+  '市辖区', '县', '省直辖县级行政区划', '自治区直辖县级行政区划',
+]);
+
+// 地图找房底部面板拖拽"吸附关闭"阈值（px）。
+// 拖拽松手时面板高度低于此值，则自动收起；高于此值则保持展开。
+export const PORTAL_MAP_PANEL_SNAP_CLOSE = 80;
 
 
 // =============================================================================
@@ -344,6 +361,39 @@ export const ROOM_RENTED_STYLE: Record<number, { label: string; cls: string }> =
   2: { label: '已租出', cls: 'text-[#999] bg-[#f5f5f5]' },
 };
 
+// ── 管理端房源状态筛选选项 ──────────────────────────────────────────────────────
+
+// 房源发布状态筛选下拉选项（value 为字符串以兼容 FilterSelect）。
+// 1=未发布（仅房东自己可见）；2=已发布（对外公开）。
+export const ROOM_PUBLISHED_SELECT_OPTIONS = [
+  { value: '1', label: '未发布' },
+  { value: '2', label: '已发布' },
+];
+
+// 房源出租状态筛选下拉选项（value 为字符串以兼容 FilterSelect）。
+// 1=待出租（可供预约看房）；2=已租出（已有在租合同）。
+export const ROOM_RENTED_SELECT_OPTIONS = [
+  { value: '1', label: '待出租' },
+  { value: '2', label: '已租出' },
+];
+
+// ── FilterSelect 适配选项（value 统一为字符串，供 FilterSelect 组件使用）────────
+
+// 租赁方式下拉选项（整租/合租），value 转为字符串以兼容 FilterSelect。
+export const RENT_TYPE_SELECT_OPTIONS = RENT_TYPE_OPTIONS.map((o) => ({ value: String(o.value), label: o.label }));
+
+// 房屋类型下拉选项（普通住宅/公寓），数据库直接存文字，value 与 label 相同。
+export const ROOM_TYPE_SELECT_OPTIONS = ROOM_TYPE_OPTIONS.map((o) => ({ value: o, label: o }));
+
+// 朝向下拉选项，数据库直接存文字，value 与 label 相同。
+export const DIRECTION_SELECT_OPTIONS = DIRECTION_OPTIONS.map((o) => ({ value: o, label: o }));
+
+// 楼层高低下拉选项，value 转为字符串以兼容 FilterSelect。
+export const LEVEL_SELECT_OPTIONS = LEVEL_OPTIONS.map((o) => ({ value: String(o.value), label: o.label }));
+
+// 电梯有无下拉选项，value 转为字符串以兼容 FilterSelect。
+export const LIFT_SELECT_OPTIONS = LIFT_OPTIONS.map((o) => ({ value: String(o.value), label: o.label }));
+
 
 // =============================================================================
 // 11. 业务枚举 — 预约
@@ -514,6 +564,9 @@ export const WALLET_DATE_RANGE_OPTIONS = [
   { value: 'all',     label: '全部记录' },
 ];
 
+// 充值弹窗的快捷金额预设列表（元），点击后自动填入金额输入框。
+export const PORTAL_WALLET_RECHARGE_PRESETS = [100, 500, 1000, 2000, 5000];
+
 
 // =============================================================================
 // 16. 组件 — 富文本编辑器（Quill）
@@ -569,6 +622,18 @@ export const HERO_CAROUSEL_AUTOPLAY_DELAY = 6000;
 // 加载完成前先显示这么多行的灰色占位块，避免页面空白。
 export const MINE_SKELETON_ROWS = 5;
 
+// ── 桌面端列表网格列模板（Tailwind grid-cols 任意值）────────────────────────
+// 仅在 lg: 断点以上生效，移动端退回单列卡片布局。
+
+// 我的预约列表：房源(2fr) | 房东/租客(1fr) | 预约时间(1fr) | 状态(1fr) | 操作(120px)
+export const PORTAL_APPOINTMENT_COLS = "grid-cols-[2fr_1fr_1fr_1fr_120px]";
+
+// 我的房源列表：房源(2fr) | 发布状态(1fr) | 出租状态(1fr) | 租赁类型(1fr) | 创建时间(1fr) | 操作(100px)
+export const PORTAL_MY_ROOM_COLS = "grid-cols-[2fr_1fr_1fr_1fr_1fr_100px]";
+
+// 我的订单列表：订单房源(2fr) | 类型(1fr) | 金额(1fr) | 操作(120px)
+export const PORTAL_ORDERS_COLS = "grid-cols-[2fr_1fr_1fr_120px]";
+
 
 // =============================================================================
 // 19. 管理平台 — 仪表盘（Dashboard）
@@ -577,6 +642,26 @@ export const MINE_SKELETON_ROWS = 5;
 // 仪表盘租房类型环形图的扇区颜色（整租 / 合租各一个颜色）。
 // 使用暖棕色系以契合管理平台的整体配色风格。
 export const DASHBOARD_DONUT_COLORS = ['#8B7355', '#C4A878'];
+
+// ── 收入趋势折线图 SVG 画布参数 ───────────────────────────────────────────────
+// 这组值配合使用，定义折线图的 viewBox 尺寸和四边内边距。
+// 修改时需同步调整，确保坐标计算公式（x/y 映射）保持一致。
+export const DASHBOARD_REVENUE_CHART = {
+  W:  600, // SVG 画布总宽度（px）
+  H:  220, // SVG 画布总高度（px）
+  PT:  30, // 上边距，为峰值气泡标注留出空间
+  PB:  30, // 下边距，为 X 轴月份标签留出空间
+  PL:  52, // 左边距，为 Y 轴金额标签留出空间
+  PR:  16, // 右边距
+} as const;
+
+// ── 租赁类型环形图圆弧参数 ────────────────────────────────────────────────────
+
+// 环形图 SVG circle 元素的半径（px），与 <circle r="..."> 属性保持一致。
+export const DASHBOARD_DONUT_RADIUS = 70;
+
+// 环形图完整圆周长（2πr），用于计算各扇区的 stroke-dasharray / stroke-dashoffset。
+export const DASHBOARD_DONUT_CIRCUMFERENCE = 2 * Math.PI * DASHBOARD_DONUT_RADIUS;
 
 // 仪表盘"收入趋势"图表的时间维度选项。
 // as const 使 TypeScript 把 months 推断为字面量类型（3|6|12），便于类型安全地控制请求参数。
@@ -593,3 +678,56 @@ export const DASHBOARD_ORDER_TYPE_MAP: Record<number, { label: string; variant: 
   2: { label: '续期款', variant: 'success' },
   3: { label: '押金退', variant: 'info' },
 };
+
+
+// =============================================================================
+// 21. 管理平台 — 地区级联（省份）
+// =============================================================================
+
+// area.json 结构类型（仅用于省份常量派生）。
+type AreaNode = { label: string; value: string; children?: AreaNode[] };
+const _area = _areaJson as AreaNode[];
+
+// 所有省份名称列表（area.json 根节点 value 字段，共 34 个省级行政单位）。
+// 供管理端房源列表页省份筛选下拉框使用。
+export const MANAGE_ALL_PROVINCES: string[] = _area.map((p) => p.value);
+
+// 省份筛选下拉选项（value 与 label 均为省份名称字符串，供 FilterSelect 使用）。
+export const MANAGE_PROVINCE_OPTS: { value: string; label: string }[] =
+  MANAGE_ALL_PROVINCES.map((p) => ({ value: p, label: p }));
+
+
+// =============================================================================
+// 22. 管理平台 — 侧边栏导航
+// =============================================================================
+
+// 侧边栏导航分组配置。
+// 每组含 group（分组标题）和 items（导航项列表）。
+// icon 字段直接引用 lucide-react 组件，Sidebar.tsx 按此渲染图标。
+export const MANAGE_NAV_GROUPS: Array<{
+  group: string;
+  items: Array<{ key: string; label: string; icon: LucideIcon; path: string }>;
+}> = [
+  {
+    group: '概览',
+    items: [
+      { key: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, path: '/manage' },
+    ],
+  },
+  {
+    group: '业务管理',
+    items: [
+      { key: 'admin',        label: '管理员管理', icon: Users,               path: '/manage/admin' },
+      { key: 'user',         label: '用户管理',   icon: UserRound,           path: '/manage/user' },
+      { key: 'community',    label: '小区管理',   icon: MapPin,              path: '/manage/community' },
+      { key: 'room',         label: '房源管理',   icon: Building2,           path: '/manage/room' },
+      { key: 'facility',     label: '房屋设施',   icon: Wrench,              path: '/manage/facility' },
+      { key: 'carousel',     label: '轮播图管理', icon: GalleryHorizontal,   path: '/manage/carousel' },
+      { key: 'collection',   label: '收藏管理',   icon: Heart,               path: '/manage/collection' },
+      { key: 'appointment',  label: '预约管理',   icon: CalendarCheck,       path: '/manage/appointment' },
+      { key: 'notification', label: '通知管理',   icon: Bell,                path: '/manage/notification' },
+      { key: 'contract',     label: '合同管理',   icon: FileText,            path: '/manage/contract' },
+      { key: 'order',        label: '订单管理',   icon: ShoppingCart,        path: '/manage/order' },
+    ],
+  },
+];

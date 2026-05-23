@@ -11,38 +11,34 @@ import DataTable, { type Column } from '@/components/DataTable';
 import Pagination from '@/components/Pagination';
 import AppLoading from '@/components/AppLoading';
 import { fmtDate } from '@/utils/format';
-import { RENT_TYPE_OPTIONS, ROOM_TYPE_OPTIONS, DIRECTION_OPTIONS, MUNICIPALITY_PROVINCES, DEFAULT_PAGE_SIZE } from '@/utils/constants';
+import {
+  MUNICIPALITY_PROVINCES, DEFAULT_PAGE_SIZE,
+  AREA_SPECIAL_KEYS, MANAGE_PROVINCE_OPTS,
+  RENT_TYPE_OPTIONS,
+  RENT_TYPE_SELECT_OPTIONS, ROOM_TYPE_SELECT_OPTIONS, DIRECTION_SELECT_OPTIONS,
+  ROOM_PUBLISHED_SELECT_OPTIONS, ROOM_RENTED_SELECT_OPTIONS,
+} from '@/utils/constants';
 import FilterSelect from '@/components/FilterSelect';
 import { getManageCity, getManageProvince, MANAGE_CITY_CHANGED_EVENT } from '@/utils/manage-city';
 import areaData from '@/localData/area.json';
 
 /* ─── Area helpers (province / city / district cascade) ─────────────────── */
 type AreaNode = { label: string; value: string; children?: AreaNode[] };
-const AREA = areaData as AreaNode[];
-const SPECIAL_KEYS = new Set(['市辖区', '县', '省直辖县级行政区划', '自治区直辖县级行政区划']);
-
-const ALL_PROVINCES = AREA.map((p) => p.value);
-
-const PROVINCE_OPTS = ALL_PROVINCES.map((p) => ({ value: p, label: p }));
-const RENT_TYPE_OPTS = RENT_TYPE_OPTIONS.map((o) => ({ value: String(o.value), label: o.label }));
-const ROOM_TYPE_OPTS = ROOM_TYPE_OPTIONS.map((t) => ({ value: t, label: t }));
-const DIRECTION_OPTS = DIRECTION_OPTIONS.map((d) => ({ value: d, label: d }));
-const PUBLISHED_OPTS = [{ value: '1', label: '未发布' }, { value: '2', label: '已发布' }];
-const RENTED_OPTS = [{ value: '1', label: '待出租' }, { value: '2', label: '已租出' }];
+const areaNodes = areaData as AreaNode[];
 
 function getCities(province: string): string[] {
   if (!province || MUNICIPALITY_PROVINCES.has(province)) return [];
-  const pNode = AREA.find((p) => p.value === province);
-  return (pNode?.children ?? []).filter((c) => !SPECIAL_KEYS.has(c.value)).map((c) => c.value);
+  const pNode = areaNodes.find((p) => p.value === province);
+  return (pNode?.children ?? []).filter((c) => !AREA_SPECIAL_KEYS.has(c.value)).map((c) => c.value);
 }
 
 function getDistricts(province: string, city: string): string[] {
   if (!province) return [];
-  const pNode = AREA.find((p) => p.value === province);
+  const pNode = areaNodes.find((p) => p.value === province);
   if (!pNode) return [];
   if (MUNICIPALITY_PROVINCES.has(province)) {
     return (pNode.children ?? [])
-      .filter((c) => SPECIAL_KEYS.has(c.value))
+      .filter((c) => AREA_SPECIAL_KEYS.has(c.value))
       .flatMap((c) => (c.children ?? []).map((d) => d.value));
   }
   if (!city) return [];
@@ -548,7 +544,7 @@ export default function RoomPage() {
         <FilterSelect
           value={filterProvince}
           onChange={(v) => { setFilterProvince(v); setFilterCity(''); setFilterDistrict(''); setPage(1); }}
-          options={PROVINCE_OPTS}
+          options={MANAGE_PROVINCE_OPTS}
           placeholder="全部省份"
           className="min-w-32"
         />
@@ -577,7 +573,7 @@ export default function RoomPage() {
         <FilterSelect
           value={rentTypeFilter}
           onChange={(v) => { setRentTypeFilter(v); setPage(1); }}
-          options={RENT_TYPE_OPTS}
+          options={RENT_TYPE_SELECT_OPTIONS}
           placeholder="租房类型"
           className="min-w-28"
         />
@@ -586,7 +582,7 @@ export default function RoomPage() {
         <FilterSelect
           value={roomTypeFilter}
           onChange={(v) => { setRoomTypeFilter(v); setPage(1); }}
-          options={ROOM_TYPE_OPTS}
+          options={ROOM_TYPE_SELECT_OPTIONS}
           placeholder="房屋类型"
           className="min-w-28"
         />
@@ -595,7 +591,7 @@ export default function RoomPage() {
         <FilterSelect
           value={directionFilter}
           onChange={(v) => { setDirectionFilter(v); setPage(1); }}
-          options={DIRECTION_OPTS}
+          options={DIRECTION_SELECT_OPTIONS}
           placeholder="房屋朝向"
           className="min-w-28"
         />
@@ -604,7 +600,7 @@ export default function RoomPage() {
         <FilterSelect
           value={isPublishedFilter}
           onChange={(v) => { setIsPublishedFilter(v); setPage(1); }}
-          options={PUBLISHED_OPTS}
+          options={ROOM_PUBLISHED_SELECT_OPTIONS}
           placeholder="全部状态"
           className="min-w-28"
         />
@@ -613,7 +609,7 @@ export default function RoomPage() {
         <FilterSelect
           value={isRentedFilter}
           onChange={(v) => { setIsRentedFilter(v); setPage(1); }}
-          options={RENTED_OPTS}
+          options={ROOM_RENTED_SELECT_OPTIONS}
           placeholder="全部租出"
           className="min-w-28"
         />

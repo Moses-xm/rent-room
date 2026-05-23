@@ -17,6 +17,8 @@ import {
   LEVEL_OPTIONS,
   RENT_TYPE_OPTIONS,
   PORTAL_ROOM_BED_OPTIONS,
+  MAP_DISTRICT_ZOOM_THRESHOLD,
+  PORTAL_MAP_PANEL_SNAP_CLOSE,
 } from '@/utils/constants';
 import { buildRoomTags, type RoomItem } from '@/utils/portal-room';
 import type { DistrictItem, CommunityItem } from '@/components/portal/MapRoomMap';
@@ -56,7 +58,7 @@ interface PreviewDetail {
   } | null;
 }
 
-const COMMUNITY_ZOOM = 13;
+
 
 // ── Skeleton ──────────────────────────────────────────────────────────────────
 
@@ -434,7 +436,7 @@ export function MapRoomPage() {
     setSelectedDistrict(name);
     setSelectedCmyId(null);
     setPreviewIdx(null);
-    setZoom(COMMUNITY_ZOOM);
+    setZoom(MAP_DISTRICT_ZOOM_THRESHOLD);
   }, []);
 
   const handleCommunityClick = useCallback((id: number) => {
@@ -480,7 +482,6 @@ export function MapRoomPage() {
     dragDataRef.current = { startY: e.clientY, startHeight: panel.offsetHeight };
     panel.style.transition = 'none';
 
-    const SNAP_CLOSE = 80;
     const MAX_H = window.innerHeight * 0.85;
 
     const onMove = (ev: PointerEvent) => {
@@ -497,11 +498,11 @@ export function MapRoomPage() {
       const finalH = dragDataRef.current.startHeight + delta;
       const isTap = Math.abs(delta) < 5;
 
-      if (isTap || finalH < SNAP_CLOSE) {
+      if (isTap || finalH < PORTAL_MAP_PANEL_SNAP_CLOSE) {
         panel.style.height = '0px';
         setMobileCollapsed(true);
       } else {
-        const h = Math.max(SNAP_CLOSE + 20, Math.min(MAX_H, finalH));
+        const h = Math.max(PORTAL_MAP_PANEL_SNAP_CLOSE + 20, Math.min(MAX_H, finalH));
         panel.style.height = `${h}px`;
         lastOpenHeightRef.current = h;
         setMobileCollapsed(false);
@@ -620,7 +621,7 @@ export function MapRoomPage() {
                 onChange={(v: string) => {
                   setSelectedDistrict(v);
                   setSelectedCmyId(null);
-                  setZoom(v ? COMMUNITY_ZOOM : 12);
+                  setZoom(v ? MAP_DISTRICT_ZOOM_THRESHOLD : 12);
                 }}
                 options={mapData.districts.map((d) => ({ value: d.name, label: d.name }))}
                 placeholder="选择区域"
