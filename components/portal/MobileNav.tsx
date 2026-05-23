@@ -1,7 +1,7 @@
 "use client";
 
-import { useRef, useState } from "react";
-import { usePathname, useRouter } from "next/navigation";
+import { useState } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { X } from "lucide-react";
 import {
@@ -16,15 +16,30 @@ type GateState = "unauth" | "notLandlord" | null;
 export function MobileNav({ onClose }: { onClose: () => void }) {
   const router = useRouter();
   const pathname = usePathname();
-  const searchRef = useRef<HTMLInputElement>(null);
+  const searchParams = useSearchParams();
+  const urlQ = searchParams.get("q") ?? "";
+  const [searchValue, setSearchValue] = useState(urlQ);
+  const [lastUrlQ, setLastUrlQ] = useState(urlQ);
   const [gateState, setGateState] = useState<GateState>(null);
 
+  // Sync input when URL q param changes (render-time derived state update)
+  if (urlQ !== lastUrlQ) {
+    setLastUrlQ(urlQ);
+    setSearchValue(urlQ);
+  }
+
   const handleSearch = () => {
-    const q = searchRef.current?.value.trim();
-    if (q) {
-      router.push(`${PORTAL_SEARCH_PATH}?q=${encodeURIComponent(q)}`);
+    const trimmed = searchValue.trim();
+    if (trimmed) {
+      router.push(`${PORTAL_SEARCH_PATH}?q=${encodeURIComponent(trimmed)}`);
       onClose();
     }
+  };
+
+  const handleClear = () => {
+    setSearchValue("");
+    router.back();
+    onClose();
   };
 
   function handleLandlordGate(href: string) {
@@ -60,15 +75,26 @@ export function MobileNav({ onClose }: { onClose: () => void }) {
         {/* 搜索框 */}
         <div className="px-4 py-3 border-b border-[#e6e6e6]">
           <div className="flex h-9">
-            <input
-              ref={searchRef}
-              placeholder="搜索区域、小区或房源"
-              onKeyDown={(e) => e.key === "Enter" && handleSearch()}
-              className="flex-1 px-3 text-sm border border-[#d9d9d9] border-r-0 outline-none"
-            />
+            <div className="relative flex-1">
+              <input
+                value={searchValue}
+                onChange={(e) => setSearchValue(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && handleSearch()}
+                placeholder="搜索区域、小区或房源"
+                className="w-full h-9 px-3 pr-8 text-sm border border-[#d9d9d9] border-r-0 outline-none"
+              />
+              {searchValue && (
+                <button
+                  onClick={handleClear}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 text-[#999] hover:text-[#555] cursor-pointer transition-colors"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              )}
+            </div>
             <button
               onClick={handleSearch}
-              className="px-4 text-white text-sm bg-(--color-accent) cursor-pointer"
+              className="px-4 text-white text-sm bg-(--color-accent) cursor-pointer shrink-0"
             >
               搜索
             </button>

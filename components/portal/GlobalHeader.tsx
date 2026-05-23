@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useEffect, useRef, useState, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { Menu } from "lucide-react";
+import { Menu, X } from "lucide-react";
 import { LogoutConfirmDialog } from "@/components/portal/LogoutConfirmDialog";
 import { NotificationBell } from "@/components/portal/NotificationBell";
 import {
@@ -19,9 +19,60 @@ import { CitySelector } from "@/components/CitySelector";
 
 const SEP = <span className="mx-2.5 text-[#ccc]">|</span>;
 
+function SearchBox() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const urlQ = searchParams.get("q") ?? "";
+  const [value, setValue] = useState(urlQ);
+  const [lastUrlQ, setLastUrlQ] = useState(urlQ);
+
+  // Sync input when URL q param changes (render-time derived state update)
+  if (urlQ !== lastUrlQ) {
+    setLastUrlQ(urlQ);
+    setValue(urlQ);
+  }
+
+  function handleSearch() {
+    const trimmed = value.trim();
+    if (trimmed) router.push(`${PORTAL_SEARCH_PATH}?q=${encodeURIComponent(trimmed)}`);
+  }
+
+  function handleClear() {
+    setValue("");
+    router.back();
+  }
+
+  return (
+    <div className="flex items-center flex-1 max-w-150 mx-6 h-8.25">
+      <div className="relative flex-1 h-8.25">
+        <input
+          value={value}
+          onChange={(e) => setValue(e.target.value)}
+          onKeyDown={(e) => e.key === "Enter" && handleSearch()}
+          placeholder="请输入区域、小区或房源关键词"
+          className="w-full h-8.25 px-2.5 pr-8 text-sm border border-[#d9d9d9] border-r-0 outline-none"
+        />
+        {value && (
+          <button
+            onClick={handleClear}
+            className="absolute right-2 top-1/2 -translate-y-1/2 text-[#999] hover:text-[#555] cursor-pointer transition-colors"
+          >
+            <X className="w-3.5 h-3.5" />
+          </button>
+        )}
+      </div>
+      <button
+        onClick={handleSearch}
+        className="w-30 h-8.25 text-white text-[17px] tracking-[4px] bg-(--color-accent) cursor-pointer shrink-0"
+      >
+        搜索
+      </button>
+    </div>
+  );
+}
+
 export function GlobalHeader({ onMenuToggle }: { onMenuToggle: () => void }) {
   const router = useRouter();
-  const searchRef = useRef<HTMLInputElement>(null);
   const [profile, setProfile] = useState<PortalProfile | null>(null);
   const [popoverOpen, setPopoverOpen] = useState(false);
   const [mobilePopoverOpen, setMobilePopoverOpen] = useState(false);
@@ -61,11 +112,6 @@ export function GlobalHeader({ onMenuToggle }: { onMenuToggle: () => void }) {
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [mobilePopoverOpen]);
-
-  const handleSearch = () => {
-    const q = searchRef.current?.value.trim();
-    if (q) router.push(`${PORTAL_SEARCH_PATH}?q=${encodeURIComponent(q)}`);
-  };
 
   const handleLogout = () => {
     clearPortalAuth();
@@ -153,20 +199,14 @@ export function GlobalHeader({ onMenuToggle }: { onMenuToggle: () => void }) {
           </div>
 
           {/* 中：搜索框 */}
-          <div className="flex items-center flex-1 max-w-150 mx-6 h-8.25">
-            <input
-              ref={searchRef}
-              placeholder="请输入区域、小区或房源关键词"
-              onKeyDown={(e) => e.key === "Enter" && handleSearch()}
-              className="flex-1 h-8.25 px-2.5 text-sm border border-[#d9d9d9] border-r-0 outline-none"
-            />
-            <button
-              onClick={handleSearch}
-              className="w-30 h-8.25 text-white text-[17px] tracking-[4px] bg-(--color-accent) cursor-pointer"
-            >
-              搜索
-            </button>
-          </div>
+          <Suspense fallback={
+            <div className="flex items-center flex-1 max-w-150 mx-6 h-8.25">
+              <div className="flex-1 h-8.25 skeleton-shimmer border-r-0" />
+              <div className="w-30 h-8.25 skeleton-shimmer" />
+            </div>
+          }>
+            <SearchBox />
+          </Suspense>
 
           {/* 右：用户区域 */}
           <div className="shrink-0 flex items-center text-sm text-[#333] pl-6">
