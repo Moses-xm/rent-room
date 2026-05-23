@@ -137,7 +137,7 @@ datasource db {
 }
 
 // ─── 管理员 ────────────────────────────────────────────────────────────────────
-model Admin {
+model admin {
   id        Int       @id @default(autoincrement())
   username  String    @unique @db.VarChar(50)
   password  String    @db.VarChar(255)
@@ -145,12 +145,10 @@ model Admin {
   isActive  Boolean   @default(true)
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
-
-  @@map("admin")
 }
 
 // ─── 用户 ──────────────────────────────────────────────────────────────────────
-model User {
+model user {
   id        Int      @id @default(autoincrement())
   username  String   @unique @db.VarChar(50)
   password  String   @db.VarChar(255)
@@ -159,6 +157,7 @@ model User {
   realname  String?  @db.VarChar(50)
   gender    Int      @default(3)           // 1=男 2=女 3=不愿透露
   identity  Int      @default(1)           // 1=普通用户 2=房东
+  isActive  Boolean  @default(true)
   avatar    String?  @db.VarChar(500)
   email     String?  @db.VarChar(100)
   province  String?  @db.VarChar(30)
@@ -171,54 +170,51 @@ model User {
   updatedAt DateTime @updatedAt
 
   // Relations
-  rooms                  Room[]         @relation("publisher")
-  collections            Collection[]
-  appointmentsAsUser     Appointment[]  @relation("appointmentUser")     // 作为租客的预约
-  appointmentsAsLandlord Appointment[]  @relation("appointmentLandlord") // 作为房东收到的预约
-  contractsAsUser        Contract[]     @relation("contractUser")        // 作为租客的合同
-  contractsAsLandlord    Contract[]     @relation("contractLandlord")    // 作为房东收到的合同
-  paidOrders             Order[]        @relation("payer")
-  receivedOrders         Order[]        @relation("payee")
-  notifications          Notification[]
-  walletRecords          WalletRecord[]
-
-  @@map("user")
+  rooms                  room[]
+  communities            community[]
+  collections            collection[]
+  appointmentsAsUser     appointment[]  @relation("appointmentUser")
+  appointmentsAsLandlord appointment[]  @relation("appointmentLandlord")
+  contractsAsUser        contract[]     @relation("contractUser")
+  contractsAsLandlord    contract[]     @relation("contractLandlord")
+  paidOrders             order[]        @relation("payer")
+  receivedOrders         order[]        @relation("payee")
+  notifications          notification[]
+  walletRecords          walletRecord[]
 }
 
 // ─── 小区 ──────────────────────────────────────────────────────────────────────
-model Community {
+model community {
   id           Int      @id @default(autoincrement())
-  name         String   @db.VarChar(50)
+  name         String   @db.VarChar(100)
   province     String   @db.VarChar(30)
   city         String   @db.VarChar(30)
   district     String   @db.VarChar(30)
-  street       String?  @db.VarChar(30)
+  street       String?  @db.VarChar(50)
   streetNumber String?  @db.VarChar(20)
-  subwayLine   String?  @db.VarChar(50)    // JSON 字符串，如 ["2号线","6号线"]
+  subwayLine   String?  @db.VarChar(200)   // JSON 字符串，如 ["2号线","6号线"]
   lng          Float
   lat          Float
-  cover        String   @db.VarChar(500)   // 封面图片 URL
+  cover        String   @db.VarChar(500)
+  creatorId    Int?                         // 创建人（portal 用户），null 表示由管理员创建
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
-  rooms Room[]
-
-  @@map("community")
+  rooms   room[]
+  creator user?  @relation(fields: [creatorId], references: [id])
 }
 
 // ─── 房屋设施 ──────────────────────────────────────────────────────────────────
-model Facility {
+model facility {
   id        Int      @id @default(autoincrement())
   name      String   @db.VarChar(50)
   icon      String   @db.VarChar(100)  // iconfont class name
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-
-  @@map("facility")
 }
 
 // ─── 房源 ──────────────────────────────────────────────────────────────────────
-model Room {
+model room {
   id           Int      @id @default(autoincrement())
   name         String   @db.VarChar(200)
   cmyId        Int                          // 小区 ID
@@ -236,7 +232,7 @@ model Room {
   floor        Int                          // 第几层
   floors       Int                          // 共几层
   level        Int                          // 1=低 2=中 3=高
-  lift         Int                          // 1=无电梯 2=有电梯
+  lift         Int      @default(1)         // 1=无电梯 2=有电梯
   description  String?  @db.Text
   cover        String   @db.VarChar(500)
   images       String   @db.Text           // JSON 字符串，多张图片 URL 数组
@@ -252,19 +248,16 @@ model Room {
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
-  // Relations
-  community    Community    @relation(fields: [cmyId], references: [id])
-  publisher    User         @relation("publisher", fields: [publisherId], references: [id])
-  collections  Collection[]
-  appointments Appointment[]
-  contracts    Contract[]
-  orders       Order[]
-
-  @@map("room")
+  community    community     @relation(fields: [cmyId], references: [id])
+  publisher    user          @relation(fields: [publisherId], references: [id])
+  collections  collection[]
+  appointments appointment[]
+  contracts    contract[]
+  orders       order[]
 }
 
 // ─── 轮播图 ────────────────────────────────────────────────────────────────────
-model Carousel {
+model carousel {
   id        Int      @id @default(autoincrement())
   image     String   @db.VarChar(500)
   path      String   @db.VarChar(500)
@@ -272,27 +265,24 @@ model Carousel {
   sortOrder Int      @default(0)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-
-  @@map("carousel")
 }
 
 // ─── 收藏 ──────────────────────────────────────────────────────────────────────
-model Collection {
+model collection {
   id        Int      @id @default(autoincrement())
   userId    Int
   roomId    Int
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  user User @relation(fields: [userId], references: [id])
-  room Room @relation(fields: [roomId], references: [id])
+  user user @relation(fields: [userId], references: [id])
+  room room @relation(fields: [roomId], references: [id])
 
   @@unique([userId, roomId])
-  @@map("collection")
 }
 
 // ─── 预约看房 ──────────────────────────────────────────────────────────────────
-model Appointment {
+model appointment {
   id              Int      @id @default(autoincrement())
   userId          Int                          // 预约者（租客）
   roomId          Int
@@ -307,18 +297,16 @@ model Appointment {
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 
-  user     User @relation("appointmentUser",     fields: [userId],     references: [id])
-  room     Room @relation(fields: [roomId], references: [id])
-  landlord User @relation("appointmentLandlord", fields: [landlordId], references: [id])
-
-  @@map("appointment")
+  user     user @relation("appointmentUser",     fields: [userId],     references: [id])
+  room     room @relation(fields: [roomId], references: [id])
+  landlord user @relation("appointmentLandlord", fields: [landlordId], references: [id])
 }
 
 // ─── 通知 ──────────────────────────────────────────────────────────────────────
-model Notification {
+model notification {
   id          Int      @id @default(autoincrement())
   userId      Int                              // 通知接收者
-  type        Int                              // 见"通知类型枚举"章节
+  type        Int                              // 1=新预约 2=预约取消 3=预约完成 4=签约/续租 5=付款成功 6=收款成功 7=即将到期 8=合法退房 9=逾期强退 10=提前退房 11=房东退房通知
   title       String   @db.VarChar(200)
   content     String   @db.VarChar(500)
   relatedType String?  @db.VarChar(50)         // 关联业务类型，如 "appointment"、"contract"、"order"
@@ -327,84 +315,86 @@ model Notification {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  user User @relation(fields: [userId], references: [id])
-
-  @@map("notification")
+  user user @relation(fields: [userId], references: [id])
 }
 
 // ─── 合同 ──────────────────────────────────────────────────────────────────────
-model Contract {
-  id               Int      @id @default(autoincrement())
-  userId           Int                        // 租客
-  roomId           Int
-  landlordId       Int                        // 房东
-  tenancy          Int                        // 租期（月）
-  onlineTime       DateTime                   // 开始时间
-  offlineTime      DateTime                   // 结束时间
-  pledge           Float                      // 已付押金金额
-  fee              Float                      // 每期应付房租金额（= 月租 × pay 期数，例如押一付三则 fee = price × 3）
-  paidPeriod       String   @db.Text          // JSON，已付期限数组 [{start,end}, ...]
-  payingPeriod     String   @db.Text          // JSON，待付期限数组 [{start,end}, ...]
-  renewTimes       Int      @default(0)       // 续租次数
-  status           Int      @default(1)       // 1=进行中 2=已完成
-  isCheckout       Boolean  @default(false)   // 是否已退房（合法或非法）
-  checkoutTime     DateTime?                  // 退房时间
-  refund           Boolean?                   // true=合法退房(退押金) false=非法退房(不退押金) null=未退房
-  landlordDeleted  Boolean  @default(false)   // 房东侧隐藏该记录
-  userDeleted      Boolean  @default(false)   // 租客侧隐藏该记录（仅 status=2 后允许）
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
+model contract {
+  id              Int       @id @default(autoincrement())
+  userId          Int                        // 租客
+  roomId          Int
+  landlordId      Int                        // 房东
+  tenancy         Int                        // 租期（月）
+  onlineTime      DateTime                   // 开始时间
+  offlineTime     DateTime                   // 结束时间
+  pledge          Float                      // 已付押金金额
+  fee             Float                      // 每期应付房租金额（= 月租 × pay）
+  paidPeriod      String    @db.Text         // JSON，已付期限数组 [{start,end}, ...]
+  payingPeriod    String    @db.Text         // JSON，待付期限数组 [{start,end}, ...]
+  renewTimes      Int       @default(0)      // 续租次数
+  renewMonths     Int       @default(0)      // 累计续租月数
+  status          Int       @default(1)      // 1=进行中 2=已完成
+  isCheckout      Boolean   @default(false)  // 是否已退房（合法或非法）
+  checkoutTime    DateTime?                  // 退房时间
+  refund          Boolean?                   // true=合法退房(退押金) false=非法退房(不退押金) null=未退房
+  landlordDeleted Boolean   @default(false)  // 房东侧隐藏该记录
+  userDeleted     Boolean   @default(false)  // 租客侧隐藏该记录（仅 status=2 后允许）
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
 
-  user     User    @relation("contractUser",     fields: [userId],     references: [id])
-  room     Room    @relation(fields: [roomId],   references: [id])
-  landlord User    @relation("contractLandlord", fields: [landlordId], references: [id])
-  orders   Order[]
+  user     user    @relation("contractUser",     fields: [userId],     references: [id])
+  room     room    @relation(fields: [roomId],   references: [id])
+  landlord user    @relation("contractLandlord", fields: [landlordId], references: [id])
+  orders   order[]
 
   @@map("contract")
 }
 
 // ─── 订单 ──────────────────────────────────────────────────────────────────────
-model Order {
-  id          Int      @id @default(autoincrement())
-  contractId  Int                              // 关联合同
-  payerId     Int                              // 付款人（租客；押金退款时角色反转为房东）
-  roomId      Int
-  payeeId     Int                              // 收款人（房东；押金退款时为租客）
-  type        Int      @default(1)             // 1=首期款(押金+首期房租) 2=续期房租 3=押金退款
-  fee         Float?                           // 本次房租金额（退款订单为 null）
-  pledge      Float?                           // 本次押金金额（首期及退款订单有值）
-  paidPeriod  String?  @db.VarChar(200)        // 本次覆盖的房租时间段，如 "2025-05-01~2025-08-01"
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+model order {
+  id           Int      @id @default(autoincrement())
+  contractId   Int                              // 关联合同
+  payerId      Int                              // 付款人（租客；押金退款时角色反转为房东）
+  roomId       Int
+  payeeId      Int                              // 收款人（房东；押金退款时为租客）
+  type         Int      @default(1)             // 1=首期款(押金+首期房租) 2=续期房租 3=押金退款
+  fee          Float?                           // 本次房租金额（退款订单为 null）
+  pledge       Float?                           // 本次押金金额（首期及退款订单有值）
+  paidPeriod   String?  @db.VarChar(200)        // 本次覆盖的房租时间段，如 "2025-05-01~2025-08-01"
+  payerDeleted Boolean  @default(false)         // 付款人侧隐藏该记录
+  payeeDeleted Boolean  @default(false)         // 收款人侧隐藏该记录
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 
-  contract      Contract       @relation(fields: [contractId], references: [id])
-  payer         User           @relation("payer", fields: [payerId],  references: [id])
-  payee         User           @relation("payee", fields: [payeeId],  references: [id])
-  room          Room           @relation(fields: [roomId], references: [id])
-  walletRecords WalletRecord[]
+  contract      contract       @relation(fields: [contractId], references: [id])
+  payer         user           @relation("payer", fields: [payerId],  references: [id])
+  payee         user           @relation("payee", fields: [payeeId],  references: [id])
+  room          room           @relation(fields: [roomId], references: [id])
+  walletRecords walletRecord[]
 
   @@map("order")
 }
 
 // ─── 钱包消费记录 ──────────────────────────────────────────────────────────────
-model WalletRecord {
-  id        Int      @id @default(autoincrement())
-  userId    Int                                // 记录归属用户
-  amount    Float                              // 金额（正数=收入，负数=支出）
-  type      Int                                // 1=充值 2=支付租房 3=收款(房东) 4=退押金
-  remark    String?  @db.VarChar(200)          // 备注说明
-  orderId   Int?                               // 关联订单（充值类型无关联）
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+model walletRecord {
+  id           Int      @id @default(autoincrement())
+  userId       Int                                // 记录归属用户
+  amount       Float                              // 金额（正数=收入，负数=支出）
+  type         Int                                // 1=充值 2=支付租房 3=收款(房东) 4=退押金
+  remark       String?  @db.VarChar(200)          // 备注说明
+  orderId      Int?                               // 关联订单（充值类型无关联）
+  balanceAfter Float?                             // 交易后余额（历史数据为 null）
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 
-  user  User   @relation(fields: [userId],  references: [id])
-  order Order? @relation(fields: [orderId], references: [id])
+  user  user   @relation(fields: [userId],  references: [id])
+  order order? @relation(fields: [orderId], references: [id])
 
   @@map("wallet_record")
 }
 ```
 
-> **关系说明**：`Contract` 通过 `"contractUser"` / `"contractLandlord"` 两个命名关系绑定到 `User`，对应 `User` 侧的 `contractsAsUser` / `contractsAsLandlord`。`Order` 通过 `contractId` 与 `Contract` 关联，每次付款产生一条订单。`WalletRecord` 通过 `orderId` 与 `Order` 可选关联（充值无关联）。
+> **关系说明**：`contract` 通过 `"contractUser"` / `"contractLandlord"` 两个命名关系绑定到 `user`，对应 `user` 侧的 `contractsAsUser` / `contractsAsLandlord`。`order` 通过 `contractId` 与 `contract` 关联，每次付款产生一条订单。`walletRecord` 通过 `orderId` 与 `order` 可选关联（充值无关联）。`community` 通过 `creatorId` 可选关联 `user`（`null` 表示由管理员创建）。
 
 ---
 
@@ -863,7 +853,7 @@ import AppLoading from '@/components/AppLoading';
 - **合同详情**（`/manage/contract/[id]`）：展示当事人、房源、租期、费用、已付/待付期限、退房信息；操作面板含修改开始时间/交房租/续租/退房/删除
 - **编辑合同**（`/manage/contract/[id]/edit`，表单回显）：进行中合同仅允许修改 onlineTime（结束时间和期限自动重算）；已完成合同只读
 - **交房租弹窗**：显示下一期时段和金额，输入支付密码确认；若最后一期且已到期则触发合法退房流程
-- **续租弹窗**：显示当前合同截止时间，选择续租月数（必须是 pay 的整数倍），实时预览新截止时间，输入支付密码；成功后通知房东
+- **续租弹窗**：显示当前合同截止时间，选择续租月数（必须是 pay 的整数倍），实时预览新截止时间，**不需要输入支付密码**（续租后需另行支付新增期数的租金）；成功后通知对方
 - **退房弹窗**：后端自动判断类型（`payingPeriod` 为空 → 合法退房；否则 → 非法退房），前端展示判断结果及押金处理说明后二次确认；若合法但合同尚未到期（租客提前付清所有租金），额外显示橙色提示；更新合同状态、钱包、通知、房源 isRented
 - **删除合同**：仅允许 `isCheckout=true` 的合同删除；二次确认后硬删除（管理员直接完全删除，无需区分租客/房东侧）
 - API：
@@ -971,35 +961,75 @@ import AppLoading from '@/components/AppLoading';
 
 Portal API（`app/api/portal/`）：
 
+**公开接口（无需登录）**
+
 | 接口 | 说明 |
 |------|------|
+| `POST /api/portal/login` | 用户登录，返回 JWT |
+| `POST /api/portal/register` | 用户注册，返回 JWT |
 | `GET /api/portal/carousels` | 已发布轮播图，按 sortOrder 升序 |
-| `GET /api/portal/rooms` | 房源列表，支持 sort=latest\|hot、district、minPrice、maxPrice、rentType、cmyId、page |
+| `GET /api/portal/rooms` | 房源列表（筛选参数见下方房源搜索章节） |
 | `GET /api/portal/rooms/[id]` | 房源详情（含设施、发布者、浏览计数自增） |
-| `POST /api/portal/rooms/[id]/appointment` | 创建预约 |
-| `GET/DELETE /api/portal/rooms/[id]/collection` | 收藏/取消收藏 |
+| `POST /api/portal/rooms/[id]/appointment` | 创建预约（需登录） |
+| `GET/DELETE /api/portal/rooms/[id]/collection` | 查询收藏状态 / 取消收藏（需登录） |
 | `GET /api/portal/communities` | 小区列表，支持 city、district、page，返回含 roomCount |
 | `GET /api/portal/communities/[id]` | 小区详情 + 该小区已发布房源（支持分页） |
-| `GET /api/portal/facilities` | 全量设施列表（房源表单用） |
+| `GET /api/portal/facilities` | 全量设施列表（房源表单选择用） |
 | `GET /api/portal/mapRoom` | 地图找房：districts + communities（含经纬度和 roomCount） |
+
+**通知接口（需登录）**
+
+| 接口 | 说明 |
+|------|------|
 | `GET /api/portal/notification` | 当前用户通知列表（分页） |
 | `GET /api/portal/notification/unread-count` | 未读通知数量（顶栏 badge） |
 | `PATCH /api/portal/notification/[id]` | 标记单条通知已读 |
 | `DELETE /api/portal/notification/[id]` | 删除单条通知 |
-| `POST /api/portal/notification/batch` | 批量标记已读 / 清空全部（body: `{ action }`) |
-| `POST /api/portal/login` | 用户登录，返回 JWT |
-| `POST /api/portal/register` | 用户注册，返回 JWT |
+| `POST /api/portal/notification/batch` | 批量标记已读 / 清空全部（body: `{ action: 'readAll' \| 'deleteAll' }`） |
+
+**account 接口（均需登录）**
+
+| 接口 | 说明 |
+|------|------|
+| `GET/PUT /api/portal/account/info` | 获取 / 更新个人资料（含钱包余额） |
+| `POST /api/portal/account/verify-landlord` | 房东认证（将 identity 置 2） |
+| `GET /api/portal/account/collections` | 我的收藏列表 |
+| `GET /api/portal/account/appointments` | 我的预约列表（role=tenant\|landlord） |
+| `PATCH /api/portal/account/appointments/[id]` | 取消 / 完成预约 |
+| `DELETE /api/portal/account/appointments?id=` | 软删除预约记录（设 userDeleted/landlordDeleted） |
+| `GET/POST /api/portal/account/rooms` | 我的房源列表 / 创建房源 |
+| `GET/PUT/DELETE /api/portal/account/rooms/[id]` | 房源编辑 / 删除 |
+| `GET /api/portal/account/rooms/[id]/detail` | 房源详情（房东视角，含发布状态） |
+| `PATCH /api/portal/account/rooms/[id]/publish` | 发布 / 撤回房源 |
+| `GET/POST /api/portal/account/communities` | 我的小区列表 / 创建小区 |
+| `GET/PUT/DELETE /api/portal/account/communities/[id]` | 小区详情 / 编辑 / 删除 |
+| `POST /api/portal/account/contracts` | 创建合同（含首次支付） |
+| `GET /api/portal/account/contracts` | 合同列表（role=tenant\|landlord） |
+| `GET/DELETE /api/portal/account/contracts/[id]` | 合同详情 / 软删除 |
+| `POST /api/portal/account/contracts/[id]/pay` | 支付下一期房租 |
+| `POST /api/portal/account/contracts/[id]/renew` | 续租 |
+| `POST /api/portal/account/contracts/[id]/checkout` | 退房 |
+| `GET /api/portal/account/orders` | 订单列表（role=payer\|payee） |
+| `GET/DELETE /api/portal/account/orders/[id]` | 订单详情 / 软删除 |
+| `POST /api/portal/account/recharge` | 充值 |
+| `GET /api/portal/account/wallet-records` | 钱包消费记录（分页，支持 type 筛选） |
+| `PUT /api/portal/account/password` | 修改支付密码 |
 
 ### 房源搜索与筛选
 
 筛选维度（均支持 URL Query 参数，支持分享）：
-- `type`：整租/合租
+- `sort`：latest（最新）/ hot（最热，按 views 降序）
+- `city`：城市
 - `district`：区
-- `priceMin` / `priceMax`：价格区间
-- `bedroom`：几室
-- `level`：楼层（低/中/高）
+- `subwayLine`：地铁线路（模糊匹配 community.subwayLine）
+- `nearSubway`：`true` 时过滤有地铁线路的小区
+- `minPrice` / `maxPrice`：价格区间
+- `rentType`：1=整租 / 2=合租
+- `bedrooms`：一室 / 二室 / 三室 / 四室 / 五室及以上
+- `roomType`：房屋类型（普通住宅 / 公寓）
 - `direction`：朝向
-- `sort`：综合/最新/价格升降/面积升降
+- `hasElevator`：`true` 时过滤有电梯房源
+- `cmyId`：指定小区 ID
 
 ### 房源详情
 
@@ -1090,10 +1120,11 @@ Portal API（`app/api/portal/`）：
 - 若支付后 `payingPeriod` 变空，且当前时间已到 `offlineTime` 附近（≤ 7 天内），自动触发合法退房流程
 
 **续租（`POST /renew`）**：
-- 请求体包含续租月数（须为 `pay` 的整数倍）和支付密码
-- 扩展 `offlineTime`，重新计算并追加 `payingPeriod`
-- `renewTimes + 1`
-- 创建通知告知房东（`type=4`，"租客已续租"）
+- 请求体：`{ renewMonths: number }`（须为 `pay` 的整数倍），**不需要支付密码**
+- 扩展 `offlineTime`，重新计算并追加 `payingPeriod`，`tenancy += renewMonths`
+- `renewTimes + 1`，`renewMonths += renewMonths`
+- 续租后需另行在交租流程中支付新增期数的租金
+- 创建通知告知对方（`type=4`，"租客已续租" / "房东已续租"）
 
 **退房（`POST /checkout`）**：
 - **合法/非法由后端根据 `payingPeriod` 自动判断，不接受客户端传参**
@@ -1164,9 +1195,10 @@ Portal API（`app/api/portal/`）：
 > 钱包余额通过 `GET /api/portal/account/info` 与用户信息一起返回，无独立查询接口。
 
 **充值规则**：
-- 请求体：`{ amount: number, payCode: string }`
+- 请求体：`{ amount: number, remark?: string }`，**不需要支付密码**
 - 充值金额 > 0，无上限（虚拟充值，不接入真实支付）
-- 验证支付密码后：更新 `user.wallet`，创建 `WalletRecord`（`type=1`，`amount=+充值金额`）
+- 事务：更新 `user.wallet`，创建 `WalletRecord`（`type=1`，`amount=+充值金额`，`balanceAfter=充值后余额`）
+- 返回：`{ walletRecord, newBalance }`
 
 **修改支付密码**：
 - 请求体：`{ oldPayCode: string, newPayCode: string }`（6 位数字）
@@ -1206,7 +1238,7 @@ Portal API（`app/api/portal/`）：
 | 我的通知 | `/portal/account/notification` | 通知中心：列表展示所有通知，支持单条已读、全部已读、单条删除、清空全部；顶栏显示未读 badge |
 | 我的合同 | `/portal/account/contract` | 合同列表，两个 Tab：**我租的**（租客视角）/ **收到的合同**（房东视角）；合同详情内支持续租、支付下一期、提前退房；status=2 后可删除 |
 | 我的订单 | `/portal/account/orders` | 两个 Tab：**付款记录**（payer 视角）/ **收款记录**（payee 视角）；每条展示类型、金额、时间段、房源信息；可软删除 |
-| 我的钱包 | `/portal/account/wallet` | 当前余额大字展示、充值按钮（输入金额+支付密码）、修改支付密码入口、消费记录列表（支持按类型筛选）；金额正数绿色+号、负数红色-号 |
+| 我的钱包 | `/portal/account/wallet` | 当前余额大字展示、充值按钮（输入金额+可选备注，**不需要支付密码**）、修改支付密码入口、消费记录列表（支持按类型筛选）；金额正数绿色+号、负数红色-号 |
 | 房东认证 | `/portal/account/landlord` | 填写真实姓名/手机/邮箱等，提交后将 `identity` 置 2，跳转我的房源 |
 | 我的小区 | `/portal/account/community` | 当前用户创建的小区列表，支持编辑、删除（无房源时可删）|
 
@@ -1368,17 +1400,17 @@ API Key 存放在环境变量 `NEXT_PUBLIC_BAIDU_MAP_AK`（客户端可访问）
 | 表 | 状态 | 说明 |
 |----|------|------|
 | `admin` | ✅ 已建 | |
-| `user` | ✅ 已建 | 含 wallet/payCode 字段 |
-| `community` | ✅ 已建 | |
+| `user` | ✅ 已建 | 含 wallet/payCode/isActive 字段 |
+| `community` | ✅ 已建 | 含 creatorId 字段（portal 用户创建时关联） |
 | `facility` | ✅ 已建 | |
 | `room` | ✅ 已建 | |
 | `carousel` | ✅ 已建 | |
 | `collection` | ✅ 已建 | |
 | `appointment` | ✅ 已建 | 含 status/cancelledBy/completedBy/remark 字段 |
-| `notification` | ✅ 已建 | 通知中心，type 扩展至 9 种 |
+| `notification` | ✅ 已建 | 通知中心，type 共 11 种（1–11） |
 | `contract` | ✅ 已建 | 含 status/isCheckout/refund/renewTimes/renewMonths 字段 |
-| `order` | ✅ 已建 | 含 contractId/type 字段 |
-| `wallet_record` | ✅ 已建 | 钱包消费记录，含 type/amount/orderId 字段 |
+| `order` | ✅ 已建 | 含 contractId/type/payerDeleted/payeeDeleted 字段 |
+| `wallet_record` | ✅ 已建 | 钱包消费记录，含 type/amount/orderId/balanceAfter 字段 |
 
 ---
 
