@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { PORTAL_FOOTER_LINKS } from "@/utils/constants";
 
 const SEP = <span className="mx-2.5 text-[#ccc]">|</span>;
@@ -8,9 +9,9 @@ export function PortalFooter() {
       <div className="max-w-295 mx-auto px-4 text-center py-5">
         {/* 链接行 */}
         <div className="flex items-center justify-center h-[30px] text-xs text-[#333]">
-          {PORTAL_FOOTER_LINKS.map((label, i) => (
-            <span key={label} className="flex items-center">
-              <a className="p-link">{label}</a>
+          {PORTAL_FOOTER_LINKS.map(({ label, href }, i) => (
+            <span key={href} className="flex items-center">
+              <Link href={href} className="p-link">{label}</Link>
               {i < PORTAL_FOOTER_LINKS.length - 1 && SEP}
             </span>
           ))}

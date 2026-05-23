@@ -221,8 +221,12 @@ export const PORTAL_MINE_MENU = [
   { label: "房东认证", href: "/portal/account/landlord"     },
 ];
 
-// 页脚底部链接文字列表（当前为纯文字，后续可扩展为 { label, href } 对象）。
-export const PORTAL_FOOTER_LINKS = ["关于我们", "联系我们", "用户协议", "隐私政策"];
+export const PORTAL_FOOTER_LINKS = [
+  { label: "关于我们", href: "/portal/about"   },
+  { label: "联系我们", href: "/portal/contact"  },
+  { label: "用户协议", href: "/portal/terms"    },
+  { label: "隐私政策", href: "/portal/privacy"  },
+];
 
 // 顶部搜索框"搜索"按钮的跳转目标路径。
 // 调用方负责在路径后拼接 ?q=关键词 参数。
