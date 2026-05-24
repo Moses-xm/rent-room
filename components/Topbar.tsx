@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import { Bell, ChevronDown, LogOut, Menu, Settings, UserRound } from "lucide-react";
+import { ChevronDown, LogOut, Menu, UserRound } from "lucide-react";
 import { CitySelector } from "@/components/CitySelector";
 import ConfirmDialog from "@/components/ConfirmDialog";
 import { resolveUploadedFileUrl } from "@/lib/upload-path";
@@ -183,18 +183,6 @@ export function Topbar({ onMobileMenuToggle }: { onMobileMenuToggle?: () => void
         <div className="flex-1" />
 
         <div className="flex items-center">
-          {/* 通知铃 */}
-          <button
-            title="通知"
-            className="w-8.5 h-8.5 rounded-sm grid place-items-center relative
-                       text-text-2 hover:bg-surface-2 hover:text-text transition-colors cursor-pointer"
-          >
-            <Bell className="w-4.25 h-4.25" />
-            <span className="absolute top-2 right-2 w-1.5 h-1.5 rounded-full bg-danger" />
-          </button>
-
-          <div className="w-px h-5.5 bg-border mx-2.5" />
-
           <CitySelector />
 
           <div className="w-px h-5.5 bg-border mx-2.5" />
@@ -250,16 +238,6 @@ export function Topbar({ onMobileMenuToggle }: { onMobileMenuToggle?: () => void
                   <UserRound className="w-4 h-4 text-text-muted" />
                   个人资料
                 </Link>
-                <button
-                  type="button"
-                  disabled
-                  className="flex items-center gap-2.5 w-full px-3 py-2.25 rounded-sm
-                             text-body text-text-2 opacity-40 cursor-not-allowed"
-                >
-                  <Settings className="w-4 h-4 text-text-muted" />
-                  账号设置
-                </button>
-
                 <div className="h-px bg-border-subtle my-1.5" />
 
                 <button
