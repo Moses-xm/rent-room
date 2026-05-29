@@ -12,12 +12,17 @@
 3. [前端：请求层封装](#3-前端请求层封装)
 4. [前端：分页与列表处理](#4-前端分页与列表处理)
 5. [前端：响应式布局策略](#5-前端响应式布局策略)
-6. [后端：认证与 Token](#6-后端认证与-token)
-7. [后端：数据库连接规范](#7-后端数据库连接规范)
-8. [后端：API 响应格式规范](#8-后端-api-响应格式规范)
-9. [后端：错误处理规范](#9-后端错误处理规范)
-10. [项目结构约定](#10-项目结构约定)
-11. [开发流程 Checklist](#11-开发流程-checklist)
+6. [前端：筛选状态与数据获取模式](#6-前端筛选状态与数据获取模式)
+7. [后端：认证、多平台架构与环境变量](#7-后端认证多平台架构与环境变量)
+8. [后端：数据库连接规范](#8-后端数据库连接规范)
+9. [后端：序列化与数据一致性](#9-后端序列化与数据一致性)
+10. [后端：API 响应格式规范](#10-后端-api-响应格式规范)
+11. [后端：事务与并发安全](#11-后端事务与并发安全)
+12. [后端：错误处理规范](#12-后端错误处理规范)
+13. [后端：文件上传规范](#13-后端文件上传规范)
+14. [后端：异步任务与懒处理模式](#14-后端异步任务与懒处理模式)
+15. [项目结构约定](#15-项目结构约定)
+16. [开发流程 Checklist](#16-开发流程-checklist)
 
 ---
 
@@ -595,9 +600,90 @@ const pageButtons = useMemo(() => {
 
 ---
 
-## 6. 后端：认证与 Token
+## 6. 前端：筛选状态与数据获取模式
 
-### 6.1 提前决定认证方案
+### 6.1 URL Query 作为筛选状态的单一来源（可选 · 开工前确认）
+
+> ⚠️ **可选能力，不是默认规范。** 并非所有项目都需要把筛选 / 搜索条件挂到 URL 上——后台工具、纯交互弹层、强会话态的页面通常用不上。**新项目启动时主动询问开发者：是否需要列表 / 搜索页支持 URL 可分享 / 刷新保留 / 前进后退？** 需要才按本节落地，不需要就用普通组件 state，保持代码更轻。
+
+#### 适用场景
+
+- 用户找房 / 商品搜索 / 招聘列表等**面向终端用户的检索类页面**——分享链接、SEO、刷新保留是真实诉求
+- 服务端需要根据筛选直出首屏（RSC / SSR）
+
+#### 不适用场景
+
+- 后台管理表格：内部使用，刷新重置反而符合直觉
+- 弹窗 / 抽屉内的临时筛选：关掉就该清空
+- 强会话流程（多步表单、向导）：状态属于流程而非页面
+
+#### 落地方式（确定要做时）
+
+URL 即状态的单一来源，带来三个收益：
+
+- **可分享**：把链接发给别人，对方看到完全相同的筛选结果
+- **可前进 / 后退**：浏览器历史天然记录每次筛选，刷新不丢状态
+- **SSR / RSC 友好**：服务端可直接读 `searchParams` 渲染首屏
+
+```tsx
+'use client';
+import { useRouter, useSearchParams, usePathname } from 'next/navigation';
+
+const sp = useSearchParams();
+const router = useRouter();
+const pathname = usePathname();
+
+// 读
+const district = sp.get('district') ?? '';
+const page = Number(sp.get('page') ?? 1);
+
+// 写(合并已有参数，重置页码，replace 不污染历史栈)
+function setFilter(patch: Record<string, string | undefined>) {
+  const next = new URLSearchParams(sp.toString());
+  for (const [k, v] of Object.entries(patch)) {
+    if (v) next.set(k, v); else next.delete(k);
+  }
+  next.delete('page');                       // 任意筛选变化都回到第 1 页
+  router.replace(`${pathname}?${next.toString()}`);
+}
+```
+
+**配套约定**（仅在采用本方案时生效）：组件内部不再单独维护与 URL 重复的筛选 state；筛选变化一律改 URL，再由 effect 监听 URL 拉数据。**项目内一旦选定，就要全站统一**——同一项目里有的页面用 URL、有的页面用 state，会让分享行为变得不可预期。
+
+### 6.2 Server Component 直连数据 vs Client + API
+
+App Router 下两种取数路径各有适用场景，开工前就明确每个页面归属哪一类：
+
+| 维度 | RSC 直连数据库 | `'use client'` + `request()` |
+|------|---------------|------------------------------|
+| 交互需求 | 纯展示，无客户端交互 | 需要筛选 / 分页 / 表单 / 实时态 |
+| 鉴权 | 公开页 / 服务端可拿到身份 | 依赖客户端 token |
+| 性能 | 省一次 API 往返，首屏直出 | 多一跳，但可懒加载 |
+| SEO | 内容直接进 HTML，利于收录 | 内容在客户端渲染 |
+| 典型页面 | 首页、落地页、纯详情展示 | 后台列表、个人中心、搜索页 |
+
+**判定原则**：先问「这个页面需要客户端交互或客户端身份吗？」——不需要就用 RSC 直查（少一层 API，少一处类型重复定义）；需要就走 `'use client'` + 统一请求封装。同一功能不要两条路都走。
+
+### 6.3 新建 / 编辑复用同一表单组件
+
+新建和编辑是同一份表单的两种模式，用**一个组件 + 一个 mode 字段**承载，避免维护两份高度重复的表单：
+
+```ts
+type FormState =
+  | null                       // 关闭
+  | { mode: 'add' }            // 新建
+  | { mode: 'edit'; item: T }; // 编辑（携带回显数据）
+```
+
+- `mode === 'edit'` 时用 `item` 回显字段；`add` 时用默认值
+- 提交时按 mode 决定走 POST 还是 PUT
+- `open` 变化时在 `useEffect` 中重置表单 state，避免上次输入残留
+
+---
+
+## 7. 后端：认证、多平台架构与环境变量
+
+### 7.1 提前决定认证方案
 
 项目启动前明确：
 
@@ -609,7 +695,7 @@ const pageButtons = useMemo(() => {
 
 本项目选择自实现 HS256 JWT，适合多平台（manage/portal）各自独立认证的场景。
 
-### 6.2 Token 颁发与验证集中管理
+### 7.2 Token 颁发与验证集中管理
 
 ```ts
 // lib/auth.ts
@@ -630,7 +716,7 @@ export async function verifyToken<T>(token: string): Promise<T> {
 }
 ```
 
-### 6.3 鉴权中间件
+### 7.3 鉴权中间件
 
 每个需要认证的 API route 的第一行都调用 `requireAuth()`，不通过直接 return：
 
@@ -663,7 +749,7 @@ export async function GET(req: NextRequest) {
 }
 ```
 
-### 6.4 前端 Token 管理
+### 7.4 前端 Token 管理
 
 ```ts
 // utils/auth.ts
@@ -673,11 +759,45 @@ export const setToken  = (t: string) => localStorage.setItem(TOKEN_KEY, t);
 export const clearToken = () => localStorage.removeItem(TOKEN_KEY);
 ```
 
+### 7.5 多平台共享数据库、认证隔离
+
+当一个项目包含多个面向不同人群的子应用（如「后台管理端」+「面向用户的前台」），推荐架构：
+
+> **共享一套数据库，但每个端的认证彼此完全独立。**
+
+| 维度 | 做法 |
+|------|------|
+| 页面隔离 | 用路由前缀 / route group 分开（`/admin/*` 与 `/app/*`），各自独立 layout |
+| 认证密钥 | 每个端独立 JWT Secret（`ADMIN_JWT_SECRET` / `APP_JWT_SECRET`），互不通用 |
+| Token 存储 | 各端用不同的 `localStorage` key，互不覆盖 |
+| 鉴权中间件 | 各端一个 `requireXxxAuth()`，校验各自的密钥与身份类型 |
+| 请求封装 | 各端一个 `request()` / `appRequest()`，注入各自的 token、各自的 401 重定向目标 |
+
+**收益**：权限边界清晰——一个端签发的 token 在另一个端天然无效；某端密钥泄漏不波及另一端；两端 UI / 主题可独立演进。
+
+### 7.6 环境变量集中与 `.env.example`
+
+开工第一步建立 `.env.example`，列出**所有**必需变量（值留空或填占位），真实值放在 git 忽略的 `.env.local`：
+
+```bash
+# .env.example —— 提交到仓库，作为「需要哪些变量」的清单
+DATABASE_URL=
+ADMIN_JWT_SECRET=
+APP_JWT_SECRET=
+BLOB_READ_WRITE_TOKEN=
+NEXT_PUBLIC_MAP_AK=
+```
+
+约定：
+- **敏感密钥绝不加 `NEXT_PUBLIC_` 前缀**——该前缀会把变量打进客户端 bundle，任何人可见。只有确实需要在浏览器使用的公开 key（如地图 JS API key）才加。
+- 新增任何环境变量时，同步补进 `.env.example` 并在 README / 部署平台登记，避免「本地能跑、线上缺变量」。
+- 服务端读取必填变量时用 `process.env.X!` 或启动期校验，缺失即早失败，而非运行到一半才报错。
+
 ---
 
-## 7. 后端：数据库连接规范
+## 8. 后端：数据库连接规范
 
-### 7.1 Prisma 单例模式（防止开发环境重复实例化）
+### 8.1 Prisma 单例模式（防止开发环境重复实例化）
 
 ```ts
 // lib/prisma.ts
@@ -692,7 +812,7 @@ if (process.env.NODE_ENV !== 'production') {
 }
 ```
 
-### 7.2 Schema 规范
+### 8.2 Schema 规范
 
 所有表必须包含的字段：
 
@@ -710,11 +830,59 @@ model Example {
 - 无软删除，执行硬删除
 - 字段名 camelCase，数据库列名 snake_case（`@map`）
 
+### 8.3 删除策略：硬删除为主，共享记录用「每方独立标志」
+
+| 场景 | 策略 |
+|------|------|
+| 普通记录（仅一个归属方） | **硬删除**；有外键依赖时靠数据库约束阻止误删 |
+| 双方共享、各自需独立隐藏的记录（订单、消息、约定等） | 不用全局 `deleted`，而是给每一方一个布尔标志（如 `payerDeleted` / `payeeDeleted`），一方隐藏不影响另一方查看 |
+
+> **关键认知**：「软删除」常被默认当成全局开关，但对双边记录，全局软删除会让一方的删除强加给另一方。用每方独立标志才符合「各自管理自己视图」的真实语义。只有当两方都删除时，该记录才对所有人不可见。
+
+### 8.4 状态 / 类型用整型枚举 + 集中文档化
+
+- 状态、类型这类有限取值的字段统一用 `Int`（如 `status` = 1/2/3），含义写在 schema 字段注释里
+- 前端把同一套枚举集中到 `utils/constants.ts`，禁止页面里散落 `status === 2` 这类裸魔法数字
+- 一处定义、两端引用，避免「后端是 3、前端写成 2」的隐性 bug
+
 ---
 
-## 8. 后端：API 响应格式规范
+## 9. 后端：序列化与数据一致性
 
-### 8.1 统一响应结构
+### 9.1 每个模型一个序列化函数
+
+每个模型在 `lib/<model>.ts` 下对应一个 `serialize<Model>()`，**路由里不内联拼装响应对象**。好处：响应字段集中可控、敏感字段一处剔除、多个路由复用同一形状。
+
+```ts
+// lib/user.ts
+export function serializeUser(u: User) {
+  const { password: _pw, payCode: _pc, ...rest } = u;   // 敏感字段一律剔除
+  return {
+    ...rest,
+    createdAt: u.createdAt.toISOString(),
+    updatedAt: u.updatedAt.toISOString(),
+  };
+}
+export type SerializedUser = ReturnType<typeof serializeUser>;
+```
+
+### 9.2 所有 `Date` 字段显式 `.toISOString()`
+
+> **序列化函数里每个 `Date` 字段都必须显式 `.toISOString()`，让函数的 TS 返回类型与前端实际收到的 JSON 完全一致。**
+
+原因：`NextResponse.json()` 在运行时会把 `Date` 自动转成字符串，但 **TypeScript 仍以为它是 `Date`**。于是后端类型「说谎」——前端按 `Date` 去 `.getTime()` 就在运行时炸。显式 `.toISOString()` 让类型从 `Date` 变成 `string`，类型即真相。
+
+- 序列化函数的返回类型直接 `export` 给前端复用（`ReturnType<typeof serializeX>`），前后端共享同一份 DTO 定义，杜绝手写两遍字段表的漂移。
+
+### 9.3 敏感字段在序列化层统一剔除
+
+密码、支付密码、token 等敏感字段只在序列化层 `omit` 一次，所有走该函数的响应都不会泄漏。不要依赖「记得在每个路由里删」——那迟早会漏。
+
+---
+
+## 10. 后端：API 响应格式规范
+
+### 10.1 统一响应结构
 
 所有接口响应必须遵循：
 
@@ -736,7 +904,7 @@ model Example {
 { success: false, message: string }
 ```
 
-### 8.2 分页列表接口
+### 10.2 分页列表接口
 
 Query params 规范：
 - `page`：当前页，默认 `1`
@@ -765,7 +933,7 @@ return NextResponse.json({
 });
 ```
 
-### 8.3 Route 文件结构
+### 10.3 Route 文件结构
 
 ```
 app/api/
@@ -788,9 +956,49 @@ HTTP 动词与操作的映射：
 
 ---
 
-## 9. 后端：错误处理规范
+## 11. 后端：事务与并发安全
 
-### 9.1 全局 catch 必须识别 Prisma 错误码
+### 11.1 多步状态变更必须原子化
+
+> **任何「多步骤、必须全成功或全失败」的写操作，都必须包在数据库事务里。**
+
+典型场景：转账（扣 A 加 B）、下单（扣库存 + 建订单 + 写流水）、连带创建多条记录。任一步失败，已写入的步骤必须回滚，否则数据进入不一致的中间态（钱扣了单没建、库存减了订单丢了）。
+
+```ts
+await prisma.$transaction(async (tx) => {
+  await tx.account.update({ where: { id: from }, data: { balance: { decrement: amount } } });
+  await tx.account.update({ where: { id: to },   data: { balance: { increment: amount } } });
+  await tx.ledger.create({ data: { from, to, amount } });
+  await tx.notification.create({ data: { userId: to, type: PAID } });
+});
+```
+
+### 11.2 并发防护：在事务内复检前置条件
+
+「先查后写」（check-then-act）在并发下有 TOCTOU 竞态：两个请求同时读到「库存=1 / 未被占用」，各自都通过校验、各自都写入，资源被重复占用。
+
+> **前置条件的校验必须发生在事务内部、紧贴写操作，而不是在事务外先查一遍。**
+
+```ts
+await prisma.$transaction(async (tx) => {
+  const room = await tx.room.findUnique({ where: { id } });
+  if (room.isRented) throw new Error('已被占用');   // 事务内复检
+  await tx.room.update({ where: { id }, data: { isRented: true } });
+  // ...建合同 / 扣款 / 写流水
+});
+```
+
+更强的保证可借助唯一约束（`@@unique`）或带条件的 `updateMany`（受影响行数为 0 即说明被人抢先），让数据库来兜底并发。
+
+### 11.3 金额 / 状态以数据库为唯一真相
+
+前端传来的金额、价格只用于展示，**服务端绝不信任**：在事务内用数据库里的当前值重新计算应扣 / 应加金额。否则客户端可篡改请求体「打折下单」。
+
+---
+
+## 12. 后端：错误处理规范
+
+### 12.1 全局 catch 必须识别 Prisma 错误码
 
 最常见的两个 Prisma 错误必须专项处理，否则会把包含堆栈的 500 暴露给前端：
 
@@ -811,7 +1019,7 @@ import { Prisma } from '@prisma/client';
 }
 ```
 
-### 9.2 HTTP 状态码规范
+### 12.2 HTTP 状态码规范
 
 | 状态码 | 含义 | 触发场景 |
 |--------|------|---------|
@@ -826,7 +1034,76 @@ import { Prisma } from '@prisma/client';
 
 ---
 
-## 10. 项目结构约定
+## 13. 后端：文件上传规范
+
+### 13.1 两步式上传
+
+把「上传文件」和「保存业务记录」解耦为两步，而非随表单一次性 multipart 提交：
+
+1. 用户选文件 → 立即 `POST /api/upload`（FormData）→ 上传到对象存储（Vercel Blob / S3）→ 返回 `{ path }`
+2. 表单提交时，`path` 作为普通字符串字段随其他业务数据一起入库
+
+好处：上传进度 / 预览独立于表单提交；业务接口只处理 JSON，不掺杂文件流。
+
+### 13.2 入库 normalize、展示 resolve
+
+> **数据库里存的是「规范化路径」，不是完整可访问 URL。**
+
+- 入库前 `normalizeForStorage(path)`：去掉域名 / 存储前缀，只留可移植的相对路径
+- 展示时 `resolveUrl(path)`：拼回当前环境的可访问 URL
+
+这样**更换存储后端或域名时，库里的数据无需迁移**——只改 resolve 逻辑即可。
+
+### 13.3 清理孤儿文件
+
+临时上传但最终没保存的文件会变成存储垃圾，必须主动清理：
+
+- 表单中**替换**图片时，删除被替换掉的旧临时文件
+- **关闭 / 取消**表单时，删除本次已上传但未提交的文件
+- 删除操作走 `request()` 时传 `silent: true`，后台清理不打扰用户
+
+### 13.4 服务端校验，不信任前端
+
+文件类型（MIME / 后缀白名单）和大小上限必须在**服务端**校验。前端的 `accept` 属性和大小检查只是体验优化，可被绕过。
+
+---
+
+## 14. 后端：异步任务与懒处理模式
+
+### 14.1 Serverless 下优先「懒处理」而非定时任务
+
+Serverless / 边缘部署通常没有常驻进程跑 cron。对「到期 / 过期 / 自动流转」这类**基于时间的状态变更**，优先采用**懒处理（lazy processing）**：
+
+> **不靠定时任务主动扫描，而是在相关数据被查询时，先把过期记录批量更新到正确状态，再返回查询结果。**
+
+```ts
+// 查询预约列表前，先把所有该过期的记录批量置为过期
+await prisma.appointment.updateMany({
+  where: { status: PENDING, appointmentTime: { lt: new Date() } },
+  data:  { status: EXPIRED },
+});
+// 然后正常查询，客户端拿到的永远是最新状态
+const list = await prisma.appointment.findMany({ where, ... });
+```
+
+| | 懒处理 | 定时任务 (cron) |
+|---|---|---|
+| 基础设施 | 无需，纯查询时触发 | 需要调度器 / 常驻 worker |
+| 数据新鲜度 | 被查询的记录永远最新 | 取决于扫描周期 |
+| 盲区 | 从不被查询的记录不会更新（通常可接受——没人看） | 全量覆盖 |
+
+### 14.2 何时仍然需要真正的定时任务
+
+懒处理覆盖不了「需要主动推送、与是否被查询无关」的场景，例如：
+
+- 到期前 N 天发送提醒 / 通知（没人查也得发）
+- 对账、报表、批量清理等周期性后台作业
+
+这类用 cron / 队列（如 Vercel Cron、外部调度 + 鉴权的 API endpoint）。**判定原则**：状态只要「在被看到时正确」就够 → 懒处理；需要「无人触发也主动发生」→ 定时任务。
+
+---
+
+## 15. 项目结构约定
 
 ```
 project/
@@ -861,9 +1138,15 @@ project/
 
 ---
 
-## 11. 开发流程 Checklist
+## 16. 开发流程 Checklist
 
 新项目启动时，在写第一个业务页面之前，逐项确认：
+
+### 环境与架构
+- [ ] 建立 `.env.example`，列出全部必需环境变量（DB、各端 JWT secret、第三方 key、blob token）
+- [ ] 确认无敏感密钥误加 `NEXT_PUBLIC_` 前缀
+- [ ] 若多平台：确定路由前缀隔离、各端独立 JWT secret 与 token 存储 key
+- [ ] 明确每个页面的取数路径：RSC 直连数据库 还是 `'use client'` + 统一请求封装
 
 ### 基础配置
 - [ ] `globals.css` 中定义完整的 `:root` 语义变量（颜色、字号、字重、阴影、圆角）
@@ -902,6 +1185,34 @@ project/
 - [ ] 侧边栏宽度用 CSS 变量定义
 - [ ] 所有表格包裹在 `overflow-x-auto` 中并设 `min-width`
 - [ ] 新页面开发完后在 375px 宽度下测试布局
+
+### 数据库与枚举
+- [ ] 删除策略已定：普通记录硬删除，双边共享记录用「每方独立标志」
+- [ ] 状态 / 类型用整型枚举，含义集中在 schema 注释与 `utils/constants.ts`
+
+### 序列化与一致性
+- [ ] 每个模型有 `serialize<Model>()`，路由不内联拼装响应
+- [ ] 所有 `Date` 字段显式 `.toISOString()`，序列化返回类型与前端 JSON 一致
+- [ ] 敏感字段（密码等）在序列化层统一剔除
+
+### 事务与并发
+- [ ] 多步状态变更包在 `prisma.$transaction` 中，全成功或全失败
+- [ ] 占用 / 扣减类操作在事务内复检前置条件，防 TOCTOU 竞态
+- [ ] 金额 / 价格以数据库值为准，不信任前端传参
+
+### 文件上传
+- [ ] 两步式上传：先传对象存储拿 path，再随表单入库
+- [ ] 入库 normalize、展示 resolve，库内不存死 URL
+- [ ] 替换 / 关闭表单时清理孤儿临时文件
+- [ ] 文件类型与大小在服务端校验
+
+### 异步任务
+- [ ] 到期 / 过期类状态采用懒处理（查询前批量更新），无需 cron
+- [ ] 需主动推送 / 周期作业的场景才引入定时任务
+
+### 前端数据流
+- [ ] **先确认是否需要**：列表 / 搜索页筛选条件是否要同步到 URL Query（可分享、可前进后退）？— 需要则全站统一落地，不需要就用普通 state
+- [ ] 新建 / 编辑复用同一表单组件，用 mode 字段区分
 
 ---
 
