@@ -44,6 +44,7 @@ function ChangePasswordModal({
   onClose: () => void;
   onSuccess: () => void;
 }) {
+  const [currentPwd, setCurrentPwd] = useState("");
   const [newPwd, setNewPwd] = useState("");
   const [confirmPwd, setConfirmPwd] = useState("");
   const [showNew, setShowNew] = useState(false);
@@ -54,6 +55,7 @@ function ChangePasswordModal({
 
   useEffect(() => {
     if (open) {
+      setCurrentPwd("");
       setNewPwd("");
       setConfirmPwd("");
       setShowNew(false);
@@ -65,6 +67,7 @@ function ChangePasswordModal({
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    if (!currentPwd) { setError("请输入当前密码"); return; }
     if (newPwd.length < 6) { setError("密码不能少于 6 位"); return; }
     if (newPwd !== confirmPwd) { setError("两次密码输入不一致"); return; }
     setError("");
@@ -72,7 +75,7 @@ function ChangePasswordModal({
     try {
       await portalRequest("/portal/account/password", {
         method: "PUT",
-        json: { newPassword: newPwd },
+        json: { currentPassword: currentPwd, newPassword: newPwd },
       });
       toast.success("密码修改成功，请重新登录");
       onSuccess();
@@ -93,10 +96,20 @@ function ChangePasswordModal({
         </div>
         <form onSubmit={handleSubmit} className="p-5 space-y-4">
           <div>
+            <label className="text-sm text-text-2 font-medium block mb-1.5">当前密码</label>
+            <input
+              ref={inputRef}
+              type="password"
+              value={currentPwd}
+              onChange={(e) => { setCurrentPwd(e.target.value); setError(""); }}
+              placeholder="请输入当前密码"
+              className="w-full h-9 px-3 text-sm border border-[#ddd] rounded outline-none focus:border-[var(--color-primary)] transition-colors"
+            />
+          </div>
+          <div>
             <label className="text-sm text-text-2 font-medium block mb-1.5">新密码</label>
             <div className="relative">
               <input
-                ref={inputRef}
                 type={showNew ? "text" : "password"}
                 value={newPwd}
                 onChange={(e) => { setNewPwd(e.target.value); setError(""); }}

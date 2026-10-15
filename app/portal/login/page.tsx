@@ -39,9 +39,9 @@ function LoginForm() {
     const saved = localStorage.getItem("portal_remember");
     if (saved) {
       try {
-        const { username: u, password: p } = JSON.parse(saved);
+        // 只记住用户名，不在浏览器里保存密码
+        const { username: u } = JSON.parse(saved);
         setUsername(u || "");
-        setPassword(p || "");
         setRemember(true);
       } catch {
         localStorage.removeItem("portal_remember");
@@ -71,7 +71,7 @@ function LoginForm() {
       setPortalToken(res.token);
       if (res.profile) setPortalProfile(res.profile);
       if (remember) {
-        localStorage.setItem("portal_remember", JSON.stringify({ username: username.trim(), password }));
+        localStorage.setItem("portal_remember", JSON.stringify({ username: username.trim() }));
       } else {
         localStorage.removeItem("portal_remember");
       }
@@ -141,7 +141,7 @@ function LoginForm() {
             onVerified={setSliderVerified}
           />
 
-          {/* 记住密码 */}
+          {/* 记住账号 */}
           <label className="flex items-center gap-2 cursor-pointer select-none text-sm text-[#555]">
             <input
               type="checkbox"
@@ -149,7 +149,7 @@ function LoginForm() {
               onChange={(e) => setRemember(e.target.checked)}
               className="w-4 h-4 accent-[#62ab00] cursor-pointer"
             />
-            记住密码
+            记住账号
           </label>
 
           {/* 登录按钮 */}

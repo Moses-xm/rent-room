@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { serializeAdmin } from "@/lib/admin";
 import { requireManageAuth } from "@/lib/manage-auth";
+import { hashPassword } from "@/lib/password";
 import { prisma } from "@/lib/prisma";
 import { deleteUploadedAvatar } from "@/lib/uploaded-file";
 import { normalizeUploadPathForStorage } from "@/lib/upload-path";
@@ -60,7 +61,7 @@ export async function PUT(req: Request) {
       where: { id: auth.admin.id },
       data: {
         ...(hasAvatar ? { avatar: normalizedAvatar || null } : {}),
-        ...(password ? { password } : {}),
+        ...(password ? { password: await hashPassword(password) } : {}),
       },
     });
 

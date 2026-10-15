@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { normalizeUploadPathForStorage } from '@/lib/upload-path';
 import { serializeAdmin } from '@/lib/admin';
 import { requireManageAuth } from '@/lib/manage-auth';
+import { hashPassword } from '@/lib/password';
 import { prisma } from '@/lib/prisma';
 import { deleteUploadedAvatar } from '@/lib/uploaded-file';
 
@@ -37,7 +38,7 @@ export async function PUT(req: Request, props: { params: Promise<{ id: string }>
     };
 
     if (password) {
-      data.password = password;
+      data.password = await hashPassword(password);
     }
 
     const admin = await prisma.admin.update({

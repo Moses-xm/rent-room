@@ -87,6 +87,14 @@ export async function requirePortalAuth(request: Request): Promise<
 - 前端 `utils/portal-request.ts` 的 `portalRequest()` 函数在每次请求中自动附加 `Authorization: Bearer <token>` Header。
 - 若收到 401，`portalRequest()` 会自动清除 token 并重定向到 `/portal/login`。
 
+### 密码存储
+
+- 管理员和用户的登录密码都用 Node `crypto.scrypt` 加盐哈希后存储（`lib/password.ts`，格式 `scrypt$<salt hex>$<hash hex>`），用 `timingSafeEqual` 比对。
+- 兼容老数据：库里还是明文的密码（含 2021 年迁移过来的数据）照常能登录，**登录成功后自动改存为哈希**，不需要单独的迁移脚本。
+- 用户修改登录密码时必须验证当前密码；用户平台「记住账号」只在浏览器保存用户名，不保存密码。
+- 生产环境（`NODE_ENV=production`）未配置 `MANAGE_JWT_SECRET` / `PORTAL_JWT_SECRET` 时直接报错，不再退回代码里的开发密钥。
+- ⚠️ 已知未做：支付密码 `payCode`（6 位）仍为明文存储，且目前通过 `PUT /api/portal/account/info` 修改、不校验旧支付密码。
+
 ---
 
 ## 4. 文件上传
@@ -1013,7 +1021,7 @@ Portal API（`app/api/portal/`）：
 | `GET/DELETE /api/portal/account/orders/[id]` | 订单详情 / 软删除 |
 | `POST /api/portal/account/recharge` | 充值 |
 | `GET /api/portal/account/wallet-records` | 钱包消费记录（分页，支持 type 筛选） |
-| `PUT /api/portal/account/password` | 修改支付密码 |
+| `PUT /api/portal/account/password` | 修改登录密码（需验证当前密码） |
 
 ### 房源搜索与筛选
 
@@ -1190,7 +1198,7 @@ Portal API（`app/api/portal/`）：
 |------|------|------|------|
 | `POST` | `/api/portal/account/recharge` | 充值 | 登录用户 |
 | `GET` | `/api/portal/account/wallet-records?page=&limit=&type=` | 钱包消费记录（分页） | 登录用户 |
-| `PUT` | `/api/portal/account/password` | 修改支付密码 | 登录用户 |
+| `PUT` | `/api/portal/account/password` | 修改登录密码（需验证当前密码） | 登录用户 |
 
 > 钱包余额通过 `GET /api/portal/account/info` 与用户信息一起返回，无独立查询接口。
 
@@ -1200,9 +1208,11 @@ Portal API（`app/api/portal/`）：
 - 事务：更新 `user.wallet`，创建 `WalletRecord`（`type=1`，`amount=+充值金额`，`balanceAfter=充值后余额`）
 - 返回：`{ walletRecord, newBalance }`
 
-**修改支付密码**：
-- 请求体：`{ oldPayCode: string, newPayCode: string }`（6 位数字）
-- 验证旧密码后更新 `user.payCode`
+**修改登录密码**（`PUT /api/portal/account/password`）：
+- 请求体：`{ currentPassword: string, newPassword: string }`（新密码至少 6 位）
+- 验证当前密码后，以 scrypt 哈希更新 `user.password`；当前密码错误返回 400（不用 401，避免前端误判为登录过期而登出）
+
+**修改支付密码**（⬜ 未单独实现）：原计划 `{ oldPayCode, newPayCode }` 校验旧支付密码后更新 `user.payCode`；目前支付密码随 `PUT /api/portal/account/info` 一起修改，不校验旧值（见 §3「密码存储」）
 
 #### 通知类型枚举
 

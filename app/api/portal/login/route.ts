@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { hashPassword, isLegacyPassword, verifyPassword } from "@/lib/password";
 import { createPortalToken } from "@/lib/portal-auth";
 import { prisma } from "@/lib/prisma";
 
@@ -23,8 +24,11 @@ export async function POST(req: Request) {
     if (!user.isActive) {
       return NextResponse.json({ success: false, message: "账号已停用，请联系客服" }, { status: 403 });
     }
-    if (user.password !== password) {
+    if (!(await verifyPassword(password, user.password))) {
       return NextResponse.json({ success: false, message: "密码错误，请重新输入" }, { status: 401 });
+    }
+    if (isLegacyPassword(user.password)) {
+      await prisma.user.update({ where: { id: user.id }, data: { password: await hashPassword(password) } });
     }
 
     const token = createPortalToken({ id: user.id, username: user.username });

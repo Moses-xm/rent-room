@@ -140,7 +140,7 @@ rent-room/
 │   │   ├── layout.tsx
 │   │   └── page.tsx                  # Dashboard
 │   ├── portal/
-│   │   ├── login/page.tsx            # 用户登录页（滑块验证+记住密码）
+│   │   ├── login/page.tsx            # 用户登录页（滑块验证+记住账号）
 │   │   ├── register/page.tsx         # 用户注册页（滑块验证）
 │   │   ├── areaRoom/page.tsx         # 区域找房（筛选+列表+分页；支持 ?q= 关键词搜索）
 │   │   ├── subwayRoom/page.tsx       # 地铁找房（筛选+列表+分页）
@@ -235,6 +235,6 @@ rent-room/
 管理平台：登录 ✅、个人资料 ✅、管理员管理 ✅、用户管理 ✅、小区管理 ✅、轮播图管理 ✅、房屋设施管理 ✅、房源管理 ✅、收藏管理 ✅、预约管理 ✅、通知管理 ✅、合同管理 ✅、其余模块 ⬜。用户平台：登录 ✅、注册 ✅、首页 ✅、区域找房（含关键词搜索）✅、地铁找房 ✅、小区找房 ✅、小区房源列表 ✅、房源详情 ✅、地图找房 ✅、我的订单 ✅、立即租赁（创建合同）✅、我的合同详情（交租/续租/退房/删除）✅、其余模块 ⬜。数据库：`admin` 表 ✅、`user` 表 ✅、`community` 表 ✅、`carousel` 表 ✅、`facility` 表 ✅、`room` 表 ✅、`collection` 表 ✅、`appointment` 表 ✅、`notification` 表 ✅、`contract` 表 ✅、`order` 表 ✅、`wallet_record` 表 ✅。Portal API：轮播图 ✅、房源列表（含 district/subwayLine/price/rentType/cmyId 筛选）✅、房源详情（含设施、发布者、浏览计数）✅、小区列表（含 city/district 筛选）✅、小区详情+房源 ✅、地图找房（districts+communities）✅、登录 ✅、注册 ✅、合同 CRUD+pay/renew/checkout ✅、其余 ⬜。
 
 ## 协作约定
-- 回复用中文，以 **My lord** 开头
+- 回复用中文
 - 代码改动完成后同步更新 [doc/design.md](doc/design.md)，并告知修改了哪些部分；无需修改也须说明
 - 目录结构变化时同步更新本文档「项目结构」章节

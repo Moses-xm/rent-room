@@ -61,8 +61,8 @@ export const DEFAULT_PAGE_SIZE_OPTIONS = [5, 10, 20, 50];
 // =============================================================================
 
 // 百度地图 JS API 的鉴权密钥（AK）。
-// 优先读取环境变量 NEXT_PUBLIC_BAIDU_MAP_AK，未配置时使用内置备用值（仅用于开发）。
-export const BAIDU_MAP_AK = process.env.NEXT_PUBLIC_BAIDU_MAP_AK ?? 'YOUR_BAIDU_MAP_AK';
+// 从环境变量 NEXT_PUBLIC_BAIDU_MAP_AK 读取（见 .env.example），代码里不保存密钥。
+export const BAIDU_MAP_AK = process.env.NEXT_PUBLIC_BAIDU_MAP_AK ?? '';
 
 // 地图缩放等级预设。数字越大地图越详细（街道级），数字越小范围越大（省级）。
 export const MAP_ZOOM_PROVINCE = 9;   // 省级视野，能看到整个省的轮廓

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { Prisma } from '@prisma/client';
 import { normalizeUploadPathForStorage } from '@/lib/upload-path';
 import { requireManageAuth } from '@/lib/manage-auth';
+import { hashPassword } from '@/lib/password';
 import { prisma } from '@/lib/prisma';
 import { serializeUser } from '@/lib/user';
 
@@ -72,7 +73,7 @@ export async function POST(req: Request) {
     const user = await prisma.user.create({
       data: {
         username,
-        password,
+        password: await hashPassword(password),
         avatar: normalizedAvatar || null,
         phone: phone || null,
         nickname: nickname || null,

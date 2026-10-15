@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { hashPassword } from "@/lib/password";
 import { createPortalToken } from "@/lib/portal-auth";
 import { prisma } from "@/lib/prisma";
 
@@ -27,7 +28,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ success: false, message: "用户名已被注册，请更换" }, { status: 409 });
     }
 
-    const user = await prisma.user.create({ data: { username, password } });
+    const user = await prisma.user.create({ data: { username, password: await hashPassword(password) } });
     const token = createPortalToken({ id: user.id, username: user.username });
 
     return NextResponse.json({

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { serializeAdmin } from "@/lib/admin";
 import { createManageToken } from "@/lib/manage-auth";
+import { hashPassword, isLegacyPassword, verifyPassword } from "@/lib/password";
 import { prisma } from "@/lib/prisma";
 
 export async function POST(req: Request) {
@@ -42,11 +43,18 @@ export async function POST(req: Request) {
       );
     }
 
-    if (admin.password !== password) {
+    if (!(await verifyPassword(password, admin.password))) {
       return NextResponse.json(
         { success: false, message: "密码错误，请重新输入" },
         { status: 401 },
       );
+    }
+
+    if (isLegacyPassword(admin.password)) {
+      await prisma.admin.update({
+        where: { id: admin.id },
+        data: { password: await hashPassword(password) },
+      });
     }
 
     const token = createManageToken({ id: admin.id, username: admin.username });

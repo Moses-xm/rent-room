@@ -17,7 +17,13 @@ type AuthenticatedAdmin = {
 };
 
 function getJwtSecret() {
-  return process.env.MANAGE_JWT_SECRET || "rent-room-manage-secret-dev-only";
+  const secret = process.env.MANAGE_JWT_SECRET;
+  if (secret) return secret;
+  // 生产环境缺少密钥时直接报错，避免用公开的开发密钥签发 token
+  if (process.env.NODE_ENV === "production") {
+    throw new Error("MANAGE_JWT_SECRET is not set");
+  }
+  return "rent-room-manage-secret-dev-only";
 }
 
 function toBase64Url(input: string | Uint8Array) {

@@ -18,7 +18,13 @@ type AuthenticatedUser = {
 };
 
 function getJwtSecret() {
-  return process.env.PORTAL_JWT_SECRET || 'rent-room-portal-secret-dev-only';
+  const secret = process.env.PORTAL_JWT_SECRET;
+  if (secret) return secret;
+  // 生产环境缺少密钥时直接报错，避免用公开的开发密钥签发 token
+  if (process.env.NODE_ENV === 'production') {
+    throw new Error('PORTAL_JWT_SECRET is not set');
+  }
+  return 'rent-room-portal-secret-dev-only';
 }
 
 function toBase64Url(input: string | Uint8Array) {
